@@ -1,0 +1,432 @@
+// Ported from rcheevos (MIT) — src/rhash/hash_rom.c
+// Cartridge hash algorithms: 7800, Arcade, Arduboy (Intel HEX text hash),
+// Lynx, NES/FDS, N64 (byteswap variants), NDS/DSi (SuperCard header, arm9/
+// arm7/icon blocks), PCE, SCV, SNES. Translated 1:1.
+
+using System.Text;
+
+namespace RASharp.Core;
+
+public static class HashRom
+{
+    private static int UnheaderedIteratorBuffer(out string hash, RcHashIterator iterator, int headerSize)
+    {
+        return HashEngine.HashBuffer(out hash, iterator.Buffer!, headerSize, iterator.BufferSize - headerSize, iterator);
+    }
+
+    private static int IteratorBuffer(out string hash, RcHashIterator iterator)
+    {
+        return HashEngine.HashBuffer(out hash, iterator.Buffer!, 0, iterator.BufferSize, iterator);
+    }
+
+    private static bool MemEquals(byte[] buffer, int offset, string text)
+    {
+        if (offset + text.Length > buffer.Length)
+            return false;
+
+        for (int i = 0; i < text.Length; ++i)
+        {
+            if (buffer[offset + i] != (byte)text[i])
+                return false;
+        }
+
+        return true;
+    }
+
+    private static uint ReadLe32(byte[] buffer, int offset)
+    {
+        return (uint)(buffer[offset] | (buffer[offset + 1] << 8) | (buffer[offset + 2] << 16) | (buffer[offset + 3] << 24));
+    }
+
+    /* ===================================================== */
+
+    public static int RcHash7800(out string hash, RcHashIterator iterator)
+    {
+        /* if the file contains a header, ignore it */
+        if (MemEquals(iterator.Buffer!, 1, "ATARI7800"))
+        {
+            HashEngine.IteratorVerbose(iterator, "Ignoring 7800 header");
+            return UnheaderedIteratorBuffer(out hash, iterator, 128);
+        }
+
+        return IteratorBuffer(out hash, iterator);
+    }
+
+    public static int RcHashArcade(out string hash, RcHashIterator iterator)
+    {
+        /* arcade hash is just the hash of the filename (no extension) - the cores are pretty stringent about having the right ROM data */
+        string filename = HashEngine.PathGetFilename(iterator.Path!);
+        string ext = HashEngine.PathGetExtension(filename);
+        int filenameLength = filename.Length - ext.Length - 1;
+
+        /* fbneo supports loading subsystems by using specific folder names.
+         * if one is found, include it in the hash.
+         * https://github.com/libretro/FBNeo/blob/master/src/burner/libretro/README.md#emulating-consoles-and-computers
+         */
+        int filenameIndex = iterator.Path!.Length - filename.Length;
+        if (filenameIndex > 1)
+        {
+            bool includeFolder = false;
+
+            /* walk back from the separator before the filename to the separator
+             * before the parent folder (C: folder = filename - 1, walk while
+             * folder[-1] is not a separator and folder > path) */
+            int folder = filenameIndex - 1;
+            while (folder > 0 && iterator.Path[folder - 1] != '/' && iterator.Path[folder - 1] != '\\')
+                --folder;
+
+            int parentFolderLength = filenameIndex - folder - 1;
+            string folderName = "";
+            if (parentFolderLength < 16)
+            {
+                folderName = iterator.Path.Substring(folder, parentFolderLength).ToLowerInvariant();
+            }
+
+            switch (parentFolderLength)
+            {
+                case 3:
+                    if (folderName is "nes" or "fds" or "sms" or "msx" or "ngp" or "pce" or "chf" or "sgx")
+                        includeFolder = true;
+                    break;
+                case 4:
+                    if (folderName is "tg16" or "msx1")
+                        includeFolder = true;
+                    break;
+                case 5:
+                    if (folderName == "neocd")
+                        includeFolder = true;
+                    break;
+                case 6:
+                    if (folderName is "coleco" or "sg1000")
+                        includeFolder = true;
+                    break;
+                case 7:
+                    if (folderName == "genesis")
+                        includeFolder = true;
+                    break;
+                case 8:
+                    if (folderName is "gamegear" or "megadriv" or "pcengine" or "channelf" or "spectrum")
+                        includeFolder = true;
+                    break;
+                case 9:
+                    if (folderName == "megadrive")
+                        includeFolder = true;
+                    break;
+                case 10:
+                    if (folderName is "supergrafx" or "zxspectrum")
+                        includeFolder = true;
+                    break;
+                case 12:
+                    if (folderName is "mastersystem" or "colecovision")
+                        includeFolder = true;
+                    break;
+                default:
+                    break;
+            }
+
+            if (includeFolder)
+            {
+                if (parentFolderLength + filenameLength + 1 < 128)
+                {
+                    /* buffer[parent_folder_length] = '_'; copy filename after it */
+                    byte[] combined = Encoding.UTF8.GetBytes(folderName + "_" + filename.Substring(0, filenameLength));
+                    return HashEngine.HashBuffer(out hash, combined, 0, combined.Length, iterator);
+                }
+            }
+        }
+
+        byte[] nameBytes = Encoding.UTF8.GetBytes(filename.Substring(0, filenameLength));
+        return HashEngine.HashBuffer(out hash, nameBytes, 0, filenameLength, iterator);
+    }
+
+    /* rc_hash_text — line-normalized text hash (Arduboy Intel HEX) */
+    private static readonly byte[] LineEnding = { (byte)'\n' };
+
+    private static int RcHashText(out string hash, RcHashIterator iterator)
+    {
+        var md5 = new HashMd5();
+        byte[] buffer = iterator.Buffer!;
+        int scan = 0;
+        int stop = iterator.BufferSize;
+
+        do
+        {
+            int line = scan;
+
+            /* find end of line */
+            while (scan < stop && buffer[scan] != (byte)'\r' && buffer[scan] != (byte)'\n')
+                ++scan;
+
+            md5.Append(buffer, line, scan - line);
+
+            /* include a normalized line ending */
+            /* NOTE: this causes a line ending to be hashed at the end of the file, even if one was not present */
+            md5.Append(LineEnding, 0, 1);
+
+            /* skip newline */
+            if (scan < stop && buffer[scan] == (byte)'\r')
+                ++scan;
+            if (scan < stop && buffer[scan] == (byte)'\n')
+                ++scan;
+
+        } while (scan < stop);
+
+        return HashEngine.Finalize(iterator, md5, out hash);
+    }
+
+    public static int RcHashArduboy(out string hash, RcHashIterator iterator)
+    {
+        if (iterator.Path != null && HashEngine.PathCompareExtension(iterator.Path, "arduboy") != 0)
+        {
+            /* rc_hash_arduboyfx — Phase 7 (zip-based) */
+            return HashEngine.NotYetImplemented(out hash, iterator, "rc_hash_arduboyfx", "Phase 7");
+        }
+
+        if (iterator.Buffer == null)
+            return HashEngine.BufferedFile(out hash, ConsoleIds.RC_CONSOLE_ARDUBOY, iterator);
+
+        /* https://en.wikipedia.org/wiki/Intel_HEX */
+        return RcHashText(out hash, iterator);
+    }
+
+    public static int RcHashLynx(out string hash, RcHashIterator iterator)
+    {
+        /* if the file contains a header, ignore it */
+        /* NOTE: memcmp against "LYNX" compares 5 bytes (includes the NUL terminator) */
+        if (MemEquals(iterator.Buffer!, 0, "LYNX\0"))
+        {
+            HashEngine.IteratorVerbose(iterator, "Ignoring LYNX header");
+            return UnheaderedIteratorBuffer(out hash, iterator, 64);
+        }
+
+        return IteratorBuffer(out hash, iterator);
+    }
+
+    public static int RcHashNes(out string hash, RcHashIterator iterator)
+    {
+        /* if the file contains a header, ignore it */
+        if (MemEquals(iterator.Buffer!, 0, "NES\x1A"))
+        {
+            HashEngine.IteratorVerbose(iterator, "Ignoring NES header");
+            return UnheaderedIteratorBuffer(out hash, iterator, 16);
+        }
+
+        if (MemEquals(iterator.Buffer!, 0, "FDS\x1A"))
+        {
+            HashEngine.IteratorVerbose(iterator, "Ignoring FDS header");
+            return UnheaderedIteratorBuffer(out hash, iterator, 16);
+        }
+
+        return IteratorBuffer(out hash, iterator);
+    }
+
+    public static int RcHashN64(out string hash, RcHashIterator iterator)
+    {
+        const int bufferSize = 65536;
+        var md5 = new HashMd5();
+        byte[] buffer = new byte[bufferSize];
+        long remaining;
+        bool isV64 = false;
+        bool isN64 = false;
+        hash = "";
+
+        object? fileHandle = HashEngine.FileOpen(iterator, iterator.Path!);
+        if (fileHandle == null)
+            return HashEngine.IteratorError(iterator, "Could not open file");
+
+        /* read first byte so we can detect endianness */
+        HashEngine.FileSeek(iterator, fileHandle, 0, HashEngine.SEEK_SET);
+        HashEngine.FileRead(iterator, fileHandle, buffer, 1);
+
+        if (buffer[0] == 0x80) /* z64 format (big endian [native]) */
+        {
+        }
+        else if (buffer[0] == 0x37) /* v64 format (byteswapped) */
+        {
+            HashEngine.IteratorVerbose(iterator, "converting v64 to z64");
+            isV64 = true;
+        }
+        else if (buffer[0] == 0x40) /* n64 format (little endian) */
+        {
+            HashEngine.IteratorVerbose(iterator, "converting n64 to z64");
+            isN64 = true;
+        }
+        else if (buffer[0] == 0xE8 || buffer[0] == 0x22) /* ndd format (don't byteswap) */
+        {
+        }
+        else
+        {
+            HashEngine.IteratorVerbose(iterator, "Not a Nintendo 64 ROM");
+            return 0;
+        }
+
+        /* calculate total file size */
+        HashEngine.FileSeek(iterator, fileHandle, 0, HashEngine.SEEK_END);
+        remaining = HashEngine.FileTell(iterator, fileHandle);
+        if (remaining > HashEngine.MAX_BUFFER_SIZE)
+            remaining = HashEngine.MAX_BUFFER_SIZE;
+
+        HashEngine.IteratorVerboseFormatted(iterator, "Hashing {0} bytes", (uint)remaining);
+
+        /* begin hashing */
+        HashEngine.FileSeek(iterator, fileHandle, 0, HashEngine.SEEK_SET);
+        while (remaining >= bufferSize)
+        {
+            HashEngine.FileRead(iterator, fileHandle, buffer, bufferSize);
+
+            if (isV64)
+                HashEngine.Byteswap16(buffer, bufferSize);
+            else if (isN64)
+                HashEngine.Byteswap32(buffer, bufferSize);
+
+            md5.Append(buffer, bufferSize);
+            remaining -= bufferSize;
+        }
+
+        if (remaining > 0)
+        {
+            HashEngine.FileRead(iterator, fileHandle, buffer, (int)remaining);
+
+            if (isV64)
+                HashEngine.Byteswap16(buffer, (int)remaining);
+            else if (isN64)
+                HashEngine.Byteswap32(buffer, (int)remaining);
+
+            md5.Append(buffer, (int)remaining);
+        }
+
+        /* cleanup */
+        HashEngine.FileClose(iterator, fileHandle);
+
+        return HashEngine.Finalize(iterator, md5, out hash);
+    }
+
+    public static int RcHashNintendoDs(out string hash, RcHashIterator iterator)
+    {
+        byte[] header = new byte[512];
+        long offset = 0;
+        hash = "";
+
+        object? fileHandle = HashEngine.FileOpen(iterator, iterator.Path!);
+        if (fileHandle == null)
+            return HashEngine.IteratorError(iterator, "Could not open file");
+
+        HashEngine.FileSeek(iterator, fileHandle, 0, HashEngine.SEEK_SET);
+        if (HashEngine.FileRead(iterator, fileHandle, header, 512) != 512)
+        {
+            HashEngine.FileClose(iterator, fileHandle);
+            return HashEngine.IteratorError(iterator, "Failed to read header");
+        }
+
+        if (header[0] == 0x2E && header[1] == 0x00 && header[2] == 0x00 && header[3] == 0xEA &&
+            header[0xB0] == 0x44 && header[0xB1] == 0x46 && header[0xB2] == 0x96 && header[0xB3] == 0)
+        {
+            /* SuperCard header detected, ignore it */
+            HashEngine.IteratorVerbose(iterator, "Ignoring SuperCard header");
+
+            offset = 512;
+            HashEngine.FileSeek(iterator, fileHandle, offset, HashEngine.SEEK_SET);
+            HashEngine.FileRead(iterator, fileHandle, header, 512);
+        }
+
+        uint arm9Addr = ReadLe32(header, 0x20);
+        uint arm9Size = ReadLe32(header, 0x2C);
+        uint arm7Addr = ReadLe32(header, 0x30);
+        uint arm7Size = ReadLe32(header, 0x3C);
+        uint iconAddr = ReadLe32(header, 0x68);
+
+        if (arm9Size + arm7Size > 16 * 1024 * 1024)
+        {
+            /* sanity check - code blocks are typically less than 1MB each - assume not a DS ROM */
+            HashEngine.FileClose(iterator, fileHandle);
+            return HashEngine.IteratorErrorFormatted(iterator, "arm9 code size ({0}) + arm7 code size ({1}) exceeds 16MB", arm9Size, arm7Size);
+        }
+
+        uint hashSize = 0xA00;
+        if (arm9Size > hashSize)
+            hashSize = arm9Size;
+        if (arm7Size > hashSize)
+            hashSize = arm7Size;
+
+        byte[] hashBuffer = new byte[hashSize];
+        var md5 = new HashMd5();
+
+        HashEngine.IteratorVerbose(iterator, "Hashing 352 byte header");
+        md5.Append(header, 0, 0x160);
+
+        HashEngine.IteratorVerboseFormatted(iterator, "Hashing {0} byte arm9 code (at {1:X8})", arm9Size, arm9Addr);
+
+        HashEngine.FileSeek(iterator, fileHandle, arm9Addr + offset, HashEngine.SEEK_SET);
+        HashEngine.FileRead(iterator, fileHandle, hashBuffer, (int)arm9Size);
+        md5.Append(hashBuffer, (int)arm9Size);
+
+        HashEngine.IteratorVerboseFormatted(iterator, "Hashing {0} byte arm7 code (at {1:X8})", arm7Size, arm7Addr);
+
+        HashEngine.FileSeek(iterator, fileHandle, arm7Addr + offset, HashEngine.SEEK_SET);
+        HashEngine.FileRead(iterator, fileHandle, hashBuffer, (int)arm7Size);
+        md5.Append(hashBuffer, (int)arm7Size);
+
+        HashEngine.IteratorVerboseFormatted(iterator, "Hashing 2560 byte icon and labels data (at {0:X8})", iconAddr);
+
+        HashEngine.FileSeek(iterator, fileHandle, iconAddr + offset, HashEngine.SEEK_SET);
+        int numRead = HashEngine.FileRead(iterator, fileHandle, hashBuffer, 0xA00);
+        if (numRead < 0xA00)
+        {
+            /* some homebrew games don't provide a full icon block, and no data after the icon block.
+             * if we didn't get a full icon block, fill the remaining portion with 0s
+             */
+            HashEngine.IteratorVerboseFormatted(iterator,
+                "Warning: only got {0} bytes for icon and labels data, 0-padding to 2560 bytes", (uint)numRead);
+
+            Array.Clear(hashBuffer, numRead, 0xA00 - numRead);
+        }
+
+        md5.Append(hashBuffer, 0xA00);
+
+        HashEngine.FileClose(iterator, fileHandle);
+
+        return HashEngine.Finalize(iterator, md5, out hash);
+    }
+
+    public static int RcHashPce(out string hash, RcHashIterator iterator)
+    {
+        /* The PCE header doesn't bear any distinguishable marks, so we have to detect
+         * it by looking at the file size. The core looks for anything that's 512 bytes
+         * more than a multiple of 8KB, so we'll do that too.
+         * https://github.com/libretro/beetle-pce-libretro/blob/af28fb0385d00e0292c4703b3aa7e72762b564d2/mednafen/pce/huc.cpp#L196-L202
+         */
+        if ((iterator.BufferSize & 512) != 0)
+        {
+            HashEngine.IteratorVerbose(iterator, "Ignoring PCE header");
+            return UnheaderedIteratorBuffer(out hash, iterator, 512);
+        }
+
+        return IteratorBuffer(out hash, iterator);
+    }
+
+    public static int RcHashScv(out string hash, RcHashIterator iterator)
+    {
+        /* if the file contains a header, ignore it */
+        /* https://gitlab.com/MaaaX-EmuSCV/libretro-emuscv/-/blob/master/readme.txt#L211 */
+        if (MemEquals(iterator.Buffer!, 0, "EmuSCV"))
+        {
+            HashEngine.IteratorVerbose(iterator, "Ignoring SCV header");
+            return UnheaderedIteratorBuffer(out hash, iterator, 32);
+        }
+
+        return IteratorBuffer(out hash, iterator);
+    }
+
+    public static int RcHashSnes(out string hash, RcHashIterator iterator)
+    {
+        /* if the file contains a header, ignore it */
+        long calcSize = ((long)iterator.BufferSize / 0x2000) * 0x2000;
+        if (iterator.BufferSize - calcSize == 512)
+        {
+            HashEngine.IteratorVerbose(iterator, "Ignoring SNES header");
+            return UnheaderedIteratorBuffer(out hash, iterator, 512);
+        }
+
+        return IteratorBuffer(out hash, iterator);
+    }
+}

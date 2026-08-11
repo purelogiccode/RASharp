@@ -1,0 +1,97 @@
+// AesHelper — AES-128 primitives matching the call patterns of rcheevos'
+// aes.c (MIT reference; BCL-backed). The engine uses 128-bit keys only
+// (AES_KEYLEN == 16), CBC with no padding, and CTR whose counter is the
+// full 128-bit big-endian block counter incremented after every full block
+// (the C mutates the IV across calls, so the counter is passed by reference).
+
+using System.Security.Cryptography;
+
+namespace RASharp.Core;
+
+public static class AesHelper
+{
+    public const int KeyLen = 16;
+    public const int BlockLen = 16;
+
+    /* AES_CBC_decrypt_buffer */
+    public static void AesCbcDecrypt(byte[] data, int offset, int length, byte[] key, byte[] iv)
+    {
+        using var aes = Aes.Create();
+        aes.Mode = CipherMode.CBC;
+        aes.Padding = PaddingMode.None;
+        aes.KeySize = 128;
+        aes.Key = key;
+        aes.IV = iv;
+
+        using var decryptor = aes.CreateDecryptor();
+        decryptor.TransformBlock(data, offset, length, data, offset);
+    }
+
+    /* AES_CBC_encrypt_buffer (test-fixture helper; the engine only decrypts) */
+    public static void AesCbcEncrypt(byte[] data, int offset, int length, byte[] key, byte[] iv)
+    {
+        using var aes = Aes.Create();
+        aes.Mode = CipherMode.CBC;
+        aes.Padding = PaddingMode.None;
+        aes.KeySize = 128;
+        aes.Key = key;
+        aes.IV = iv;
+
+        using var encryptor = aes.CreateEncryptor();
+        encryptor.TransformBlock(data, offset, length, data, offset);
+    }
+
+    /* AES_CTR_xcrypt_buffer — XORs `length` bytes with the keystream derived
+     * from `counter` (mutated: incremented after every full 16-byte block,
+     * exactly like the C's Iv member) */
+    public static void AesCtrXcrypt(byte[] data, int offset, int length, byte[] key, byte[] counter)
+    {
+        using var aes = Aes.Create();
+        aes.Mode = CipherMode.ECB;
+        aes.Padding = PaddingMode.None;
+        aes.KeySize = 128;
+        aes.Key = key;
+
+        using var encryptor = aes.CreateEncryptor();
+
+        /* encrypt the counter stream in 64 KiB chunks: each chunk holds
+         * consecutive 128-bit big-endian counters */
+        const int chunkCounters = 4096; /* 4096 * 16 = 64 KiB */
+        byte[] counterStream = new byte[chunkCounters * BlockLen];
+
+        int pos = 0;
+        while (pos < length)
+        {
+            /* fill the chunk with consecutive counters */
+            int counters = Math.Min(chunkCounters, (length - pos + BlockLen - 1) / BlockLen);
+            for (int c = 0; c < counters; c++)
+            {
+                Array.Copy(counter, 0, counterStream, c * BlockLen, BlockLen);
+                IncrementCounter(counter);
+            }
+
+            encryptor.TransformBlock(counterStream, 0, counters * BlockLen, counterStream, 0);
+
+            int count = Math.Min(counters * BlockLen, length - pos);
+            for (int i = 0; i < count; i++)
+                data[offset + pos + i] ^= counterStream[i];
+            pos += count;
+        }
+    }
+
+    /* full 128-bit big-endian increment (the C's byte-wise carry loop) */
+    private static void IncrementCounter(byte[] counter)
+    {
+        for (int i = BlockLen - 1; i >= 0; i--)
+        {
+            if (counter[i] == 255)
+            {
+                counter[i] = 0;
+                continue;
+            }
+
+            counter[i] += 1;
+            break;
+        }
+    }
+}
