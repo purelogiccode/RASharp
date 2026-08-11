@@ -178,8 +178,7 @@ public static class HashRom
     {
         if (iterator.Path != null && HashEngine.PathCompareExtension(iterator.Path, "arduboy") != 0)
         {
-            /* rc_hash_arduboyfx — Phase 7 (zip-based) */
-            return HashEngine.NotYetImplemented(out hash, iterator, "rc_hash_arduboyfx", "Phase 7");
+            return HashZip.RcHashArduboyFx(out hash, iterator);
         }
 
         if (iterator.Buffer == null)

@@ -732,7 +732,7 @@ public static class HashEngine
     private static int RcHashSegaCd(out string hash, RcHashIterator iterator) => HashDisc.RcHashSegaCd(out hash, iterator);
     private static int RcHashWii(out string hash, RcHashIterator iterator) => HashDisc.RcHashWii(out hash, iterator);
         private static int RcHashNintendo3Ds(out string hash, RcHashIterator iterator) => HashEncrypted.RcHashNintendo3Ds(out hash, iterator);
-    private static int RcHashMsDos(out string hash, RcHashIterator iterator) => NotYetImplemented(out hash, iterator, "rc_hash_ms_dos", "Phase 7");
+    private static int RcHashMsDos(out string hash, RcHashIterator iterator) => HashZip.RcHashMsDos(out hash, iterator);
 
     public static int FromFile(out string hash, uint consoleId, RcHashIterator iterator)
     {

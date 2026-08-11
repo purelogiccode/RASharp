@@ -90,7 +90,7 @@ public static class HashEncrypted
                         secondaryKeyXSlot = 0x1B;
                         break;
                     default:
-                        return HashEngine.IteratorErrorFormatted(iterator, "Invalid crypto method %02X", cryptoMethod);
+                        return HashEngine.IteratorErrorFormatted(iterator, "Invalid crypto method {0:X2}", cryptoMethod);
                 }
 
                 /* We only need the program id if we're doing seed crypto */
@@ -141,7 +141,7 @@ public static class HashEncrypted
                     break;
 
                 default:
-                    return HashEngine.IteratorErrorFormatted(iterator, "Invalid NCCH version %04X", ncchVersion);
+                    return HashEngine.IteratorErrorFormatted(iterator, "Invalid NCCH version {0:X4}", ncchVersion);
             }
         }
 
@@ -155,14 +155,14 @@ public static class HashEncrypted
              * However, we can abuse how CBC decryption works and just set the IV to last block we would otherwise decrypt.
              * We don't care about the data betweeen the header and ExeFS, so this works fine. */
 
-            HashEngine.FileSeek(iterator, fileHandle, exefsOffset - AesHelper.BlockLen, 2 /* SEEK_CUR */);
+            HashEngine.FileSeek(iterator, fileHandle, exefsOffset - AesHelper.BlockLen, 1 /* SEEK_CUR */);
             if (HashEngine.FileRead(iterator, fileHandle, ciaIv, AesHelper.BlockLen) != AesHelper.BlockLen)
                 return HashEngine.IteratorError(iterator, "Could not read NCCH data");
         }
         else
         {
             /* No encryption present, just skip over the in-between data */
-            HashEngine.FileSeek(iterator, fileHandle, exefsOffset, 2 /* SEEK_CUR */);
+            HashEngine.FileSeek(iterator, fileHandle, exefsOffset, 1 /* SEEK_CUR */);
         }
 
         hashBuffer = new byte[exefsBufferSize];
@@ -175,7 +175,7 @@ public static class HashEncrypted
         HashEngine.IteratorVerbose(iterator, "Hashing 512 byte NCCH header");
         md5.Append(header, 0x200);
 
-        HashEngine.IteratorVerboseFormatted(iterator, "Hashing %u bytes for ExeFS (at NCCH offset %08X%08X)",
+        HashEngine.IteratorVerboseFormatted(iterator, "Hashing {0} bytes for ExeFS (at NCCH offset {1:X8}{2:X8})",
             exefsBufferSize, (uint)(exefsOffset >> 32), (uint)exefsOffset);
 
         if (HashEngine.FileRead(iterator, fileHandle, hashBuffer, (int)exefsBufferSize) != exefsBufferSize)
@@ -326,7 +326,7 @@ public static class HashEncrypted
                 return 0x3C + 0x40;
 
             default:
-                HashEngine.IteratorErrorFormatted(iterator, "Invalid signature type %08X", signatureType);
+                HashEngine.IteratorErrorFormatted(iterator, "Invalid signature type {0:X8}", signatureType);
                 return 0;
         }
     }
@@ -395,7 +395,7 @@ public static class HashEncrypted
                 return HashEngine.IteratorError(iterator, "Could not read NCCH header");
 
             if (StartsWith(header, "NCCH", 4, 0x100) == false)
-                return HashEngine.IteratorErrorFormatted(iterator, "NCCH header was not at %08X%08X", (uint)(contentOffset >> 32), (uint)contentOffset);
+                return HashEngine.IteratorErrorFormatted(iterator, "NCCH header was not at {0:X8}{1:X8}", (uint)(contentOffset >> 32), (uint)contentOffset);
 
             return RcHashNintendo3DsNcch(md5, fileHandle!, header, null, iterator);
         }
@@ -423,10 +423,10 @@ public static class HashEncrypted
         commonKeyIndex = header[0xB1];
 
         if (commonKeyIndex > 5)
-            return HashEngine.IteratorErrorFormatted(iterator, "Invalid common key index %02X", commonKeyIndex);
+            return HashEngine.IteratorErrorFormatted(iterator, "Invalid common key index {0:X2}", commonKeyIndex);
 
         if (iterator.Callbacks.Encryption.Get3DsCiaNormalKey(commonKeyIndex, normalKey) == 0)
-            return HashEngine.IteratorErrorFormatted(iterator, "Could not obtain common key %02X", commonKeyIndex);
+            return HashEngine.IteratorErrorFormatted(iterator, "Could not obtain common key {0:X2}", commonKeyIndex);
 
         Array.Clear(iv, 0, iv.Length);
         Array.Copy(titleId, 0, iv, 0, titleId.Length);
@@ -442,7 +442,7 @@ public static class HashEncrypted
         AesHelper.AesCbcDecrypt(header, 0, 0x200, titleKey, iv);
 
         if (StartsWith(header, "NCCH", 4, 0x100) == false)
-            return HashEngine.IteratorErrorFormatted(iterator, "NCCH header was not at %08X%08X", (uint)(contentOffset >> 32), (uint)contentOffset);
+            return HashEngine.IteratorErrorFormatted(iterator, "NCCH header was not at {0:X8}{1:X8}", (uint)(contentOffset >> 32), (uint)contentOffset);
 
         return RcHashNintendo3DsNcch(md5, fileHandle!, header, titleKey, iterator);
     }
@@ -469,7 +469,7 @@ public static class HashEncrypted
 
         HashEngine.FileSeek(iterator, fileHandle, codeOffset, 0 /* SEEK_SET */);
 
-        HashEngine.IteratorVerboseFormatted(iterator, "Hashing %u bytes for 3DSX (at %08X)", codeSize, (uint)codeOffset);
+        HashEngine.IteratorVerboseFormatted(iterator, "Hashing {0} bytes for 3DSX (at {1:X8})", codeSize, (uint)codeOffset);
 
         if (HashEngine.FileRead(iterator, fileHandle, hashBuffer, (int)codeSize) != codeSize)
             return HashEngine.IteratorError(iterator, "Could not read 3DSX code segment");
@@ -526,7 +526,7 @@ public static class HashEncrypted
             md5.Append(header, 0x200);
 
             HashEngine.IteratorVerboseFormatted(iterator,
-                "Detected NCSD header, seeking to NCCH partition at %08X%08X",
+                "Detected NCSD header, seeking to NCCH partition at {0:X8}{1:X8}",
                 (uint)(headerOffset >> 32), (uint)headerOffset);
 
             HashEngine.FileSeek(iterator, fileHandle, headerOffset, 0 /* SEEK_SET */);
@@ -539,7 +539,7 @@ public static class HashEncrypted
             if (StartsWith(header, "NCCH", 4, 0x100) == false)
             {
                 HashEngine.FileClose(iterator, fileHandle);
-                return HashEngine.IteratorErrorFormatted(iterator, "3DS NCCH header was not at %08X%08X", (uint)(headerOffset >> 32), (uint)headerOffset);
+                return HashEngine.IteratorErrorFormatted(iterator, "3DS NCCH header was not at {0:X8}{1:X8}", (uint)(headerOffset >> 32), (uint)headerOffset);
             }
         }
 
