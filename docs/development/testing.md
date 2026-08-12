@@ -73,7 +73,7 @@ cartridge images, XA/MODE1/AUDIO disc images with real cues, vendored CHDs
 fixtures, m3u playlists, and wildcard directories. Nothing is downloaded and
 nothing user-specific is required.
 
-## CI-style verification
+## Full verification
 
 ```bash
 dotnet build RASharp.sln -c Release     # must be warning-free (TreatWarningsAsErrors)

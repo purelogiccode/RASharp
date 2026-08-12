@@ -1,7 +1,8 @@
-# Build and deploy the docs site
+# Build and maintain the docs site
 
-This documentation is built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)
-and deploys to **GitHub Pages** automatically.
+This documentation is built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/).
+The repository intentionally has **no CI** — the site is built and published
+manually.
 
 ## Local preview
 
@@ -16,14 +17,19 @@ mkdocs serve          # http://127.0.0.1:8000
 mkdocs build          # outputs ./site
 ```
 
-## GitHub Pages deployment
+## Publishing to GitHub Pages (manual)
 
-`.github/workflows/docs.yml` builds the site and deploys it with GitHub
-Pages on every push that touches `docs/` or `mkdocs.yml`. To enable:
+If you want the site hosted, the simplest manual routes are:
 
-1. Repository **Settings → Pages → Source**: choose **GitHub Actions**.
-2. Push to `master` — the workflow builds and deploys automatically.
-3. The site appears at `https://<owner>.github.io/RASharp/`.
+```bash
+# option 1: push the built site to the gh-pages branch
+mkdocs gh-deploy
+
+# option 2: build locally and publish ./site from any static host
+mkdocs build
+```
+
+(For Pages from a branch: repo Settings → Pages → Source → `gh-pages`.)
 
 ## Conventions
 

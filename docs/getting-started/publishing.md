@@ -32,6 +32,15 @@ pack from NuGet, so e.g. Linux-arm64 can be produced on Windows.
 
 The `artifacts/` directory is git-ignored; sizes vary with the .NET version.
 
+To publish all four targets in one go:
+
+```bash
+for rid in win-x64 win-arm64 linux-x64 linux-arm64; do
+  dotnet publish RASharp.Cli -c Release -r $rid \
+    --self-contained true -p:PublishSingleFile=true -o artifacts/$rid
+done
+```
+
 ## Framework-dependent alternative
 
 If the target machine already has the .NET 10 runtime, drop
@@ -40,18 +49,6 @@ runtime:
 
 ```bash
 dotnet publish RASharp.Cli -c Release -r linux-x64 -p:PublishSingleFile=true -o artifacts/fd-linux-x64
-```
-
-## CI snippet (GitHub Actions)
-
-```yaml
-- name: Publish
-  run: |
-    dotnet publish RASharp.Cli -c Release -r ${{ matrix.rid }} `
-      --self-contained true -p:PublishSingleFile=true -o artifacts/${{ matrix.rid }}
-  strategy:
-    matrix:
-      rid: [win-x64, win-arm64, linux-x64, linux-arm64]
 ```
 
 ## What is inside the binary
