@@ -37,19 +37,18 @@ Content-Type: application/json
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `RASHARP_BUGREPORT_API_KEY` | *(none)* | **Required to enable forwarding** — without it the sink is not registered and nothing is sent (completely silent, parity-safe) |
+| `RASHARP_BUGREPORT_API_KEY` | *(decoded `Constants.BugReportApiKey`)* | optional override of the built-in API key |
 | `RASHARP_BUGREPORT_URL` | `https://www.purelogiccode.com/bugreport/api/send-bug-report` | endpoint override |
-| `RASHARP_BUGREPORT_DISABLE` | *(unset)* | set to `1` to force forwarding off even with a key set |
+| `RASHARP_BUGREPORT_DISABLE` | *(unset)* | set to `1` to force forwarding off |
 
-Example:
+The built-in API key lives in `RASharp.Cli/Constants.cs` **double-encoded**
+(Base64 applied twice) so it is not readable in the source tree; the
+application decodes it at startup and uses the real value. An explicit
+`RASHARP_BUGREPORT_API_KEY` always takes precedence.
 
-```bash
-RASHARP_BUGREPORT_API_KEY=<your-key> RASharp.exe GB game.gb
-```
-
-!!! tip "Security"
-    The API key is read from the environment only — never hardcode it. The
-    key is not committed anywhere in this repository.
+!!! note "Test runs never report"
+    The parity harness sets `RASHARP_BUGREPORT_DISABLE=1` on every child
+    process, so `dotnet test` never POSTs to the real API.
 
 ### Every report contains
 

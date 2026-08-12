@@ -15,9 +15,9 @@
 //  * The sink NEVER writes to stdout/stderr — parity output is untouched.
 //  * All failures are swallowed (best-effort reporting; the API may be down,
 //    rate-limited, or unreachable) — logging must never break the app.
-//  * The sink is only registered when RASHARP_BUGREPORT_API_KEY is set, so a
-//    missing key is completely silent (parity-safe). Override the endpoint
-//    with RASHARP_BUGREPORT_URL; force-off with RASHARP_BUGREPORT_DISABLE=1.
+//  * The API key is the decoded Constants.BugReportApiKey unless overridden
+//    by RASHARP_BUGREPORT_API_KEY; RASHARP_BUGREPORT_DISABLE=1 forces the
+//    sink off (the parity harness sets it so test runs never report).
 //  * A small cooldown keeps us under the API's 10 req/min rate limit.
 
 using System.Net.Http;

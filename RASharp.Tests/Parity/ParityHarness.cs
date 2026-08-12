@@ -86,6 +86,9 @@ public static class ParityHarness
             CreateNoWindow = true,
         };
 
+        /* test runs must never POST bug reports to the real API */
+        psi.Environment["RASHARP_BUGREPORT_DISABLE"] = "1";
+
         foreach (string arg in args)
             psi.ArgumentList.Add(arg);
 

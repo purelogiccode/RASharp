@@ -34,9 +34,11 @@ internal static class Program
     }
 
     /* Serilog wiring. The console sink reproduces the original's byte-exact
-     * output (message + platform newline, no themes); the bug-report sink is
-     * opt-in via RASHARP_BUGREPORT_API_KEY so a missing key is completely
-     * silent — the parity suite must never see extra output. */
+     * output (message + platform newline, no themes); the bug-report sink
+     * forwards Warning+ events. The API key comes from Constants (decoded at
+     * startup) unless RASHARP_BUGREPORT_API_KEY overrides it;
+     * RASHARP_BUGREPORT_DISABLE=1 forces forwarding off. The sink never
+     * writes to stdout/stderr, so parity output is unaffected. */
     private static void ConfigureLogging()
     {
         var configuration = new LoggerConfiguration()
@@ -47,8 +49,11 @@ internal static class Program
                 standardErrorFromLevel: LogEventLevel.Error);
 
         string? apiKey = Environment.GetEnvironmentVariable("RASHARP_BUGREPORT_API_KEY");
+        if (string.IsNullOrEmpty(apiKey))
+            apiKey = Constants.BugReportApiKey;
+
         bool disabled = string.Equals(Environment.GetEnvironmentVariable("RASHARP_BUGREPORT_DISABLE"), "1", StringComparison.Ordinal);
-        if (!string.IsNullOrEmpty(apiKey) && !disabled)
+        if (!disabled)
         {
             string url = Environment.GetEnvironmentVariable("RASHARP_BUGREPORT_URL") ?? BugReportSink.DefaultUrl;
             configuration.WriteTo.Sink(new BugReportSink(url, apiKey), restrictedToMinimumLevel: LogEventLevel.Warning);
