@@ -5,6 +5,7 @@
 // constant), seeddb.bin lookups, and SHA-256 seed mixing.
 
 using System.Security.Cryptography;
+using Serilog;
 
 namespace RASharp.Core;
 
@@ -100,8 +101,9 @@ public static class Hash3DS
         {
             lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(g_systemDir, "aes_keys.txt"));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Log.Debug(ex, "Could not open aes_keys.txt in {SystemDir}", g_systemDir);
             CallError("Could not open aes_keys.txt");
             return 0;
         }
@@ -138,8 +140,9 @@ public static class Hash3DS
         {
             lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(g_systemDir, "aes_keys.txt"));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Log.Debug(ex, "Could not open aes_keys.txt in {SystemDir}", g_systemDir);
             CallError("Could not open aes_keys.txt");
             return 0;
         }
@@ -184,8 +187,9 @@ public static class Hash3DS
             {
                 seeddb = System.IO.File.ReadAllBytes(System.IO.Path.Combine(g_systemDir, "seeddb.bin"));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log.Debug(ex, "Could not open seeddb.bin in {SystemDir}", g_systemDir);
                 CallError("Could not open seeddb.bin");
                 return 0;
             }

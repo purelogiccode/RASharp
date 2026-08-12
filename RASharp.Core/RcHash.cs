@@ -4,6 +4,8 @@
 
 namespace RASharp.Core;
 
+using Serilog;
+
 public static class RcHash
 {
     /* deprecated global message callbacks */
@@ -55,26 +57,46 @@ public static class RcHash
     /* deprecated single-shot hashing */
     public static bool GenerateFromBuffer(out string hash, uint consoleId, byte[] buffer, int bufferSize)
     {
-        var iterator = new RcHashIterator();
-        HashEngine.ResetIterator(iterator);
-        iterator.Buffer = buffer;
-        iterator.BufferSize = bufferSize;
+        hash = "";
 
-        int result = HashEngine.FromBuffer(out hash, consoleId, iterator);
+        try
+        {
+            var iterator = new RcHashIterator();
+            HashEngine.ResetIterator(iterator);
+            iterator.Buffer = buffer;
+            iterator.BufferSize = bufferSize;
 
-        HashIterator.DestroyIterator(iterator);
-        return result != 0;
+            int result = HashEngine.FromBuffer(out hash, consoleId, iterator);
+
+            HashIterator.DestroyIterator(iterator);
+            return result != 0;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "GenerateFromBuffer failed: console {ConsoleId}, buffer size {BufferSize}", consoleId, bufferSize);
+            return false;
+        }
     }
 
     public static bool GenerateFromFile(out string hash, uint consoleId, string path)
     {
-        var iterator = new RcHashIterator();
-        HashEngine.ResetIterator(iterator);
-        iterator.Path = path;
+        hash = "";
 
-        int result = HashEngine.FromFile(out hash, consoleId, iterator);
+        try
+        {
+            var iterator = new RcHashIterator();
+            HashEngine.ResetIterator(iterator);
+            iterator.Path = path;
 
-        HashIterator.DestroyIterator(iterator);
-        return result != 0;
+            int result = HashEngine.FromFile(out hash, consoleId, iterator);
+
+            HashIterator.DestroyIterator(iterator);
+            return result != 0;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "GenerateFromFile failed: console {ConsoleId}, path {Path}", consoleId, path);
+            return false;
+        }
     }
 }

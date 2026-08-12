@@ -8,6 +8,8 @@ using System.IO.Compression;
 
 namespace RASharp.Core;
 
+using Serilog;
+
 public static class FileUtil
 {
     /* util::fullPath — absolute path (_wfullpath semantics) */
@@ -17,8 +19,9 @@ public static class FileUtil
         {
             return Path.GetFullPath(path);
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Debug(ex, "FullPath failed for {Path}", path);
             return path;
         }
     }
@@ -68,8 +71,9 @@ public static class FileUtil
         {
             return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Debug(ex, "OpenFile failed for {Path}", path);
             return null;
         }
     }
@@ -141,8 +145,9 @@ public static class FileUtil
             unzippedFileName = entry.FullName;
             return data;
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Debug(ex, "LoadZippedFile failed for {Path}", path);
             return null;
         }
     }

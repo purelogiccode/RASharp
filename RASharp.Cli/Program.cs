@@ -4,14 +4,60 @@
 // the observable CLI behavior.
 
 using RASharp.Core;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace RASharp.Cli;
 
 internal static class Program
 {
-    private const string Version = "1.8.3";
+    internal const string Version = "1.8.3";
 
     private static int Main(string[] args)
+    {
+        try
+        {
+            ConfigureLogging();
+            return Run(args);
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Unhandled exception");
+            Console.Error.WriteLine("Unhandled exception: {0}", ex.Message);
+            return 1;
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
+    }
+
+    /* Serilog wiring. The console sink reproduces the original's byte-exact
+     * output (message + platform newline, no themes); the bug-report sink is
+     * opt-in via RASHARP_BUGREPORT_API_KEY so a missing key is completely
+     * silent — the parity suite must never see extra output. */
+    private static void ConfigureLogging()
+    {
+        var configuration = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .WriteTo.Console(
+                outputTemplate: "{Message:l}{NewLine}",
+                theme: ConsoleTheme.None,
+                standardErrorFromLevel: LogEventLevel.Error);
+
+        string? apiKey = Environment.GetEnvironmentVariable("RASHARP_BUGREPORT_API_KEY");
+        bool disabled = string.Equals(Environment.GetEnvironmentVariable("RASHARP_BUGREPORT_DISABLE"), "1", StringComparison.Ordinal);
+        if (!string.IsNullOrEmpty(apiKey) && !disabled)
+        {
+            string url = Environment.GetEnvironmentVariable("RASHARP_BUGREPORT_URL") ?? BugReportSink.DefaultUrl;
+            configuration.WriteTo.Sink(new BugReportSink(url, apiKey), restrictedToMinimumLevel: LogEventLevel.Warning);
+        }
+
+        Log.Logger = configuration.CreateLogger();
+    }
+
+    private static int Run(string[] args)
     {
         int consoleId = 0;
         bool singleFile = true;
@@ -193,12 +239,14 @@ internal static class Program
 
     private static void RhashLog(string message)
     {
-        Console.WriteLine(message);
+        /* parity-critical: the console sink must emit message + newline only */
+        Log.Information("{Message}", message);
     }
 
     private static void RhashLogErrorMessage(string message)
     {
-        Console.Error.WriteLine(message);
+        /* parity-critical: goes to stderr via standardErrorFromLevel */
+        Log.Error("{Message}", message);
     }
 
     private static int ProcessFile(int consoleId, string file)

@@ -76,6 +76,7 @@ nav:
       - development/testing.md
       - development/oracles.md
       - development/porting-guide.md
+      - development/logging.md
       - development/sync-rcheevos.md
       - development/documentation.md
   - Reference:
