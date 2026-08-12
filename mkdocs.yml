@@ -1,0 +1,87 @@
+site_name: RASharp
+site_description: >-
+  A native C# port of the RAHasher 1.8.3 CLI that produces 100% identical
+  RetroAchievements hashes, evolved to track rcheevos 12.4.0 as the single
+  source of truth.
+site_url: https://drpetersonfernandes.github.io/RASharp/
+repo_url: https://github.com/drpetersonfernandes/RASharp
+edit_uri: blob/master/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.top
+    - navigation.indexes
+    - navigation.footer
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - tables
+  - toc:
+      permalink: true
+
+extra:
+  generator: false
+
+copyright: >
+  MIT License — RASharp is a port of the MIT-licensed rcheevos engine.
+  RAHasher reference material is GPL-3.0 and is never shipped.
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - getting-started/installation.md
+      - getting-started/usage.md
+      - getting-started/publishing.md
+  - Architecture:
+      - architecture/overview.md
+      - architecture/engine.md
+      - architecture/cartridge.md
+      - architecture/disc.md
+      - architecture/zip.md
+      - architecture/encrypted.md
+      - architecture/cli.md
+      - architecture/parity-harness.md
+  - Development:
+      - development/testing.md
+      - development/oracles.md
+      - development/porting-guide.md
+      - development/sync-rcheevos.md
+      - development/documentation.md
+  - Reference:
+      - reference/console-table.md
+      - reference/hashing-semantics.md
+      - reference/public-api.md
+      - reference/known-quirks.md
+      - reference/parity-evidence.md
+  - License: license.md

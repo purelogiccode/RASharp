@@ -12,6 +12,9 @@ References/
 # Published builds
 artifacts/
 
+# MkDocs output
+site/
+
 # IDE
 *.user
 .idea/
