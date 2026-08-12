@@ -178,7 +178,7 @@ public static class HashZip
             /* Ignore records describing a directory (we only hash file records) */
             byte[] name = new byte[filenameLen];
             Array.Copy(allocBuf, cdir + cdirhdrSize, name, 0, filenameLen);
-            if (filenameLen > 0 && (name[filenameLen - 1] == (byte)'/' || name[filenameLen - 1] == (byte)'\\' || (externalAttr & 0x10) != 0))
+            if (filenameLen == 0 || name[filenameLen - 1] == (byte)'/' || name[filenameLen - 1] == (byte)'\\' || (externalAttr & 0x10) != 0)
                 continue;
 
             /* Handle Zip64 fields */

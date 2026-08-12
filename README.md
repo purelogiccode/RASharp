@@ -64,8 +64,9 @@ RASharp GB *.gb
 ```
 
 Supported input formats: raw ROMs, `.zip` (pre-loaded ROM / Arduboy FX /
-DOSZ), `.m3u` playlists, `.cue/.bin/.iso/.gdi` discs, `.chd` discs, and 3DS
-`.cia`/`.3ds`/`.3dsx` (keys required via `-s`). Exit codes: `0` success,
+DOSZ), `.m3u` playlists, `.cue/.bin/.iso/.gdi` discs, `.chd` discs, 3DS
+`.cia`/`.3ds`/`.3dsx` (keys required via `-s`), and `.neo` Neo Geo carts
+(Geolith format, hashed by ROM content). Exit codes: `0` success,
 `1` any failure.
 
 > Quirk faithfully reproduced from the original: console keys are only
@@ -91,7 +92,7 @@ known key material. Deterministic and offline.
 ### Tier 2 — parity harness vs. the original binary
 
 `RASharp.Tests\Parity\` runs both executables with identical arguments and
-asserts **byte-identical stdout/stderr and equal exit codes** on an 82-case
+asserts **byte-identical stdout/stderr and equal exit codes** on an 90-case
 generated corpus: 29 whole-file console vectors, cartridge algorithms
 (NES/FDS/7800/NDS/SCV), all disc consoles (PSX ± homebrew, PS2, PSP, Sega CD,
 Saturn, 3DO, Jaguar CD, PCE-CD, PC-FX, Dreamcast, Neo Geo CD, GameCube),
@@ -104,11 +105,13 @@ where real-file behavior matches the mock semantics.
 The corpus is generated in a unique `%TEMP%\rasharp_parity_corpus_<id>` directory from the same deterministic generators the unit vectors use — no ROM files needed.
 
 **Oracle resolution** (in order): `RASHARP_ORACLE` env var →
-`References\RAHasher-1.8.3\bin64\RAHasher.exe` (built from the pinned
-sources, `make -f Makefile.RAHasher HAVE_CHD=1`) → `References\RAHasher.exe`
-(any other 1.8.3 binary). The harness probes the oracle's capabilities and
-falls back to numeric console ids / skips `?` cases for legacy builds that
-lack them. If no oracle is found, parity tests skip with a note.
+`References\rcheevos-12.4.0\bin64\RAHasher.exe` (built from rcheevos **12.4.0**,
+the current source of truth — Part II of ConversionPlan.md) →
+`References\RAHasher-1.8.3\bin64\RAHasher.exe` (pinned 1.8.3 sources) →
+`References\RAHasher.exe` (any other 1.8.3 binary). The harness probes the
+oracle's capabilities and falls back to numeric console ids / skips `?` cases
+for legacy builds that lack them. If no oracle is found, parity tests skip
+with a note.
 
 ### Real-ROM parity
 
@@ -125,11 +128,16 @@ redistributable); pass them via `-s` on both sides.
 
 ## Parity evidence
 
-Phase 8 (Tier 2) status: **82/82 parity cases green; full suite 314/314** —
+Phase 8 (Tier 2) status: **90/90 parity cases green; full suite 326/326** —
 byte-identical output between `RASharp.exe` and the source-built
 RAHasher 1.8.3 on every case, including verbose mode, error paths, and exit
 codes. The harness also caught and fixed three real CLI port bugs (arg-count
 guard crash, wildcard path construction, usage banner blank line).
+
+Part II (rcheevos 12.4.0 sync): engine evolved to 12.4.0 — `.neo` Neo Geo
+cart hashing, `sms`/`neo` iterate mapping, `merge_callbacks` fix, buffer-size
+and GDI/zip guards — verified byte-for-byte against a 12.4.0-built oracle
+(90/90 parity, 326/326 suite).
 
 ## License
 

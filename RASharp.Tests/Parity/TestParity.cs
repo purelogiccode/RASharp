@@ -11,6 +11,7 @@
 // fixtures — so the suite runs offline and deterministically. Real-ROM
 // coverage is documented in README.md.
 
+using System.Security.Cryptography;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -33,6 +34,10 @@ public class TestParity
     private readonly ITestOutputHelper _output;
 
     public TestParity(ITestOutputHelper output) => _output = output;
+
+    /* set by BuildCorpus before BuildCases runs (Lazy ordering); used to pin the
+     * .neo expected hash to the MD5 of the payload alone */
+    private static string s_neoPayloadHash = "";
 
     private sealed record CorpusPaths(string CorpusDir, string SystemDir);
 
@@ -206,6 +211,17 @@ public class TestParity
         cases.Add(new ParityCase("3ds/plain-cia", threeDs, "62", 62, new[] { "3ds/plain.cia" }, "eb334fea757807e4a4b81ee99905437c", ExpectSuccess: true));
         cases.Add(new ParityCase("3ds/homebrew", threeDs, "62", 62, new[] { "3ds/homebrew.3dsx" }, "ca7161a502db8be8089d16a8b2280970", ExpectSuccess: true));
         cases.Add(new ParityCase("3ds/junk", threeDs, "62", 62, new[] { "3ds/junk.bin" }, null, ExpectSuccess: false));
+
+        /* ---- .neo (Geolith Neo Geo cart; Part II) ---- */
+        Add("cart/neogeo-neo", "ARC", 27, s_neoPayloadHash, "game.neo");
+        Add("cart/neogeo-neo-variant", "ARC", 27, s_neoPayloadHash, "game_alt.neo");
+        cases.Add(new ParityCase("cart/neogeo-neo-badmagic", Array.Empty<string>(), "ARC", 27, new[] { "bad.neo" }, null, ExpectSuccess: false));
+        cases.Add(new ParityCase("args/iterate-neo", Array.Empty<string>(), "?", 91, new[] { "game.neo" }, null, ExpectSuccess: true));
+        cases.Add(new ParityCase("args/iterate-sms", Array.Empty<string>(), "?", 91, new[] { "game.sms" }, null, ExpectSuccess: true));
+
+        /* ---- malformed GDI (12.4.0 bounds checks) ---- */
+        cases.Add(new ParityCase("disc/gdi-unterminated-quote", Array.Empty<string>(), "DC", 40, new[] { "gdi_badquote.gdi" }, null, ExpectSuccess: false));
+        cases.Add(new ParityCase("disc/gdi-long-filename", Array.Empty<string>(), "DC", 40, new[] { "gdi_longname.gdi" }, null, ExpectSuccess: false));
 
         /* ---- m3u ---- */
         Add("m3u/MD", "MD", 1, "da9461b3b0f74becc3ccf6c2a094c516", "play.m3u");
@@ -526,6 +542,28 @@ public class TestParity
         File.WriteAllBytes(Path.Combine(threeDsDir, "plain.cia"), TestDataGen3ds.GenerateCia(TestDataGen3ds.GenerateNcch(false, false, false, 0x01, 0, null, null, out _, out _), titleId, 0, titleKey, false));
         File.WriteAllBytes(Path.Combine(threeDsDir, "homebrew.3dsx"), TestDataGen3ds.Generate3Dsx());
         File.WriteAllBytes(Path.Combine(threeDsDir, "junk.bin"), new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 });
+
+        /* ---- .neo fixtures (rcheevos 12.4.0 test data) ---- */
+        byte[] neoPayload = TestDataGen.GenerateGenericFile(131072);
+        s_neoPayloadHash = Convert.ToHexStringLower(MD5.HashData(neoPayload));
+        Write("game.neo", TestHashNeo.GenerateNeoFile(131072, "Test Game", "TestCorp"));
+        Write("game_alt.neo", TestHashNeo.GenerateNeoFile(131072, "test game (alt name)", "OtherTool"));
+        byte[] neoBad = TestHashNeo.GenerateNeoFile(131072, "Test Game", "TestCorp");
+        neoBad[3] = 2; /* unsupported version */
+        Write("bad.neo", neoBad);
+        Write("game.sms", neoPayload); /* .sms iterate maps to Master System */
+
+        /* ---- malformed GDI (12.4.0: unterminated quote / >=256-byte filename) ---- */
+        WriteText("gdi_badquote.gdi",
+            "3\n" +
+            "1 0 0 2352 \"unterminated.bin\n" +
+            "2 600 0 2352 track02.bin 0\n" +
+            "3 45000 4 2352 track03.bin 0\n");
+        WriteText("gdi_longname.gdi",
+            "3\n" +
+            $"1 0 0 2352 \"{new string('x', 300)}.bin\" 0\n" +
+            "2 600 0 2352 track02.bin 0\n" +
+            "3 45000 4 2352 track03.bin 0\n");
 
         /* ---- m3u ---- */
         WriteText("play.m3u", "test.md");

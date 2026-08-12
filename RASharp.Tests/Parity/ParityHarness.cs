@@ -138,6 +138,11 @@ public static class ParityHarness
         if (!string.IsNullOrEmpty(env) && File.Exists(env))
             return env;
 
+        /* Part II: the rcheevos 12.4.0-built oracle is the new source of truth */
+        string v124 = Path.Combine(RepoRoot, "References", "rcheevos-12.4.0", "bin64", "RAHasher.exe");
+        if (File.Exists(v124))
+            return v124;
+
         string sourceBuilt = Path.Combine(RepoRoot, "References", "RAHasher-1.8.3", "bin64", "RAHasher.exe");
         if (File.Exists(sourceBuilt))
             return sourceBuilt;

@@ -43,7 +43,7 @@ public static class HashRom
     public static int RcHash7800(out string hash, RcHashIterator iterator)
     {
         /* if the file contains a header, ignore it */
-        if (MemEquals(iterator.Buffer!, 1, "ATARI7800"))
+        if (iterator.BufferSize > 128 && MemEquals(iterator.Buffer!, 1, "ATARI7800"))
         {
             HashEngine.IteratorVerbose(iterator, "Ignoring 7800 header");
             return UnheaderedIteratorBuffer(out hash, iterator, 128);
@@ -174,6 +174,82 @@ public static class HashRom
         return HashEngine.Finalize(iterator, md5, out hash);
     }
 
+    /* rc_hash_neogeo_cart (rcheevos 12.4.0): Geolith .neo cart format.
+     * The first 4096 bytes are a header (magic, ROM section sizes, metadata
+     * text fields that can differ between conversion tools), so only the
+     * decrypted ROM data after the header participates in the hash. */
+    public static int RcHashNeogeoCart(out string hash, RcHashIterator iterator)
+    {
+        const int headerSize = 4096;
+        const int chunkSize = 65536;
+        hash = "";
+
+        if (iterator.Buffer != null)
+        {
+            if (iterator.BufferSize < headerSize || !MemEquals(iterator.Buffer, 0, "NEO\x01"))
+                return HashEngine.IteratorError(iterator, "Not a valid .neo file");
+
+            HashEngine.IteratorVerbose(iterator, "Ignoring NEO header");
+            return UnheaderedIteratorBuffer(out hash, iterator, headerSize);
+        }
+
+        object? fileHandle = HashEngine.FileOpen(iterator, iterator.Path!);
+        if (fileHandle == null)
+            return HashEngine.IteratorError(iterator, "Could not open file");
+
+        byte[] header = new byte[4];
+        HashEngine.FileSeek(iterator, fileHandle, 0, HashEngine.SEEK_SET);
+        if (HashEngine.FileRead(iterator, fileHandle, header, 4) != 4 || !MemEquals(header, 0, "NEO\x01"))
+        {
+            HashEngine.FileClose(iterator, fileHandle);
+            return HashEngine.IteratorError(iterator, "Not a valid .neo file");
+        }
+
+        HashEngine.FileSeek(iterator, fileHandle, 0, HashEngine.SEEK_END);
+        long size = HashEngine.FileTell(iterator, fileHandle);
+        if (size <= headerSize)
+        {
+            HashEngine.FileClose(iterator, fileHandle);
+            return HashEngine.IteratorError(iterator, "Not a valid .neo file");
+        }
+        size -= headerSize;
+
+        long remaining;
+        if (size > HashEngine.MAX_BUFFER_SIZE)
+        {
+            HashEngine.IteratorVerboseFormatted(iterator, "Hashing first {0} bytes (of {1} bytes) of {2} after 4096 byte header",
+                (uint)HashEngine.MAX_BUFFER_SIZE, (uint)size, HashEngine.PathGetFilename(iterator.Path!));
+            remaining = HashEngine.MAX_BUFFER_SIZE;
+        }
+        else
+        {
+            HashEngine.IteratorVerboseFormatted(iterator, "Hashing {0} ({1} bytes after 4096 byte header)",
+                HashEngine.PathGetFilename(iterator.Path!), (uint)size);
+            remaining = size;
+        }
+
+        var md5 = new HashMd5();
+        byte[] buffer = new byte[chunkSize];
+
+        HashEngine.FileSeek(iterator, fileHandle, headerSize, HashEngine.SEEK_SET);
+        while (remaining >= chunkSize)
+        {
+            HashEngine.FileRead(iterator, fileHandle, buffer, chunkSize);
+            md5.Append(buffer, chunkSize);
+            remaining -= chunkSize;
+        }
+
+        if (remaining > 0)
+        {
+            HashEngine.FileRead(iterator, fileHandle, buffer, (int)remaining);
+            md5.Append(buffer, (int)remaining);
+        }
+
+        int result = HashEngine.Finalize(iterator, md5, out hash);
+        HashEngine.FileClose(iterator, fileHandle);
+        return result;
+    }
+
     public static int RcHashArduboy(out string hash, RcHashIterator iterator)
     {
         if (iterator.Path != null && HashEngine.PathCompareExtension(iterator.Path, "arduboy") != 0)
@@ -192,7 +268,7 @@ public static class HashRom
     {
         /* if the file contains a header, ignore it */
         /* NOTE: memcmp against "LYNX" compares 5 bytes (includes the NUL terminator) */
-        if (MemEquals(iterator.Buffer!, 0, "LYNX\0"))
+        if (iterator.BufferSize > 64 && MemEquals(iterator.Buffer!, 0, "LYNX\0"))
         {
             HashEngine.IteratorVerbose(iterator, "Ignoring LYNX header");
             return UnheaderedIteratorBuffer(out hash, iterator, 64);
@@ -204,13 +280,13 @@ public static class HashRom
     public static int RcHashNes(out string hash, RcHashIterator iterator)
     {
         /* if the file contains a header, ignore it */
-        if (MemEquals(iterator.Buffer!, 0, "NES\x1A"))
+        if (iterator.BufferSize > 16 && MemEquals(iterator.Buffer!, 0, "NES\x1A"))
         {
             HashEngine.IteratorVerbose(iterator, "Ignoring NES header");
             return UnheaderedIteratorBuffer(out hash, iterator, 16);
         }
 
-        if (MemEquals(iterator.Buffer!, 0, "FDS\x1A"))
+        if (iterator.BufferSize > 16 && MemEquals(iterator.Buffer!, 0, "FDS\x1A"))
         {
             HashEngine.IteratorVerbose(iterator, "Ignoring FDS header");
             return UnheaderedIteratorBuffer(out hash, iterator, 16);

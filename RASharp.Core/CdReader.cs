@@ -809,6 +809,13 @@ public static class CdReader
                 int fileStart = pos;
                 while (pos < len && buffer[pos] != (byte)'"')
                     ++pos;
+
+                if (pos >= len)
+                {
+                    HashEngine.IteratorError(iterator, "Quoted string without closing quote");
+                    return null;
+                }
+
                 file = Encoding.ASCII.GetString(buffer, fileStart, pos - fileStart);
                 ++pos;
             }
@@ -818,6 +825,12 @@ public static class CdReader
                 while (pos < len && buffer[pos] != (byte)' ' && buffer[pos] != (byte)'\n')
                     ++pos;
                 file = Encoding.ASCII.GetString(buffer, fileStart, pos - fileStart);
+            }
+
+            if (file.Length >= 256)
+            {
+                HashEngine.IteratorErrorFormatted(iterator, "Cannot copy {0} byte filename into {1} byte buffer", file.Length, 256);
+                return null;
             }
 
             if (track == currentTrack)

@@ -228,9 +228,8 @@ public static class HashDisc
 
         /* the Opera filesystem stores the volume information in the first 132 bytes of sector 0
          * https://github.com/barbeque/3dodump/blob/master/OperaFS-Format.md */
-        CdReadSector(iterator, trackHandle, 0, buffer, 132);
-
-        if (CdReader.Matches(buffer, 0, operafsIdentifier, operafsIdentifier.Length))
+        if (CdReadSector(iterator, trackHandle, 0, buffer, 132) >= 132 &&
+            CdReader.Matches(buffer, 0, operafsIdentifier, operafsIdentifier.Length))
         {
             HashEngine.IteratorVerboseFormatted(iterator, "Found 3DO CD, title={0}", CdReader.GetNulTerminatedString(buffer, 0x28, 32));
 

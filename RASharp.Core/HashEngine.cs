@@ -811,6 +811,11 @@ public static class HashEngine
                 return RcHash3Do(out hash, iterator);
 
             case ConsoleIds.RC_CONSOLE_ARCADE:
+                /* .neo files (Geolith Neo Geo cart format) contain the actual ROM data,
+                 * so are content-hashed. Everything else (.zip/.7z) hashes by filename. */
+                if (PathCompareExtension(path, "neo") != 0)
+                    return HashRom.RcHashNeogeoCart(out hash, iterator);
+
                 return HashRom.RcHashArcade(out hash, iterator);
 
             case ConsoleIds.RC_CONSOLE_ARDUBOY:
@@ -931,6 +936,11 @@ public static class HashEngine
             case ConsoleIds.RC_CONSOLE_ZX_SPECTRUM:
                 return HashBuffer(out hash, iterator.Buffer!, iterator.BufferSize, iterator);
 
+            case ConsoleIds.RC_CONSOLE_ARCADE:
+                /* .neo (Geolith Neo Geo cart) files carry the ROM data; other arcade
+                 * formats are archives, which aren't hashed from a buffer. */
+                return HashRom.RcHashNeogeoCart(out hash, iterator);
+
             case ConsoleIds.RC_CONSOLE_ARDUBOY:
                 return HashRom.RcHashArduboy(out hash, iterator);
 
@@ -1003,7 +1013,7 @@ public static class HashEngine
         if (callbacks.VerboseMessage != null)
             iterator.Callbacks.VerboseMessage = callbacks.VerboseMessage;
         if (callbacks.ErrorMessage != null)
-            iterator.Callbacks.VerboseMessage = callbacks.ErrorMessage;
+            iterator.Callbacks.ErrorMessage = callbacks.ErrorMessage;
 
         if (callbacks.Filereader.Open != null)
             iterator.Callbacks.Filereader = callbacks.Filereader;

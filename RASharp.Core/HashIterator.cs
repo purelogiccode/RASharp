@@ -239,6 +239,7 @@ public static class HashIterator
         new ExtHandlerEntry("n64", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_64),
         new ExtHandlerEntry("ndd", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_64),
         new ExtHandlerEntry("nds", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_DS), /* handles both DS and DSi */
+        new ExtHandlerEntry("neo", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ARCADE), /* Geolith Neo Geo cart format */
         new ExtHandlerEntry("nes", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO),
         new ExtHandlerEntry("ngc", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NEOGEO_POCKET),
         new ExtHandlerEntry("nib", InitializeIteratorNib, 0),
@@ -254,6 +255,7 @@ public static class HashIterator
         new ExtHandlerEntry("sg", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SG1000),
         new ExtHandlerEntry("sgx", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_PC_ENGINE),
         new ExtHandlerEntry("smc", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SUPER_NINTENDO),
+        new ExtHandlerEntry("sms", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_MASTER_SYSTEM),
         new ExtHandlerEntry("sv", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SUPERVISION),
         new ExtHandlerEntry("swc", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SUPER_NINTENDO),
         new ExtHandlerEntry("tap", InitializeIteratorTap, 0),
