@@ -1,6 +1,9 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- Portable TFM: CHDSharp and VideoGameFileSystemParser 1.2.0 both ship
+         net10.0 (portable) libs — no Windows-specific dependency, so the same
+         code publishes for win-x64/arm64 and linux-x64/arm64. -->
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

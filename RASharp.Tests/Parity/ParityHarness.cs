@@ -24,6 +24,10 @@ public static class ParityHarness
     public static readonly string? OraclePath = FindOracle();
     public static readonly string CliPath = FindCli();
 
+    /// <summary>True when the parity tests can run: a Windows host with an oracle binary.
+    /// (The oracle is a Windows PE; on Linux the suite skips parity and runs the vectors.)</summary>
+    public static bool IsOracleUsable => OraclePath is not null && OperatingSystem.IsWindows();
+
     private static bool? s_oracleAcceptsKeys;
     private static bool? s_oracleAcceptsQuestion;
 
@@ -150,9 +154,12 @@ public static class ParityHarness
 
         foreach (string config in new[] { "Debug", "Release" })
         {
-            string path = Path.Combine(RepoRoot, "RASharp.Cli", "bin", config, "net10.0-windows", "RASharp.exe");
-            if (File.Exists(path))
-                return path;
+            foreach (string tfm in new[] { "net10.0", "net10.0-windows" })
+            {
+                string path = Path.Combine(RepoRoot, "RASharp.Cli", "bin", config, tfm, "RASharp.exe");
+                if (File.Exists(path))
+                    return path;
+            }
         }
 
         throw new FileNotFoundException(

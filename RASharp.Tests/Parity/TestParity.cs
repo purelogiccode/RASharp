@@ -48,9 +48,9 @@ public class TestParity
     [MemberData(nameof(Cases))]
     public void Parity(ParityCase test)
     {
-        if (ParityHarness.OraclePath is null)
+        if (!ParityHarness.IsOracleUsable)
         {
-            _output.WriteLine("SKIPPED (no oracle at References\\RAHasher.exe): " + test.Label);
+            _output.WriteLine("SKIPPED (no usable oracle: Windows host + References\\RAHasher.exe required): " + test.Label);
             return;
         }
 
@@ -73,7 +73,7 @@ public class TestParity
         args.Add(console);
         args.AddRange(test.Files);
 
-        ParityHarness.Result oracle = ParityHarness.Run(ParityHarness.OraclePath, args, workDir);
+        ParityHarness.Result oracle = ParityHarness.Run(ParityHarness.OraclePath!, args, workDir);
         ParityHarness.Result cli = ParityHarness.Run(ParityHarness.CliPath, args, workDir);
 
         string oracleOut = ParityHarness.ToText(oracle.StdOut);

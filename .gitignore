@@ -9,6 +9,9 @@ seeddb.bin
 # Reference material (GPL sources + oracle binaries; read-only, not shipped)
 References/
 
+# Published builds
+artifacts/
+
 # IDE
 *.user
 .idea/

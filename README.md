@@ -17,9 +17,26 @@ dotnet build RASharp.sln -c Release
 
 Produces `RASharp.Cli\bin\Release\net10.0-windows\RASharp.exe`.
 
-Requires the .NET 10 SDK (all projects target `net10.0-windows` because
-`VideoGameFileSystemParser` requires it). NuGet dependencies: `CHDSharp`
-1.2.0 and `VideoGameFileSystemParser` 1.2.0 (both MIT).
+Requires the .NET 10 SDK. All projects target the portable `net10.0` TFM
+(`CHDSharp` and `VideoGameFileSystemParser` 1.2.0 both ship portable libs),
+so the same code runs on Windows, Linux, x64, and arm64. NuGet
+dependencies: `CHDSharp` 1.2.0 and `VideoGameFileSystemParser` 1.2.0 (both
+MIT).
+
+## Publishing
+
+Self-contained single-file executables (no .NET runtime needed on the target):
+
+```
+dotnet publish RASharp.Cli -c Release -r win-x64    --self-contained true -p:PublishSingleFile=true -o artifacts/win-x64
+dotnet publish RASharp.Cli -c Release -r win-arm64  --self-contained true -p:PublishSingleFile=true -o artifacts/win-arm64
+dotnet publish RASharp.Cli -c Release -r linux-x64  --self-contained true -p:PublishSingleFile=true -o artifacts/linux-x64
+dotnet publish RASharp.Cli -c Release -r linux-arm64 --self-contained true -p:PublishSingleFile=true -o artifacts/linux-arm64
+```
+
+Produces `RASharp.exe` (Windows) / `RASharp` (Linux) in `artifacts\<rid>\`.
+(The parity suite's oracle is a Windows PE, so Tier-2 parity runs on Windows;
+on Linux the parity cases skip and the ported vectors still run.)
 
 ## Usage
 
