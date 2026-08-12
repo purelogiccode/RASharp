@@ -88,6 +88,32 @@ block is capped at 4000 chars.
 - On shutdown (`Log.CloseAndFlush`), pending reports get up to 2 seconds to
   complete.
 
+## Usage telemetry
+
+At **application launch** the CLI reports a usage hit to the
+[ApplicationStats](https://www.purelogiccode.com/ApplicationStats) API
+(AspNet_ApplicationStats — see its `InstructionsToUseApiEndpoints.md`):
+
+```text
+POST {url}
+Authorization: Bearer {api key}
+{"applicationId": "RASharp", "version": "1.8.3"}
+```
+
+### Configuration (environment variables)
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `RASHARP_STATS_API_KEY` | decoded `Constants.BugReportApiKey` | optional override |
+| `RASHARP_STATS_URL` | `https://www.purelogiccode.com/ApplicationStats/stats` | endpoint override |
+| `RASHARP_STATS_DISABLE` | *(unset)* | set to `1` to disable usage reporting |
+
+Same rules as the bug-report sink: never writes to stdout/stderr, all
+failures swallowed (the server rate-limits at 1 call/hour/IP/app and
+answers `429` — ignored), fire-and-forget with up to 2 seconds to finish at
+process exit. The parity harness sets `RASHARP_STATS_DISABLE=1`, so test
+runs never report.
+
 ## try/catch + Log policy
 
 Public entry points log and degrade gracefully instead of crashing:

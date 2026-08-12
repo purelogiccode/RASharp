@@ -21,6 +21,7 @@ internal static class Program
         try
         {
             ConfigureLogging();
+            ApplicationStatsReporter.ReportUsage();
             return Run(args);
         }
         catch (Exception ex)
@@ -31,6 +32,7 @@ internal static class Program
         }
         finally
         {
+            ApplicationStatsReporter.Flush();
             Log.CloseAndFlush();
         }
     }
