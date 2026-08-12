@@ -1,0 +1,14 @@
+# RASharp — style & analyzer configuration
+root = true
+
+[*.cs]
+# The port intentionally mirrors the C module layout and control flow:
+#   - MA0048 (file name must match type name): types live in the file that
+#     mirrors their C module (e.g. all rc_hash.h callback types in
+#     Callbacks.cs). Renaming files would break the documented C<->C#
+#     module map (docs/architecture/overview.md).
+#   - MA0051 (method too long): hashing functions are 1:1 translations of
+#     the C functions (dispatch switches, parsers). Splitting them would
+#     obscure parity with the reference implementation.
+dotnet_diagnostic.MA0048.severity = none
+dotnet_diagnostic.MA0051.severity = none

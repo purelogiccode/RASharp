@@ -8,4 +8,9 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Code-quality analyzers (build-time only, never a runtime dependency) -->
+    <PackageReference Include="Meziantou.Analyzer" Version="3.0.147" PrivateAssets="all" />
+  </ItemGroup>
 </Project>

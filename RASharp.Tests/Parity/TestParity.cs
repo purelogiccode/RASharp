@@ -63,13 +63,13 @@ public class TestParity
         string workDir = test.WorkingDir ?? corpus.CorpusDir;
         string probe = Path.Combine(corpus.CorpusDir, "nes.nes");
 
-        if (test.ConsoleKey == "?" && !ParityHarness.OracleAcceptsQuestion(probe))
+        if (string.Equals(test.ConsoleKey, "?", StringComparison.Ordinal) && !ParityHarness.OracleAcceptsQuestion(probe))
         {
             _output.WriteLine("SKIPPED (oracle build lacks '?' auto-detect mode): " + test.Label);
             return;
         }
 
-        string console = test.ConsoleKey == "?" ? "?" :
+        string console = string.Equals(test.ConsoleKey, "?", StringComparison.Ordinal) ? "?" :
             ParityHarness.OracleAcceptsKeys(probe) ? test.ConsoleKey : test.ConsoleId.ToString();
 
         var args = new List<string>();
@@ -95,16 +95,16 @@ public class TestParity
         Assert.True(oracle.ExitCode == cli.ExitCode,
             $"[{test.Label}] exit code: oracle={oracle.ExitCode} cli={cli.ExitCode}\n" +
             $"oracle stdout: {oracleOut}\noracle stderr: {oracleErr}\ncli stdout: {cliOut}\ncli stderr: {cliErr}");
-        Assert.True(oracleOut == cliOut,
+        Assert.True(string.Equals(oracleOut, cliOut, StringComparison.Ordinal),
             $"[{test.Label}] stdout differs.\noracle: {oracleOut}\ncli:    {cliOut}");
-        Assert.True(oracleErr == cliErr,
+        Assert.True(string.Equals(oracleErr, cliErr, StringComparison.Ordinal),
             $"[{test.Label}] stderr differs.\noracle: {oracleErr}\ncli:    {cliErr}");
 
         if (test.ExpectSuccess)
             Assert.True(cli.ExitCode == 0, $"[{test.Label}] expected success.\nstdout: {cliOut}\nstderr: {cliErr}");
 
         if (test.ExpectedHash is not null)
-            Assert.True(cliOut.Trim() == test.ExpectedHash,
+            Assert.True(string.Equals(cliOut.Trim(), test.ExpectedHash, StringComparison.Ordinal),
                 $"[{test.Label}] expected hash {test.ExpectedHash}, got {cliOut.Trim()}");
     }
 

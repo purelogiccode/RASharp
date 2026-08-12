@@ -93,7 +93,7 @@ public static class HashRom
                         includeFolder = true;
                     break;
                 case 5:
-                    if (folderName == "neocd")
+                    if (string.Equals(folderName, "neocd", StringComparison.Ordinal))
                         includeFolder = true;
                     break;
                 case 6:
@@ -101,7 +101,7 @@ public static class HashRom
                         includeFolder = true;
                     break;
                 case 7:
-                    if (folderName == "genesis")
+                    if (string.Equals(folderName, "genesis", StringComparison.Ordinal))
                         includeFolder = true;
                     break;
                 case 8:
@@ -109,7 +109,7 @@ public static class HashRom
                         includeFolder = true;
                     break;
                 case 9:
-                    if (folderName == "megadrive")
+                    if (string.Equals(folderName, "megadrive", StringComparison.Ordinal))
                         includeFolder = true;
                     break;
                 case 10:

@@ -120,7 +120,7 @@ public static class FileUtil
             }
 
             var entry = entries[0];
-            if (entry.FullName.EndsWith("/"))
+            if (entry.FullName.EndsWith("/", StringComparison.Ordinal))
             {
                 Console.Error.WriteLine("Zip file \"{0}\" only contains a directory", path);
                 return null;

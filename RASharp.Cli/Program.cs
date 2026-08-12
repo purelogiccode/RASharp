@@ -22,12 +22,12 @@ internal static class Program
         int argi = 0;
         while (argi < args.Length && args[argi].StartsWith('-'))
         {
-            if (args[argi] == "-v")
+            if (string.Equals(args[argi], "-v", StringComparison.Ordinal))
             {
                 RcHash.InitVerboseMessageCallback(RhashLog);
                 ++argi;
             }
-            else if (args[argi] == "-s")
+            else if (string.Equals(args[argi], "-s", StringComparison.Ordinal))
             {
                 /* C reads argv[++argi] even at end-of-args (segfault); harden to usage */
                 if (argi + 1 >= args.Length)
@@ -55,7 +55,7 @@ internal static class Program
         }
 
         string consoleKey = args[argi++];
-        consoleId = consoleKey == "?" ? 1 + ConsoleIds.RC_CONSOLE_MAX : FindConsoleId(consoleKey);
+        consoleId = string.Equals(consoleKey, "?", StringComparison.Ordinal) ? 1 + ConsoleIds.RC_CONSOLE_MAX : FindConsoleId(consoleKey);
         if (consoleId == 0)
         {
             Usage(Environment.ProcessPath ?? "RASharp");
@@ -177,7 +177,7 @@ internal static class Program
         string? lastGroup = null;
         foreach (var console in Consoles.All)
         {
-            if (console.Group != null && lastGroup != null && lastGroup != console.Group)
+            if (console.Group != null && lastGroup != null && !string.Equals(lastGroup, console.Group, StringComparison.Ordinal))
                 Console.WriteLine();
 
             Console.WriteLine(" {0,2} {1,-7} {2,-8} {3}", console.Id, console.Key, console.Group ?? "", console.Name);
@@ -272,7 +272,7 @@ internal static class Program
 
         /* util::directory splits on '\' only (Windows) */
         string path = FileUtil.Directory(pattern);
-        if (path == pattern) /* no backslash found. scan is in current directory */
+        if (string.Equals(path, pattern, StringComparison.Ordinal)) /* no backslash found. scan is in current directory */
             path = ".";
 
         /* FindFirstFileA scans the full pattern (forward slashes accepted); the

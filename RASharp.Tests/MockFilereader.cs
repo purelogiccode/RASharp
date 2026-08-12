@@ -23,7 +23,7 @@ public static class MockFilereader
     {
         foreach (var file in Instances)
         {
-            if (file.Path == path)
+            if (string.Equals(file.Path, path, StringComparison.Ordinal))
             {
                 file.Pos = 0;
                 return file;
@@ -157,7 +157,7 @@ public static class MockFilereader
 
         if (track == 1 || track == ConsoleIds.RC_HASH_CDTRACK_FIRST_DATA || track == ConsoleIds.RC_HASH_CDTRACK_LARGEST)
         {
-            if (path.Contains(".cue"))
+            if (path.Contains(".cue", StringComparison.Ordinal))
             {
                 MockFileData? file = (MockFileData?)MockFileOpen(path);
                 if (file == null)
@@ -168,7 +168,7 @@ public static class MockFilereader
 
             return MockFileOpen(path);
         }
-        else if (path.Contains(".cue"))
+        else if (path.Contains(".cue", StringComparison.Ordinal))
         {
             MockFileData? file = (MockFileData?)MockFileOpen(path);
             if (file != null)
@@ -179,7 +179,7 @@ public static class MockFilereader
                 return MockFileOpen(buffer);
             }
         }
-        else if (path.Contains(".gdi"))
+        else if (path.Contains(".gdi", StringComparison.Ordinal))
         {
             MockFileData? file = (MockFileData?)MockFileOpen(path);
             if (file != null)

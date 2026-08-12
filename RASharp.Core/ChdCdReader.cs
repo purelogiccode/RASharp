@@ -93,7 +93,7 @@ public static class ChdCdReader
         uint count = 0;
         foreach (ChdMetadataEntry entry in file.Metadata)
         {
-            if (entry.Tag != tag)
+            if (!string.Equals(entry.Tag, tag, StringComparison.Ordinal))
                 continue;
 
             if (count == idx)
@@ -310,7 +310,7 @@ public static class ChdCdReader
             if (metadata.Track == track)
                 return true;
 
-            if (metadata.Type == "AUDIO")
+            if (string.Equals(metadata.Type, "AUDIO", StringComparison.Ordinal))
                 continue;
 
             if (track == ConsoleIds.RC_HASH_CDTRACK_FIRST_DATA)
@@ -427,14 +427,14 @@ public static class ChdCdReader
         };
 
         /* https://github.com/libyal/libodraw/blob/main/documentation/Optical%20disc%20RAW%20format.asciidoc */
-        if (metadata.Type == "MODE1_RAW")
+        if (string.Equals(metadata.Type, "MODE1_RAW", StringComparison.Ordinal))
         {
             /* 16-byte header, 2048 bytes data, 288 byte footer */
             chdTrack.SectorDataSize = 2048;
             chdTrack.SectorHeaderSize = 16;
             return chdTrack;
         }
-        else if (metadata.Type == "MODE2_RAW")
+        else if (string.Equals(metadata.Type, "MODE2_RAW", StringComparison.Ordinal))
         {
             /* MODE2: 16-byte header, 2336 bytes data */
             /* MODE2 XA1: 16-byte header, 8 byte subheader, 2048 bytes data */
@@ -443,14 +443,14 @@ public static class ChdCdReader
             /* assume MODE2 until we know otherwise */
             chdTrack.SectorDataSize = 2336;
         }
-        else if (metadata.Type == "MODE1")
+        else if (string.Equals(metadata.Type, "MODE1", StringComparison.Ordinal))
         {
             /* 2048 bytes of data from MODE1_RAW without header/footer */
             chdTrack.SectorDataSize = 2048;
             chdTrack.SectorHeaderSize = 0;
             return chdTrack;
         }
-        else if (metadata.Type == "AUDIO")
+        else if (string.Equals(metadata.Type, "AUDIO", StringComparison.Ordinal))
         {
             /* 2352 bytes of raw data */
             chdTrack.SectorDataSize = 2352;

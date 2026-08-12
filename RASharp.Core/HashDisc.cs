@@ -550,7 +550,7 @@ public static class HashDisc
     }
 
     /* helper variable only used for testing */
-    public static string? JaguarCdHomebrewHash = null;
+    internal static string? JaguarCdHomebrewHash = null;
 
     public static int RcHashJaguarCd(out string hash, RcHashIterator iterator)
     {

@@ -96,7 +96,7 @@ internal static class TestDataGen3ds
             0x01 => HexToBytes(Slot25KeyX),
             0x0A => HexToBytes(Slot18KeyX),
             0x0B => HexToBytes(Slot1BKeyX),
-            _ => throw new ArgumentException("cryptoMethod"),
+            _ => throw new ArgumentException("Unsupported crypto method", nameof(cryptoMethod)),
         };
     }
 

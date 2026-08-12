@@ -101,9 +101,9 @@ public class TestHashNeo
         ExtHandlerEntry? sms = null;
         foreach (ExtHandlerEntry entry in HashIterator.GetIteratorExtHandlers(out _))
         {
-            if (entry.Ext == "neo")
+            if (string.Equals(entry.Ext, "neo", StringComparison.Ordinal))
                 neo = entry;
-            else if (entry.Ext == "sms")
+            else if (string.Equals(entry.Ext, "sms", StringComparison.Ordinal))
                 sms = entry;
         }
 

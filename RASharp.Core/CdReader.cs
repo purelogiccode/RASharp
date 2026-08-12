@@ -496,7 +496,7 @@ public static class CdReader
                 if (currentTrack.FirstSector == -1)
                 {
                     currentTrack.FirstSector = sectorOffset;
-                    if (currentTrack.Filename == previousTrack.Filename)
+                    if (string.Equals(currentTrack.Filename, previousTrack.Filename, StringComparison.Ordinal))
                     {
                         previousTrack.SectorCount = currentTrack.FirstSector - previousTrack.FirstSector;
                         currentTrack.FileTrackOffset += previousTrack.SectorCount * previousTrack.SectorSize;

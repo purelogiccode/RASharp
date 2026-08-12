@@ -68,3 +68,20 @@ maintainable, and reviewable.
 - [ ] 64 MiB cap applied where the C applies it;
 - [ ] vectors green, parity green;
 - [ ] warnings-as-errors clean.
+
+## Code analysis
+
+[Meziantou.Analyzer](https://github.com/meziantou/Meziantou.Analyzer) is
+enabled solution-wide (build-time only, `PrivateAssets="all"`) via
+`Directory.Build.props`. Two rules are suppressed in `.editorconfig` with
+justification because they conflict with the port's structure:
+
+- `MA0048` (file name must match type name) — types live in the file
+  mirroring their C module (e.g. all `rc_hash.h` callback types in
+  `Callbacks.cs`);
+- `MA0051` (method too long) — hashing functions are 1:1 translations of
+  the C functions and are intentionally long.
+
+Everything else is enforced: string comparisons must carry an explicit
+`StringComparison`, `EndsWith`/`Contains` must use comparison overloads,
+test hooks must not be public, etc. New code must build analyzer-clean.
