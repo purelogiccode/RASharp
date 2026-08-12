@@ -10,6 +10,8 @@ using Serilog.Sinks.SystemConsole.Themes;
 
 namespace RASharp.Cli;
 
+
+using RASharp.Core.Models;
 internal static class Program
 {
     internal const string Version = "1.8.3";

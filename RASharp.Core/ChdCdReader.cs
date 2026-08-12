@@ -10,6 +10,8 @@ using CHDSharp.Models;
 
 namespace RASharp.Core;
 
+
+using RASharp.Core.Models;
 public static class ChdCdReader
 {
     /* struct metadata_t in HashCHD.cpp */

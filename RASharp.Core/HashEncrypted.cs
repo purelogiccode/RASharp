@@ -7,6 +7,8 @@ using System.Security.Cryptography;
 
 namespace RASharp.Core;
 
+
+using RASharp.Core.Models;
 public static class HashEncrypted
 {
     /* rc_hash_nintendo_3ds_ncch */

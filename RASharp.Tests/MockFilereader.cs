@@ -5,6 +5,8 @@ using RASharp.Core;
 
 namespace RASharp.Tests;
 
+
+using RASharp.Core.Models;
 public sealed class MockFileData
 {
     public string Path = "";

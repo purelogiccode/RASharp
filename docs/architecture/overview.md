@@ -36,7 +36,8 @@ graph TD
 |---|---|---|
 | `RcHash.cs` | `include/rc_hash.h` | public facade: `GenerateFromFile` / `GenerateFromBuffer` + init callbacks |
 | `ConsoleIds.cs` | `include/rc_consoles.h` + `rc_hash.h` | `RC_CONSOLE_*` constants, `RC_HASH_CDTRACK_*`, `RC_CONSOLE_MAX` |
-| `HashIterator.cs` | `hash.c` (iterator + ext-handler table) | `RcHashIterator`, extension→console mapping, `?` iterate |
+| `Models/` (8 files) | `rc_hash.h`, `hash.c`, `cdreader.c` | data models: `RcHashIterator`, `ExtHandlerEntry`, `CdromTrack`, `RcHashFilereader`, `RcHashCdreader`, `RcHashEncryptionCallbacks`, `RcHashCallbacks` (Cli: `ConsoleInfo`) |
+| `HashIterator.cs` | `hash.c` (iterator + ext-handler table) | `?` iterate API, extension→console mapping |
 | `HashEngine.cs` | `hash.c` | dispatch tables, whole-file/buffered hashing, 64 MiB cap, m3u, callbacks plumbing |
 | `HashRom.cs` | `hash_rom.c` | cartridge algorithms (incl. `.neo` from 12.4.0) |
 | `HashDisc.cs` | `hash_disc.c` | disc algorithms + ISO9660 mini-parser (`rc_cd_find_file_sector`) |
@@ -48,7 +49,7 @@ graph TD
 | `AesHelper.cs` | `aes.c` call pattern | AES-128 CBC/ECB on `System.Security.Cryptography` |
 | `Hash3DS.cs` | `Hash3DS.cpp` behavior | `aes_keys.txt` + `seeddb.bin`, key normalization |
 | `HashMd5.cs` | `md5.c` | streaming MD5 with `md5_init/append/final` semantics |
-| `Callbacks.cs` | `rc_hash.h` | message callbacks, filereader/cdreader delegate structs |
+| `Callbacks.cs` | `rc_hash.h` | message/key callback delegates (the structs are in `Models/`) |
 
 ## Design invariants
 

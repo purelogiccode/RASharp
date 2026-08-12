@@ -77,8 +77,8 @@ enabled solution-wide (build-time only, `PrivateAssets="all"`) via
 justification because they conflict with the port's structure:
 
 - `MA0048` (file name must match type name) — types live in the file
-  mirroring their C module (e.g. all `rc_hash.h` callback types in
-  `Callbacks.cs`);
+  mirroring their C module (e.g. the `rc_hash.h` callback structs in
+  `Models/`);
 - `MA0051` (method too long) — hashing functions are 1:1 translations of
   the C functions and are intentionally long.
 

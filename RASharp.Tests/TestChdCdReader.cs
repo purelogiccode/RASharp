@@ -13,6 +13,8 @@ using Xunit;
 
 namespace RASharp.Tests;
 
+
+using RASharp.Core.Models;
 public class TestChdCdReader
 {
     private static string TestDataPath(string name)

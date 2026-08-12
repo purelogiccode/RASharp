@@ -1,22 +1,11 @@
 // Ported from rcheevos (MIT) — src/rhash/hash.c
-// rc_hash_iterator_t and the extension-handler table used by '?' auto-detect
-// (rc_hash_iterate). The table entries and their order are copied verbatim.
+// The '?' auto-detect iterator API (rc_hash_iterate) and the extension-
+// handler table. The table entries and their order are copied verbatim;
+// the RcHashIterator / ExtHandlerEntry models live in Models/.
+
+using RASharp.Core.Models;
 
 namespace RASharp.Core;
-
-/* struct rc_hash_iterator_t */
-public class RcHashIterator
-{
-    public byte[]? Buffer;
-    public int BufferSize;
-    public uint[] Consoles = new uint[12];
-    public int Index;
-    public string? Path;
-    public object? Userdata;
-    public RcHashCallbacks Callbacks = new();
-}
-
-public sealed record ExtHandlerEntry(string Ext, Action<RcHashIterator, int> Handler, int Data);
 
 public static class HashIterator
 {

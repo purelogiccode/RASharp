@@ -8,6 +8,8 @@ using System.Text;
 
 namespace RASharp.Core;
 
+
+using RASharp.Core.Models;
 public static class HashEngine
 {
     /* arbitrary limit to prevent allocating and hashing large files */

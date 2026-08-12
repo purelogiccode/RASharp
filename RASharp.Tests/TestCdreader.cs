@@ -6,6 +6,8 @@ using Xunit;
 
 namespace RASharp.Tests;
 
+
+using RASharp.Core.Models;
 public class TestCdreader
 {
     private static readonly byte[] SyncPattern =

@@ -1,25 +1,13 @@
 // Ported from rcheevos (MIT) — src/rhash/cdreader.c
 // Default CD reader: .cue/.gdi/.bin track opening, sector-size heuristics,
-// and the track -> sector read logic (rc_hash_cdrom_track_t).
+// and the track -> sector read logic (rc_hash_cdrom_track_t is in Models/).
 // Control flow, constants, and special cases are translated 1:1; do not
 // "improve" behavior — parity is the requirement.
 
 using System.Text;
+using RASharp.Core.Models;
 
 namespace RASharp.Core;
-
-/* struct rc_hash_cdrom_track_t */
-public sealed class CdromTrack
-{
-    public RcHashFilereader? FileReader;
-    public object? FileHandle;
-    public long FileTrackOffset;
-    public int TrackPregapSectors;
-    public int TrackFirstSector;
-    public int SectorSize;
-    public int SectorHeaderSize;
-    public int RawDataSize = 2048;
-}
 
 public static class CdReader
 {

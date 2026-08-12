@@ -7,6 +7,8 @@
 
 namespace RASharp.Core;
 
+
+using RASharp.Core.Models;
 public static class HashZip
 {
     /* typedef rc_hash_zip_filter_t */

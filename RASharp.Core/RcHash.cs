@@ -4,6 +4,8 @@
 
 namespace RASharp.Core;
 
+
+using RASharp.Core.Models;
 using Serilog;
 
 public static class RcHash

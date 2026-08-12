@@ -8,6 +8,8 @@ using Xunit;
 
 namespace RASharp.Tests;
 
+
+using RASharp.Core.Models;
 public class TestHashZip
 {
     public sealed class MockZipFileDebug : MockZipFile

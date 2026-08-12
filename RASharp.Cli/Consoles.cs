@@ -3,9 +3,9 @@
 // metadata (IDs, keys, group names, display names) copied from
 // RAHasher.cpp's CONSOLES[]; group NULL marks "not supported by RA".
 
-namespace RASharp.Cli;
+using RASharp.Cli.Models;
 
-public sealed record ConsoleInfo(uint Id, string Key, string? Group, string Name);
+namespace RASharp.Cli;
 
 public static class Consoles
 {

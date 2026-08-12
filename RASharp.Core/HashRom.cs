@@ -7,6 +7,8 @@ using System.Text;
 
 namespace RASharp.Core;
 
+
+using RASharp.Core.Models;
 public static class HashRom
 {
     private static int UnheaderedIteratorBuffer(out string hash, RcHashIterator iterator, int headerSize)

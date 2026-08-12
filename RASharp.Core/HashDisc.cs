@@ -10,6 +10,8 @@ using System.Text;
 
 namespace RASharp.Core;
 
+
+using RASharp.Core.Models;
 public static class HashDisc
 {
     /* ===================================================== */
