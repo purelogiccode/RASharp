@@ -25,6 +25,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RASharp.Core\RASharp.Core.csproj" />
+    <!-- Reference the CLI project so `dotnet test` always rebuilds RASharp.exe
+         (the parity harness executes the freshly built binary). -->
+    <ProjectReference Include="..\RASharp.Cli\RASharp.Cli.csproj" />
   </ItemGroup>
 
   <ItemGroup>

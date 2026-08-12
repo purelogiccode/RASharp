@@ -1,0 +1,14 @@
+# .NET build output
+bin/
+obj/
+
+# 3DS key material — never commit (see ConversionPlan Phase 6)
+aes_keys.txt
+seeddb.bin
+
+# Reference material (GPL sources + oracle binaries; read-only, not shipped)
+References/
+
+# IDE
+*.user
+.idea/

@@ -1,0 +1,161 @@
+// Phase 8 — Tier-2 parity harness infrastructure.
+//
+// Runs both executables — the RASharp port and the reference RAHasher 1.8.3
+// build (References\RAHasher.exe; GPL-3.0, used as test oracle only, never
+// shipped) — with identical arguments and asserts byte-identical stdout and
+// stderr plus equal exit codes.
+//
+// Oracle notes:
+//  * The oracle is built from References\RAHasher-1.8.3 (Makefile.RAHasher
+//    HAVE_CHD=1). It accepts console keys ("NES"), numeric IDs, and "?"
+//    auto-detection, matching the ported CLI.
+//  * Some prebuilt 1.8.3 binaries only accept numeric console IDs. The
+//    harness probes key support once and falls back to numeric IDs.
+//  * If the oracle binary is absent, parity tests skip with a note.
+
+using System.Diagnostics;
+using System.Text;
+
+namespace RASharp.Tests.Parity;
+
+public static class ParityHarness
+{
+    public static readonly string RepoRoot = FindRepoRoot();
+    public static readonly string? OraclePath = FindOracle();
+    public static readonly string CliPath = FindCli();
+
+    private static bool? s_oracleAcceptsKeys;
+    private static bool? s_oracleAcceptsQuestion;
+
+    /// <summary>True when the oracle build supports "?" auto-detect mode (1.8.3-era binaries
+    /// predating key support also predate it). Probed once.</summary>
+    public static bool OracleAcceptsQuestion(string probeFile)
+    {
+        if (s_oracleAcceptsQuestion is null)
+        {
+            if (OraclePath is null)
+            {
+                s_oracleAcceptsQuestion = true;
+            }
+            else
+            {
+                Result result = Run(OraclePath, new[] { "?", probeFile }, Path.GetDirectoryName(probeFile)!);
+                s_oracleAcceptsQuestion = result.ExitCode == 0 &&
+                                          ToText(result.StdOut).Trim().Length == 32;
+            }
+        }
+
+        return s_oracleAcceptsQuestion.Value;
+    }
+
+    /// <summary>True when the oracle build accepts console keys ("NES"); false when it only
+    /// accepts numeric IDs. Probed once using nes.nes (deterministically detectable).</summary>
+    public static bool OracleAcceptsKeys(string probeFile)
+    {
+        if (s_oracleAcceptsKeys is null)
+        {
+            if (OraclePath is null)
+            {
+                s_oracleAcceptsKeys = true;
+            }
+            else
+            {
+                Result result = Run(OraclePath, new[] { "GB", probeFile }, Path.GetDirectoryName(probeFile)!);
+                s_oracleAcceptsKeys = result.ExitCode == 0 &&
+                                      ToText(result.StdOut).Trim().Length == 32;
+            }
+        }
+
+        return s_oracleAcceptsKeys.Value;
+    }
+
+    public sealed record Result(int ExitCode, byte[] StdOut, byte[] StdErr);
+
+    public static Result Run(string exe, IReadOnlyList<string> args, string workingDir)
+    {
+        var psi = new ProcessStartInfo(exe)
+        {
+            WorkingDirectory = workingDir,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        foreach (string arg in args)
+            psi.ArgumentList.Add(arg);
+
+        using Process process = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start " + exe);
+
+        var stdout = new MemoryStream();
+        var stderr = new MemoryStream();
+        Task copyOut = process.StandardOutput.BaseStream.CopyToAsync(stdout);
+        Task copyErr = process.StandardError.BaseStream.CopyToAsync(stderr);
+
+        if (!process.WaitForExit(180_000))
+        {
+            try
+            {
+                process.Kill(entireProcessTree: true);
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+            {
+            }
+
+            throw new TimeoutException($"{exe} {string.Join(' ', args)} did not exit within 180s");
+        }
+
+        Task.WaitAll(copyOut, copyErr);
+        return new Result(process.ExitCode, stdout.ToArray(), stderr.ToArray());
+    }
+
+    public static string ToText(byte[] bytes) => Encoding.UTF8.GetString(bytes);
+
+    private static string FindRepoRoot()
+    {
+        DirectoryInfo? dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            if (File.Exists(Path.Combine(dir.FullName, "RASharp.sln")))
+                return dir.FullName;
+
+            dir = dir.Parent;
+        }
+
+        throw new DirectoryNotFoundException("RASharp.sln not found above " + AppContext.BaseDirectory);
+    }
+
+    private static string? FindOracle()
+    {
+        /* The definitive 1.8.3 oracle is built from the pinned sources
+         * (References\RAHasher-1.8.3, Makefile.RAHasher HAVE_CHD=1). Fall back to
+         * any other RAHasher 1.8.3 binary the user provides. */
+        string? env = Environment.GetEnvironmentVariable("RASHARP_ORACLE");
+        if (!string.IsNullOrEmpty(env) && File.Exists(env))
+            return env;
+
+        string sourceBuilt = Path.Combine(RepoRoot, "References", "RAHasher-1.8.3", "bin64", "RAHasher.exe");
+        if (File.Exists(sourceBuilt))
+            return sourceBuilt;
+
+        string legacy = Path.Combine(RepoRoot, "References", "RAHasher.exe");
+        return File.Exists(legacy) ? legacy : null;
+    }
+
+    private static string FindCli()
+    {
+        string? env = Environment.GetEnvironmentVariable("RASHARP_CLI");
+        if (!string.IsNullOrEmpty(env) && File.Exists(env))
+            return env;
+
+        foreach (string config in new[] { "Debug", "Release" })
+        {
+            string path = Path.Combine(RepoRoot, "RASharp.Cli", "bin", config, "net10.0-windows", "RASharp.exe");
+            if (File.Exists(path))
+                return path;
+        }
+
+        throw new FileNotFoundException(
+            "RASharp.exe not found — build the solution first (dotnet build RASharp.sln) or set RASHARP_CLI.");
+    }
+}

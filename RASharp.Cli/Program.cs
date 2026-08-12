@@ -29,6 +29,13 @@ internal static class Program
             }
             else if (args[argi] == "-s")
             {
+                /* C reads argv[++argi] even at end-of-args (segfault); harden to usage */
+                if (argi + 1 >= args.Length)
+                {
+                    Usage(Environment.ProcessPath ?? "RASharp");
+                    return 1;
+                }
+
                 systemDirectory = args[++argi];
                 ++argi;
             }
@@ -39,8 +46,9 @@ internal static class Program
             }
         }
 
-        /* C: argi + 2 > argc  <=>  argi + 1 > args.Length (argc includes argv[0]) */
-        if (argi + 1 > args.Length)
+        /* C: argi + 2 > argc. C's argi counts argv[0] (argi_c = argi_cs + 1) and
+         * argc = args.Length + 1, so the C# form is argi + 2 > args.Length */
+        if (argi + 2 > args.Length)
         {
             Usage(Environment.ProcessPath ?? "RASharp");
             return 1;
@@ -156,7 +164,6 @@ internal static class Program
     {
         Console.WriteLine("RASharp {0}", Version);
         Console.WriteLine("====================");
-        Console.WriteLine();
         Console.WriteLine("Usage: {0} [-v] [-s systempath] system filepath...", FileUtil.FileName(appname));
         Console.WriteLine();
         Console.WriteLine("  -v             (optional) enables verbose messages for debugging");
@@ -263,15 +270,27 @@ internal static class Program
     {
         int count = 0;
 
+        /* util::directory splits on '\' only (Windows) */
         string path = FileUtil.Directory(pattern);
         if (path == pattern) /* no backslash found. scan is in current directory */
             path = ".";
 
-        string filePattern = FileUtil.FileNameWithExtension(pattern);
+        /* FindFirstFileA scans the full pattern (forward slashes accepted); the
+         * per-file path is then built from the backslash-split directory, which
+         * reproduces the original's behavior for patterns like "dir/*.bin" (the
+         * match is found, but the open path is ".\<name>"). Directory-less
+         * patterns scan the current directory. */
+        string? patternDir = Path.GetDirectoryName(pattern);
+        if (string.IsNullOrEmpty(patternDir))
+            patternDir = ".";
+        string patternName = Path.GetFileName(pattern) ?? "*";
 
-        foreach (string entry in System.IO.Directory.EnumerateFiles(path, filePattern))
+        /* Note: FindFirstFileA also matches directories; a directory literally named
+         * "x.gb" would produce a "????" line in the original but is skipped here.
+         * Pre-existing edge case, kept for simplicity. */
+        foreach (string entry in System.IO.Directory.EnumerateFiles(patternDir, patternName))
         {
-            count += ProcessIteratedFile(consoleId, entry);
+            count += ProcessIteratedFile(consoleId, path + "\\" + Path.GetFileName(entry));
         }
 
         if (count == 0)
