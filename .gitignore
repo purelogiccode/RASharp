@@ -18,3 +18,7 @@ site/
 # IDE
 *.user
 .idea/
+
+# Python (tools/)
+__pycache__/
+*.pyc
