@@ -4,6 +4,7 @@
 namespace RASharp.Core.Models;
 
 /* struct rc_hash_cdrom_track_t */
+/// <summary>struct rc_hash_cdrom_track_t</summary>
 public sealed class CdromTrack
 {
     public RcHashFilereader? FileReader;

@@ -7,6 +7,7 @@ using RASharp.Core.Models;
 
 namespace RASharp.Core;
 
+/// <summary>Ported from rcheevos (MIT) — src/rhash/hash.c The '?' auto-detect iterator API (rc_hash_iterate) and the extension- handler table. The table entries and their o</summary>
 public static class HashIterator
 {
     private static void InitializeIteratorSingle(RcHashIterator iterator, int data)
@@ -263,6 +264,9 @@ public static class HashIterator
         new ExtHandlerEntry("zip", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ARCADE),
     };
 
+/// <summary>Returns the extension-to-console handler table.</summary>
+/// <param name="numHandlers">the number of handlers in the table</param>
+/// <returns>the result</returns>
     public static ExtHandlerEntry[] GetIteratorExtHandlers(out int numHandlers)
     {
         numHandlers = ExtHandlers.Length;
@@ -289,6 +293,9 @@ public static class HashIterator
         return null;
     }
 
+/// <summary>initialize iterator from path.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="path">the file path</param>
     public static void InitializeIteratorFromPath(RcHashIterator iterator, string path)
     {
         string ext = HashEngine.PathGetExtension(path);
@@ -322,6 +329,11 @@ public static class HashIterator
         }
     }
 
+/// <summary>Initializes an iterator for a path or buffer.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="path">the file path</param>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="bufferSize">the size of the buffer</param>
     public static void InitializeIterator(RcHashIterator iterator, string? path, byte[]? buffer, int bufferSize)
     {
         HashEngine.ResetIterator(iterator);
@@ -332,12 +344,18 @@ public static class HashIterator
             iterator.Path = path;
     }
 
+/// <summary>Releases the iterator resources.</summary>
+/// <param name="iterator">the hash iterator</param>
     public static void DestroyIterator(RcHashIterator iterator)
     {
         iterator.Path = null;
         iterator.Buffer = null;
     }
 
+/// <summary>Walks the handler table and returns the first console that accepts the file.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>nonzero when a console matched; zero when none did</returns>
     public static int Iterate(out string hash, RcHashIterator iterator)
     {
         int result = 0;
@@ -371,6 +389,11 @@ public static class HashIterator
         return result;
     }
 
+/// <summary>generate.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int Generate(out string hash, uint consoleId, RcHashIterator iterator)
     {
         if (iterator.Buffer != null)

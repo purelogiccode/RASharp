@@ -10,6 +10,7 @@ namespace RASharp.Core;
 
 
 using RASharp.Core.Models;
+/// <summary>Ported from rcheevos (MIT) — src/rhash/hash.c Engine internals: message callbacks, filereader plumbing, whole-file / buffered-file / playlist hashing, and the c</summary>
 public static class HashEngine
 {
     /* arbitrary limit to prevent allocating and hashing large files */
@@ -52,35 +53,53 @@ public static class HashEngine
         return null;
     }
 
+/// <summary>Stores the global error message callback.</summary>
+/// <param name="callback">the callback to register</param>
     public static void HashInitErrorMessageCallback(RcHashMessageCallbackDeprecated? callback)
     {
         g_error_message_callback = callback;
     }
 
     /* for Hash3DS (the C calls rhash_log_error_message directly) */
+/// <summary>for Hash3DS (the C calls rhash_log_error_message directly)</summary>
+/// <param name="message">the message text</param>
     public static void CallErrorMessage(string message)
     {
         if (g_error_message_callback != null)
             g_error_message_callback(message);
     }
 
+/// <summary>Stores the global verbose message callback.</summary>
+/// <param name="callback">the callback to register</param>
     public static void HashInitVerboseMessageCallback(RcHashMessageCallbackDeprecated? callback)
     {
         g_verbose_message_callback = callback;
     }
 
+/// <summary>Reports a non-formatted error through the error callback.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="message">the message text</param>
+/// <returns>the result</returns>
     public static int IteratorError(RcHashIterator iterator, string message)
     {
         GetErrorMessageCallback(iterator.Callbacks)?.Invoke(message, iterator);
         return 0;
     }
 
+/// <summary>Reports a formatted error through the error callback.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="format">the format parameter</param>
+/// <param name="args">the command-line arguments</param>
+/// <returns>the result</returns>
     public static int IteratorErrorFormatted(RcHashIterator iterator, string format, params object?[] args)
     {
         GetErrorMessageCallback(iterator.Callbacks)?.Invoke(string.Format(format, args), iterator);
         return 0;
     }
 
+/// <summary>Reports a non-formatted verbose message through the verbose callback.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="message">the message text</param>
     public static void IteratorVerbose(RcHashIterator iterator, string message)
     {
         if (iterator.Callbacks.VerboseMessage != null)
@@ -89,6 +108,10 @@ public static class HashEngine
             g_verbose_message_callback(message);
     }
 
+/// <summary>Reports a formatted verbose message through the verbose callback.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="format">the format parameter</param>
+/// <param name="args">the command-line arguments</param>
     public static void IteratorVerboseFormatted(RcHashIterator iterator, string format, params object?[] args)
     {
         string message = string.Format(format, args);
@@ -133,6 +156,7 @@ public static class HashEngine
     }
 
     /* for unit tests - normally would call InitCustomFilereader(null) */
+/// <summary>for unit tests - normally would call InitCustomFilereader(null)</summary>
     public static void ResetFilereader()
     {
         g_filereader = null;
@@ -140,6 +164,8 @@ public static class HashEngine
 
     private static RcHashFilereader? g_filereader;
 
+/// <summary>Registers a custom global file reader.</summary>
+/// <param name="reader">the reader to register</param>
     public static void InitCustomFilereader(RcHashFilereader? reader)
     {
         /* initialize with defaults first */
@@ -170,6 +196,8 @@ public static class HashEngine
 
     private static RcHashCdreader? g_cdreader;
 
+/// <summary>reset iterator disc.</summary>
+/// <param name="iterator">the hash iterator</param>
     public static void ResetIteratorDisc(RcHashIterator iterator)
     {
         if (g_cdreader != null)
@@ -178,6 +206,8 @@ public static class HashEngine
             GetDefaultCdreader(iterator.Callbacks.Cdreader);
     }
 
+/// <summary>Registers a custom global cdreader.</summary>
+/// <param name="reader">the reader to register</param>
     public static void InitCustomCdreader(RcHashCdreader? reader)
     {
         if (reader != null)
@@ -191,12 +221,16 @@ public static class HashEngine
     }
 
     /* for HashDisc's rc_cd_* fallbacks (the C keeps g_cdreader in hash_disc.c) */
+/// <summary>for HashDisc's rc_cd_* fallbacks (the C keeps g_cdreader in hash_disc.c)</summary>
+/// <returns>the result</returns>
     internal static RcHashCdreader? GetGlobalCdreader()
     {
         return g_cdreader;
     }
 
     /* default cdreader handlers (cdreader.c port) */
+/// <summary>default cdreader handlers (cdreader.c port)</summary>
+/// <param name="cdreader">the cdreader parameter</param>
     public static void GetDefaultCdreader(RcHashCdreader cdreader)
     {
         CdReader.GetDefaultCdreader(cdreader);
@@ -205,17 +239,23 @@ public static class HashEngine
     private static RcHash3DsGetCiaNormalKeyFunc? g_3ds_cia_normal_key_func;
     private static RcHash3DsGetNcchNormalKeysFunc? g_3ds_ncch_normal_keys_func;
 
+/// <summary>reset iterator encrypted.</summary>
+/// <param name="iterator">the hash iterator</param>
     public static void ResetIteratorEncrypted(RcHashIterator iterator)
     {
         iterator.Callbacks.Encryption.Get3DsCiaNormalKey = g_3ds_cia_normal_key_func;
         iterator.Callbacks.Encryption.Get3DsNcchNormalKeys = g_3ds_ncch_normal_keys_func;
     }
 
+/// <summary>Stores the global 3DS CIA normal-key provider.</summary>
+/// <param name="func">the func parameter</param>
     public static void HashInit3DsGetCiaNormalKeyFunc(RcHash3DsGetCiaNormalKeyFunc func)
     {
         g_3ds_cia_normal_key_func = func;
     }
 
+/// <summary>Stores the global 3DS NCCH normal-keys provider.</summary>
+/// <param name="func">the func parameter</param>
     public static void HashInit3DsGetNcchNormalKeysFunc(RcHash3DsGetNcchNormalKeysFunc func)
     {
         g_3ds_ncch_normal_keys_func = func;
@@ -224,6 +264,10 @@ public static class HashEngine
     /* ===================================================== */
     /* rc_file_* wrappers                                    */
 
+/// <summary>===================================================== rc_file_* wrappers</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="path">the file path</param>
+/// <returns>the handle, or null on failure</returns>
     public static object? FileOpen(RcHashIterator iterator, string path)
     {
         object? handle = null;
@@ -242,28 +286,50 @@ public static class HashEngine
         return handle;
     }
 
+/// <summary>Seeks a file through the iterator filereader.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="fileHandle">the open file handle</param>
+/// <param name="offset">the byte offset</param>
+/// <param name="origin">the seek origin</param>
     public static void FileSeek(RcHashIterator iterator, object fileHandle, long offset, int origin)
     {
         if (iterator.Callbacks.Filereader.Seek != null)
             iterator.Callbacks.Filereader.Seek(fileHandle, offset, origin);
     }
 
+/// <summary>Returns the current position of a file through the iterator filereader.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="fileHandle">the open file handle</param>
+/// <returns>the current position</returns>
     public static long FileTell(RcHashIterator iterator, object fileHandle)
     {
         return iterator.Callbacks.Filereader.Tell != null ? iterator.Callbacks.Filereader.Tell(fileHandle) : 0;
     }
 
+/// <summary>Reads bytes from a file through the iterator filereader.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="fileHandle">the open file handle</param>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="requestedBytes">the number of bytes requested</param>
+/// <returns>the number of bytes read</returns>
     public static int FileRead(RcHashIterator iterator, object fileHandle, byte[] buffer, int requestedBytes)
     {
         return iterator.Callbacks.Filereader.Read != null ? iterator.Callbacks.Filereader.Read(fileHandle, buffer, requestedBytes) : 0;
     }
 
+/// <summary>Closes a file through the iterator filereader.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="fileHandle">the open file handle</param>
     public static void FileClose(RcHashIterator iterator, object fileHandle)
     {
         if (iterator.Callbacks.Filereader.Close != null)
             iterator.Callbacks.Filereader.Close(fileHandle);
     }
 
+/// <summary>file size.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="path">the file path</param>
+/// <returns>the result</returns>
     public static long FileSize(RcHashIterator iterator, string path)
     {
         long size = 0;
@@ -290,6 +356,9 @@ public static class HashEngine
     /* ===================================================== */
     /* path helpers                                          */
 
+/// <summary>===================================================== path helpers</summary>
+/// <param name="path">the file path</param>
+/// <returns>the generated value</returns>
     public static string PathGetFilename(string path)
     {
         int ptr = path.Length;
@@ -304,6 +373,9 @@ public static class HashEngine
         return path.Substring(ptr);
     }
 
+/// <summary>Returns the lowercase extension of a path, including the dot.</summary>
+/// <param name="path">the file path</param>
+/// <returns>the generated value</returns>
     public static string PathGetExtension(string path)
     {
         int ptr = path.Length;
@@ -318,6 +390,10 @@ public static class HashEngine
         return "";
     }
 
+/// <summary>Compares a path extension with a candidate (case-insensitive).</summary>
+/// <param name="path">the file path</param>
+/// <param name="ext">the ext parameter</param>
+/// <returns>the result</returns>
     public static int PathCompareExtension(string path, string ext)
     {
         int pathLen = path.Length;
@@ -344,6 +420,9 @@ public static class HashEngine
     /* ===================================================== */
     /* byteswap helpers (used by ROM/disc code)              */
 
+/// <summary>===================================================== byteswap helpers (used by ROM/disc code)</summary>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="count">the number of bytes</param>
     public static void Byteswap16(byte[] buffer, int count)
     {
         int ptr = 0;
@@ -359,6 +438,9 @@ public static class HashEngine
         }
     }
 
+/// <summary>byteswap32.</summary>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="count">the number of bytes</param>
     public static void Byteswap32(byte[] buffer, int count)
     {
         int ptr = 0;
@@ -376,6 +458,11 @@ public static class HashEngine
 
     /* ===================================================== */
 
+/// <summary>=====================================================</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="md5">the MD5 state</param>
+/// <param name="hash">the generated 32-char hash</param>
+/// <returns>the result</returns>
     public static int Finalize(RcHashIterator iterator, HashMd5 md5, out string hash)
     {
         byte[] digest = md5.Finish();
@@ -388,6 +475,13 @@ public static class HashEngine
     }
 
     /* rc_hash_buffer — hashes buffer[offset .. offset + bufferSize) */
+/// <summary>rc_hash_buffer — hashes buffer[offset .. offset + bufferSize)</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="offset">the byte offset</param>
+/// <param name="bufferSize">the size of the buffer</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int HashBuffer(out string hash, byte[] buffer, int offset, int bufferSize, RcHashIterator iterator)
     {
         var md5 = new HashMd5();
@@ -402,6 +496,12 @@ public static class HashEngine
         return Finalize(iterator, md5, out hash);
     }
 
+/// <summary>Hashes a buffer region with the given MD5 state.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="bufferSize">the size of the buffer</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int HashBuffer(out string hash, byte[] buffer, int bufferSize, RcHashIterator iterator)
     {
         return HashBuffer(out hash, buffer, 0, bufferSize, iterator);
@@ -507,6 +607,10 @@ public static class HashEngine
     /* ===================================================== */
     /* whole-file / buffered-file hashing                    */
 
+/// <summary>===================================================== whole-file / buffered-file hashing</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int WholeFile(out string hash, RcHashIterator iterator)
     {
         var md5 = new HashMd5();
@@ -554,6 +658,11 @@ public static class HashEngine
         return result;
     }
 
+/// <summary>Reads the file into memory (capped at MAX_BUFFER_SIZE) and dispatches to the buffer path.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int BufferedFile(out string hash, uint consoleId, RcHashIterator iterator)
     {
         int result = 0;
@@ -622,6 +731,9 @@ public static class HashEngine
         return false;
     }
 
+/// <summary>get first item from playlist.</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static string? GetFirstItemFromPlaylist(RcHashIterator iterator)
     {
         object? fileHandle = FileOpen(iterator, iterator.Path!);
@@ -690,6 +802,11 @@ public static class HashEngine
         return iterator.Path!.Substring(0, pathLen) + line;
     }
 
+/// <summary>Hashes the first entry of an m3u playlist with the console.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int GenerateFromPlaylist(out string hash, uint consoleId, RcHashIterator iterator)
     {
         IteratorVerboseFormatted(iterator, "Processing playlist: {0}", PathGetFilename(iterator.Path!));
@@ -715,6 +832,12 @@ public static class HashEngine
     /* dispatch tables                                       */
 
     /* Phase 3/4/5/6/7 targets; replaced as each phase lands */
+/// <summary>===================================================== dispatch tables Phase 3/4/5/6/7 targets; replaced as each phase lands</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="name">the name parameter</param>
+/// <param name="phase">the phase parameter</param>
+/// <returns>the result</returns>
     public static int NotYetImplemented(out string hash, RcHashIterator iterator, string name, string phase)
     {
         hash = "";
@@ -736,6 +859,11 @@ public static class HashEngine
         private static int RcHashNintendo3Ds(out string hash, RcHashIterator iterator) => HashEncrypted.RcHashNintendo3Ds(out hash, iterator);
     private static int RcHashMsDos(out string hash, RcHashIterator iterator) => HashZip.RcHashMsDos(out hash, iterator);
 
+/// <summary>Dispatches a file hash for the console.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int FromFile(out string hash, uint consoleId, RcHashIterator iterator)
     {
         string path = iterator.Path!;
@@ -893,6 +1021,11 @@ public static class HashEngine
         }
     }
 
+/// <summary>Dispatches a buffer hash for the console.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int FromBuffer(out string hash, uint consoleId, RcHashIterator iterator)
     {
         switch (consoleId)
@@ -976,6 +1109,8 @@ public static class HashEngine
     /* ===================================================== */
     /* iterator reset / callback merge                       */
 
+/// <summary>===================================================== iterator reset / callback merge</summary>
+/// <param name="iterator">the hash iterator</param>
     public static void ResetIterator(RcHashIterator iterator)
     {
         iterator.Buffer = null;
@@ -1010,6 +1145,9 @@ public static class HashEngine
 
     /* ported verbatim, including the upstream quirk: the C code assigns
      * callbacks->error_message to iterator->callbacks.verbose_message */
+/// <summary>ported verbatim, including the upstream quirk: the C code assigns callbacks-&gt;error_message to iterator-&gt;callbacks.verbose_message</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="callbacks">the callbacks parameter</param>
     public static void MergeCallbacks(RcHashIterator iterator, RcHashCallbacks callbacks)
     {
         if (callbacks.VerboseMessage != null)

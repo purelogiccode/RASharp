@@ -18,6 +18,7 @@ using System.Text;
 
 namespace RASharp.Tests.Parity;
 
+/// <summary>Phase 8 — Tier-2 parity harness infrastructure. Runs both executables — the RASharp port and the reference RAHasher 1.8.3 build (References\RAHasher.exe; GPL-3.</summary>
 public static class ParityHarness
 {
     public static readonly string RepoRoot = FindRepoRoot();
@@ -73,8 +74,14 @@ public static class ParityHarness
         return s_oracleAcceptsKeys.Value;
     }
 
+/// <summary>Phase 8 — Tier-2 parity harness infrastructure. Runs both executables — the RASharp port and the reference RAHasher 1.8.3 build (References\RAHasher.exe; GPL-3.</summary>
     public sealed record Result(int ExitCode, byte[] StdOut, byte[] StdErr);
 
+/// <summary>Executes the CLI argument loop.</summary>
+/// <param name="exe">the exe parameter</param>
+/// <param name="args">the command-line arguments</param>
+/// <param name="workingDir">the working dir parameter</param>
+/// <returns>the result</returns>
     public static Result Run(string exe, IReadOnlyList<string> args, string workingDir)
     {
         var psi = new ProcessStartInfo(exe)
@@ -117,6 +124,9 @@ public static class ParityHarness
         return new Result(process.ExitCode, stdout.ToArray(), stderr.ToArray());
     }
 
+/// <summary>to text.</summary>
+/// <param name="bytes">the bytes parameter</param>
+/// <returns>the generated value</returns>
     public static string ToText(byte[] bytes) => Encoding.UTF8.GetString(bytes);
 
     private static string FindRepoRoot()

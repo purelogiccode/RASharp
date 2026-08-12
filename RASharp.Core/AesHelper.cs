@@ -8,12 +8,19 @@ using System.Security.Cryptography;
 
 namespace RASharp.Core;
 
+/// <summary>AesHelper — AES-128 primitives matching the call patterns of rcheevos' aes.c (MIT reference; BCL-backed). The engine uses 128-bit keys only (AES_KEYLEN == 16), </summary>
 public static class AesHelper
 {
     public const int KeyLen = 16;
     public const int BlockLen = 16;
 
     /* AES_CBC_decrypt_buffer */
+/// <summary>AES_CBC_decrypt_buffer</summary>
+/// <param name="data">the data</param>
+/// <param name="offset">the byte offset</param>
+/// <param name="length">the length parameter</param>
+/// <param name="key">the console key or numeric id</param>
+/// <param name="iv">the iv parameter</param>
     public static void AesCbcDecrypt(byte[] data, int offset, int length, byte[] key, byte[] iv)
     {
         using var aes = Aes.Create();
@@ -28,6 +35,12 @@ public static class AesHelper
     }
 
     /* AES_CBC_encrypt_buffer (test-fixture helper; the engine only decrypts) */
+/// <summary>AES_CBC_encrypt_buffer (test-fixture helper; the engine only decrypts)</summary>
+/// <param name="data">the data</param>
+/// <param name="offset">the byte offset</param>
+/// <param name="length">the length parameter</param>
+/// <param name="key">the console key or numeric id</param>
+/// <param name="iv">the iv parameter</param>
     public static void AesCbcEncrypt(byte[] data, int offset, int length, byte[] key, byte[] iv)
     {
         using var aes = Aes.Create();
@@ -44,6 +57,12 @@ public static class AesHelper
     /* AES_CTR_xcrypt_buffer — XORs `length` bytes with the keystream derived
      * from `counter` (mutated: incremented after every full 16-byte block,
      * exactly like the C's Iv member) */
+/// <summary>AES_CTR_xcrypt_buffer — XORs `length` bytes with the keystream derived from `counter` (mutated: incremented after every full 16-byte block, exactly like the C's</summary>
+/// <param name="data">the data</param>
+/// <param name="offset">the byte offset</param>
+/// <param name="length">the length parameter</param>
+/// <param name="key">the console key or numeric id</param>
+/// <param name="counter">the counter parameter</param>
     public static void AesCtrXcrypt(byte[] data, int offset, int length, byte[] key, byte[] counter)
     {
         using var aes = Aes.Create();

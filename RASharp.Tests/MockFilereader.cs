@@ -7,6 +7,7 @@ namespace RASharp.Tests;
 
 
 using RASharp.Core.Models;
+/// <summary>Ported from rcheevos (MIT) — test/rhash/mock_filereader.c In-memory filereader for the vector tests (CD reader parts deferred to Phase 3).</summary>
 public sealed class MockFileData
 {
     public string Path = "";
@@ -16,6 +17,7 @@ public sealed class MockFileData
     public int FirstSector;
 }
 
+/// <summary>Ported from rcheevos (MIT) — test/rhash/mock_filereader.c In-memory filereader for the vector tests (CD reader parts deferred to Phase 3).</summary>
 public static class MockFilereader
 {
     private static readonly MockFileData[] Instances = new MockFileData[16];
@@ -92,6 +94,8 @@ public static class MockFilereader
         mockCdTracks = 0;
     }
 
+/// <summary>get mock filereader.</summary>
+/// <returns>the result</returns>
     public static RcHashFilereader GetMockFilereader()
     {
         var reader = new RcHashFilereader
@@ -107,11 +111,17 @@ public static class MockFilereader
         return reader;
     }
 
+/// <summary>init mock filereader.</summary>
     public static void InitMockFilereader()
     {
         RcHash.InitCustomFilereader(GetMockFilereader());
     }
 
+/// <summary>mock file.</summary>
+/// <param name="index">the index parameter</param>
+/// <param name="filename">the filename parameter</param>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="bufferSize">the size of the buffer</param>
     public static void MockFile(int index, string filename, byte[]? buffer, int bufferSize)
     {
         if (index == 0)
@@ -124,26 +134,42 @@ public static class MockFilereader
         Instances[index].FirstSector = 0;
     }
 
+/// <summary>mock file text.</summary>
+/// <param name="index">the index parameter</param>
+/// <param name="filename">the filename parameter</param>
+/// <param name="contents">the contents parameter</param>
     public static void MockFileText(int index, string filename, string contents)
     {
         MockFile(index, filename, System.Text.Encoding.ASCII.GetBytes(contents), contents.Length);
     }
 
+/// <summary>mock file size.</summary>
+/// <param name="index">the index parameter</param>
+/// <param name="mockSize">the mock size parameter</param>
     public static void MockFileSize(int index, int mockSize)
     {
         Instances[index].Size = mockSize;
     }
 
+/// <summary>mock empty file.</summary>
+/// <param name="index">the index parameter</param>
+/// <param name="filename">the filename parameter</param>
+/// <param name="mockSize">the mock size parameter</param>
     public static void MockEmptyFile(int index, string filename, int mockSize)
     {
         MockFile(index, filename, null, mockSize);
     }
 
+/// <summary>mock cd num tracks.</summary>
+/// <param name="numTracks">the num tracks parameter</param>
     public static void MockCdNumTracks(int numTracks)
     {
         mockCdTracks = numTracks;
     }
 
+/// <summary>mock file first sector.</summary>
+/// <param name="index">the index parameter</param>
+/// <param name="firstSector">the first sector parameter</param>
     public static void MockFileFirstSector(int index, int firstSector)
     {
         Instances[index].FirstSector = firstSector;
@@ -207,6 +233,7 @@ public static class MockFilereader
         return (uint)((MockFileData)trackHandle).FirstSector;
     }
 
+/// <summary>init mock cdreader.</summary>
     public static void InitMockCdreader()
     {
         var cdreader = new RcHashCdreader
@@ -222,6 +249,9 @@ public static class MockFilereader
         mockCdTracks = 0;
     }
 
+/// <summary>get mock filename.</summary>
+/// <param name="fileHandle">the open file handle</param>
+/// <returns>the generated value</returns>
     public static string GetMockFilename(object fileHandle)
     {
         return ((MockFileData)fileHandle).Path;

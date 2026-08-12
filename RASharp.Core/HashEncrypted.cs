@@ -9,6 +9,7 @@ namespace RASharp.Core;
 
 
 using RASharp.Core.Models;
+/// <summary>HashEncrypted — port of rcheevos hash_encrypted.c (MIT). rc_hash_nintendo_3ds: NCSD/NCCH/CIA/3DSX/ELF detection + hashing, with the 3DS key material supplied th</summary>
 public static class HashEncrypted
 {
     /* rc_hash_nintendo_3ds_ncch */
@@ -492,6 +493,10 @@ public static class HashEncrypted
     }
 
     /* rc_hash_nintendo_3ds */
+/// <summary>rc_hash_nintendo_3ds</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashNintendo3Ds(out string hash, RcHashIterator iterator)
     {
         hash = "";

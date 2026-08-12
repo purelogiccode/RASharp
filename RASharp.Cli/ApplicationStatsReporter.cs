@@ -22,6 +22,7 @@ using System.Text.Json;
 
 namespace RASharp.Cli;
 
+/// <summary>Application usage telemetry. Reports a usage hit to the ApplicationStats API at application launch (AspNet_ApplicationStats — see its InstructionsToUseApiEndpoi</summary>
 internal static class ApplicationStatsReporter
 {
     internal const string DefaultUrl = "https://www.purelogiccode.com/ApplicationStats/stats";
@@ -32,6 +33,7 @@ internal static class ApplicationStatsReporter
     private static bool s_enabled = true;
 
     /* called once at application launch; never blocks the main flow */
+/// <summary>called once at application launch; never blocks the main flow</summary>
     public static void ReportUsage()
     {
         if (!s_enabled)
@@ -61,6 +63,7 @@ internal static class ApplicationStatsReporter
     }
 
     /* give a pending report up to 2 seconds to finish before process exit */
+/// <summary>give a pending report up to 2 seconds to finish before process exit</summary>
     public static void Flush()
     {
         Task[] pending;

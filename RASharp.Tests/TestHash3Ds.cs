@@ -15,6 +15,7 @@ using Xunit;
 
 namespace RASharp.Tests;
 
+/// <summary>Phase 6 — 3DS encrypted hashing tests. All fixture files are generated at test time from known key material; the expected hashes are the outputs of RAHasher 1.8</summary>
 public class TestHash3Ds : IDisposable
 {
     private readonly string _dir;
@@ -59,6 +60,7 @@ public class TestHash3Ds : IDisposable
         File.WriteAllBytes(Path.Combine(_dir, "junk.bin"), new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 });
     }
 
+/// <summary>Releases the mounted filesystem.</summary>
     public void Dispose()
     {
         try
@@ -80,6 +82,7 @@ public class TestHash3Ds : IDisposable
         return RcHash.GenerateFromFile(out hash, ConsoleIds.RC_CONSOLE_NINTENDO_3DS, Path.Combine(_dir, file));
     }
 
+/// <summary>Tests hash3 ds plain ncch.</summary>
     [Fact]
     public void TestHash3DsPlainNcch()
     {
@@ -87,6 +90,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal("eb334fea757807e4a4b81ee99905437c", hash);
     }
 
+/// <summary>Tests hash3 ds encrypted ncch.</summary>
     [Fact]
     public void TestHash3DsEncryptedNcch()
     {
@@ -94,6 +98,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal("eb334fea757807e4a4b81ee99905437c", hash);
     }
 
+/// <summary>Tests hash3 ds fixed key ncch.</summary>
     [Fact]
     public void TestHash3DsFixedKeyNcch()
     {
@@ -101,6 +106,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal("eb334fea757807e4a4b81ee99905437c", hash);
     }
 
+/// <summary>Tests hash3 ds encrypted ncch v1.</summary>
     [Fact]
     public void TestHash3DsEncryptedNcchV1()
     {
@@ -108,6 +114,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal("552ef040edf82bffada8b7615b8b2faa", hash);
     }
 
+/// <summary>Tests hash3 ds seed ncch.</summary>
     [Fact]
     public void TestHash3DsSeedNcch()
     {
@@ -115,6 +122,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal("29b0b5a9e83ac39e635c792a5142f5e4", hash);
     }
 
+/// <summary>Tests hash3 ds encrypted cia.</summary>
     [Fact]
     public void TestHash3DsEncryptedCia()
     {
@@ -122,6 +130,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal("eb334fea757807e4a4b81ee99905437c", hash);
     }
 
+/// <summary>Tests hash3 ds plain cia.</summary>
     [Fact]
     public void TestHash3DsPlainCia()
     {
@@ -129,6 +138,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal("eb334fea757807e4a4b81ee99905437c", hash);
     }
 
+/// <summary>Tests hash3 ds unaligned ncch.</summary>
     [Fact]
     public void TestHash3DsUnalignedNcch()
     {
@@ -138,6 +148,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal("3e2d3dfe1808dd0498ecf6c77e36ea46", hash);
     }
 
+/// <summary>Tests hash3 ds crypto variants agree.</summary>
     [Fact]
     public void TestHash3DsCryptoVariantsAgree()
     {
@@ -150,6 +161,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal(plain, cia);
     }
 
+/// <summary>Tests hash3 ds3 dsx.</summary>
     [Fact]
     public void TestHash3Ds3Dsx()
     {
@@ -157,6 +169,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal("ca7161a502db8be8089d16a8b2280970", hash);
     }
 
+/// <summary>Tests hash3 ds error no keys.</summary>
     [Fact]
     public void TestHash3DsErrorNoKeys()
     {
@@ -169,6 +182,7 @@ public class TestHash3Ds : IDisposable
         Assert.Equal("", hash);
     }
 
+/// <summary>Tests hash3 ds error junk file.</summary>
     [Fact]
     public void TestHash3DsErrorJunkFile()
     {
@@ -178,6 +192,7 @@ public class TestHash3Ds : IDisposable
 
     /* NIST SP 800-38A AES-128 known-answer checks for the BCL-backed
      * primitives (the C's aes.c is standard AES, so this is transitive) */
+/// <summary>NIST SP 800-38A AES-128 known-answer checks for the BCL-backed primitives (the C's aes.c is standard AES, so this is transitive)</summary>
     [Fact]
     public void TestAesHelperKat()
     {

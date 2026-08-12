@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace RASharp.Tests.Parity;
 
+/// <summary>Phase 8 — Tier-2 parity tests. For every case in the generated corpus, both executables (RASharp.exe and the reference RAHasher 1.8.3 oracle) run with identical</summary>
 public sealed record ParityCase(
     string Label,
     string[] Flags,         // CLI flags before the console token; "{SYSTEM}" is replaced with the 3DS system dir
@@ -29,6 +30,7 @@ public sealed record ParityCase(
     bool NormalizeNames = false, // replace "RAHasher" with "RASharp" before comparing (usage output embeds the exe name)
     string? WorkingDir = null); // default: corpus root
 
+/// <summary>Phase 8 — Tier-2 parity tests. For every case in the generated corpus, both executables (RASharp.exe and the reference RAHasher 1.8.3 oracle) run with identical</summary>
 public class TestParity
 {
     private readonly ITestOutputHelper _output;
@@ -43,12 +45,16 @@ public class TestParity
 
     private static readonly Lazy<CorpusPaths> s_corpus = new(BuildCorpus);
 
+/// <summary>cases.</summary>
+/// <returns>the result</returns>
     public static IEnumerable<object[]> Cases()
     {
         foreach (ParityCase test in BuildCases(s_corpus.Value))
             yield return new object[] { test };
     }
 
+/// <summary>parity.</summary>
+/// <param name="test">the test parameter</param>
     [Theory]
     [MemberData(nameof(Cases))]
     public void Parity(ParityCase test)

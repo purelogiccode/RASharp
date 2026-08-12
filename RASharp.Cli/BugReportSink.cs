@@ -29,6 +29,7 @@ using Serilog.Events;
 
 namespace RASharp.Cli;
 
+/// <summary>Bug report forwarding sink. Forwards Warning+ log events to the bug report API (AspNet_BugReportEmailService — see its InstructionsToSendBugs.md): POST {RASHARP</summary>
 internal sealed class BugReportSink : ILogEventSink, IDisposable
 {
     internal const string DefaultUrl = "https://www.purelogiccode.com/bugreport/api/send-bug-report";
@@ -50,6 +51,8 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
         _apiKey = apiKey;
     }
 
+/// <summary>Forwards a log event to the bug report API (Warning+ events).</summary>
+/// <param name="logEvent">the log event</param>
     public void Emit(LogEvent logEvent)
     {
         try
@@ -101,6 +104,7 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
         }
     }
 
+/// <summary>Releases the mounted filesystem.</summary>
     public void Dispose()
     {
         Task[] pending;

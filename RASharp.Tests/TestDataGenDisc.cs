@@ -6,6 +6,7 @@ using System.Text;
 
 namespace RASharp.Tests;
 
+/// <summary>Ported from rcheevos (MIT) — test/rhash/data.c (Phase 3 subset) Synthetic disc image generators: GameCube, 3DO, Dreamcast, PCE-CD, PC-FX, ISO9660 (PSX), Jaguar </summary>
 public static class TestDataGenDisc
 {
     private static void CopyString(byte[] image, int offset, string text, int length)
@@ -27,6 +28,10 @@ public static class TestDataGenDisc
     }
 
     /* generate_gamecube_iso from data.c */
+/// <summary>generate_gamecube_iso from data.c</summary>
+/// <param name="mb">the mb parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateGamecubeIso(int mb, out int imageSize)
     {
         int sizeNeeded = mb * 1024 * 1024;
@@ -65,6 +70,11 @@ public static class TestDataGenDisc
     }
 
     /* generate_3do_bin from data.c */
+/// <summary>generate_3do_bin from data.c</summary>
+/// <param name="rootDirectorySectors">the root directory sectors parameter</param>
+/// <param name="binarySize">the binary size parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] Generate3DoBin(uint rootDirectorySectors, uint binarySize, out int imageSize)
     {
         byte[] volumeHeader = new byte[]
@@ -178,6 +188,11 @@ public static class TestDataGenDisc
     }
 
     /* generate_dreamcast_bin from data.c */
+/// <summary>generate_dreamcast_bin from data.c</summary>
+/// <param name="trackFirstSector">the track first sector parameter</param>
+/// <param name="binarySize">the binary size parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateDreamcastBin(uint trackFirstSector, uint binarySize, out int imageSize)
     {
         /* https://mc.pp.se/dc/ip0000.bin.html */
@@ -243,6 +258,10 @@ public static class TestDataGenDisc
     }
 
     /* generate_pce_cd_bin from data.c */
+/// <summary>generate_pce_cd_bin from data.c</summary>
+/// <param name="binarySectors">the binary sectors parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GeneratePceCdBin(uint binarySectors, out int imageSize)
     {
         byte[] volumeHeader = new byte[]
@@ -279,6 +298,10 @@ public static class TestDataGenDisc
     }
 
     /* generate_pcfx_bin from data.c */
+/// <summary>generate_pcfx_bin from data.c</summary>
+/// <param name="binarySectors">the binary sectors parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GeneratePcfxBin(uint binarySectors, out int imageSize)
     {
         byte[] volumeHeader = new byte[]
@@ -316,6 +339,11 @@ public static class TestDataGenDisc
     }
 
     /* generate_iso9660_bin from data.c */
+/// <summary>generate_iso9660_bin from data.c</summary>
+/// <param name="numSectors">the num sectors parameter</param>
+/// <param name="volumeLabel">the volume label parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateIso9660Bin(uint numSectors, string volumeLabel, out int imageSize)
     {
         byte[] identifier = { 0x01, (byte)'C', (byte)'D', (byte)'0', (byte)'0', (byte)'1', 0x01, 0x00 };
@@ -351,6 +379,12 @@ public static class TestDataGenDisc
     }
 
     /* generate_iso9660_file from data.c — returns the contents start offset */
+/// <summary>generate_iso9660_file from data.c — returns the contents start offset</summary>
+/// <param name="image">the image parameter</param>
+/// <param name="filename">the filename parameter</param>
+/// <param name="contents">the contents parameter</param>
+/// <param name="contentsSize">the contents size parameter</param>
+/// <returns>the result</returns>
     public static int GenerateIso9660File(byte[] image, string filename, byte[]? contents, int contentsSize)
     {
         const int rootDirectoryRecordOffset = 17 * 2048;
@@ -457,6 +491,12 @@ public static class TestDataGenDisc
     }
 
     /* generate_jaguarcd_bin from data.c */
+/// <summary>generate_jaguarcd_bin from data.c</summary>
+/// <param name="headerOffset">the header offset parameter</param>
+/// <param name="binarySize">the binary size parameter</param>
+/// <param name="byteswapped">the byteswapped parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateJaguarcdBin(uint headerOffset, uint binarySize, int byteswapped, out int imageSize)
     {
         int sizeNeeded = (int)((((binarySize + 64 + 32 + 8) + 2351) / 2352) * 2352);
@@ -490,6 +530,11 @@ public static class TestDataGenDisc
     }
 
     /* generate_psx_bin from data.c */
+/// <summary>generate_psx_bin from data.c</summary>
+/// <param name="binaryName">the binary name parameter</param>
+/// <param name="binarySize">the binary size parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GeneratePsxBin(string binaryName, uint binarySize, out int imageSize)
     {
         uint sectorsNeeded = (((binarySize + 2047) / 2048) + 20);
@@ -513,6 +558,11 @@ public static class TestDataGenDisc
     }
 
     /* generate_ps2_bin from data.c */
+/// <summary>generate_ps2_bin from data.c</summary>
+/// <param name="binaryName">the binary name parameter</param>
+/// <param name="binarySize">the binary size parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GeneratePs2Bin(string binaryName, uint binarySize, out int imageSize)
     {
         uint sectorsNeeded = ((binarySize + 2047) / 2048) + 20;
@@ -533,6 +583,11 @@ public static class TestDataGenDisc
     }
 
     /* convert_to_2352 from data.c */
+/// <summary>convert_to_2352 from data.c</summary>
+/// <param name="input">the input parameter</param>
+/// <param name="size">the size</param>
+/// <param name="firstSector">the first sector parameter</param>
+/// <returns>the result</returns>
     public static byte[] ConvertTo2352(byte[] input, ref int size, uint firstSector)
     {
         uint numSectors = (uint)((size + 2047) / 2048);

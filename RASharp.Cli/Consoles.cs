@@ -7,6 +7,7 @@ using RASharp.Cli.Models;
 
 namespace RASharp.Cli;
 
+/// <summary>New implementation, behavior parity with RALibretro RAHasher (GPL-3.0, used as reference only). The console table below is factual console metadata (IDs, keys, </summary>
 public static class Consoles
 {
     private const string NINTENDO = "Nintendo";

@@ -9,6 +9,7 @@ namespace RASharp.Tests;
 
 
 using RASharp.Core.Models;
+/// <summary>Ported from rcheevos (MIT) — test/rhash/test_hash_rom.c (Phase 1 subset) Generic whole-file console vectors (test_hash_full_file entries only; cartridge algorit</summary>
 public class TestHashRomGeneric
 {
     public TestHashRomGeneric()
@@ -80,6 +81,11 @@ public class TestHashRomGeneric
     [InlineData((uint)10, "test.bin", 3145728, "07d733f252896ec41b4fd521fe610e2c")] /* Sega 32X */
     [InlineData((uint)33, "test.sg", 32768, "6a2305a2b6675a97ff792709be1ca857")] /* SG-1000 */
     /* SUPER_CASSETTEVISION (55, "test.bin") vectors return in Phase 2 with rc_hash_scv */
+/// <summary>SUPER_CASSETTEVISION (55, "test.bin") vectors return in Phase 2 with rc_hash_scv</summary>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="filename">the filename parameter</param>
+/// <param name="size">the size</param>
+/// <param name="expectedMd5">the expected md5 parameter</param>
     [InlineData((uint)79, "test.83g", 1695, "bfb6048395a425c69743900785987c42")] /* TI-83 */
     [InlineData((uint)79, "test.83p", 2500, "6e81d530ee9a79d4f4f505729ad74bb5")]
     [InlineData((uint)65, "test.tic", 67682, "79b96f4ffcedb3ce8210a83b22cd2c69")] /* TIC-80 */
@@ -95,6 +101,7 @@ public class TestHashRomGeneric
         TestHashFullFile(consoleId, filename, size, expectedMd5);
     }
 
+/// <summary>Tests hash mega drive m3u.</summary>
     [Fact]
     public void TestHashMegaDriveM3u()
     {

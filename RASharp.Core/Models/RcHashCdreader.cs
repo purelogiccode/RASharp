@@ -6,6 +6,7 @@
 namespace RASharp.Core.Models;
 
 /* struct rc_hash_cdreader_t */
+/// <summary>struct rc_hash_cdreader_t</summary>
 public class RcHashCdreader
 {
     public Func<string, uint, object?>? OpenTrack;

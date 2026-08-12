@@ -6,6 +6,7 @@ using RASharp.Core;
 namespace RASharp.Core.Models;
 
 /* struct rc_hash_callbacks_t */
+/// <summary>struct rc_hash_callbacks_t</summary>
 public class RcHashCallbacks
 {
     public RcHashMessageCallback? VerboseMessage;

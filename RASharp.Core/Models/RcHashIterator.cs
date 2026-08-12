@@ -5,6 +5,7 @@
 namespace RASharp.Core.Models;
 
 /* struct rc_hash_iterator_t */
+/// <summary>struct rc_hash_iterator_t</summary>
 public class RcHashIterator
 {
     public byte[]? Buffer;

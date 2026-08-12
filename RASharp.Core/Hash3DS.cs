@@ -9,6 +9,7 @@ using Serilog;
 
 namespace RASharp.Core;
 
+/// <summary>Hash3DS — 3DS key retrieval for the encryption callbacks. Behavior parity with RALibretro RAHasher's Hash3DS.cpp (GPL, used as reference only — this is a new im</summary>
 public static class Hash3DS
 {
     private static string g_systemDir = ".";
@@ -261,6 +262,8 @@ public static class Hash3DS
     }
 
     /* initHash3DS */
+/// <summary>initHash3DS</summary>
+/// <param name="systemDir">the system dir parameter</param>
     public static void InitHash3DS(string systemDir)
     {
         g_systemDir = systemDir;

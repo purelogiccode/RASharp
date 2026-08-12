@@ -3,9 +3,13 @@
 
 namespace RASharp.Tests;
 
+/// <summary>Ported from rcheevos (MIT) — test/rhash/data.c + test/rhash/test_hash_rom.c Synthetic cartridge image generators (Phase 2 subset).</summary>
 public static class TestDataGen
 {
     /* fill_image + generate_generic_file from data.c */
+/// <summary>fill_image + generate_generic_file from data.c</summary>
+/// <param name="size">the size</param>
+/// <returns>the result</returns>
     public static byte[] GenerateGenericFile(int size)
     {
         byte[] image = new byte[size];
@@ -14,6 +18,11 @@ public static class TestDataGen
     }
 
     /* fill a sub-range of the image (offset-based fill_image) */
+/// <summary>fill a sub-range of the image (offset-based fill_image)</summary>
+/// <param name="kb">the kb parameter</param>
+/// <param name="withHeader">the with header parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateAtari7800File(int kb, bool withHeader, out int imageSize)
     {
         int sizeNeeded = kb * 1024;
@@ -49,6 +58,11 @@ public static class TestDataGen
     }
 
     /* generate_nes_file from test_hash_rom.c */
+/// <summary>generate_nes_file from test_hash_rom.c</summary>
+/// <param name="kb">the kb parameter</param>
+/// <param name="withHeader">the with header parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateNesFile(int kb, bool withHeader, out int imageSize)
     {
         int sizeNeeded = kb * 1024;
@@ -76,6 +90,11 @@ public static class TestDataGen
     }
 
     /* generate_fds_file from test_hash_rom.c */
+/// <summary>generate_fds_file from test_hash_rom.c</summary>
+/// <param name="sides">the sides parameter</param>
+/// <param name="withHeader">the with header parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateFdsFile(int sides, bool withHeader, out int imageSize)
     {
         int sizeNeeded = sides * 65500;
@@ -103,6 +122,12 @@ public static class TestDataGen
     }
 
     /* generate_nds_file from test_hash_rom.c */
+/// <summary>generate_nds_file from test_hash_rom.c</summary>
+/// <param name="mb">the mb parameter</param>
+/// <param name="arm9Size">the arm9 size parameter</param>
+/// <param name="arm7Size">the arm7 size parameter</param>
+/// <param name="imageSize">the image size parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateNdsFile(int mb, uint arm9Size, uint arm7Size, out int imageSize)
     {
         int sizeNeeded = mb * 1024 * 1024;
@@ -142,6 +167,10 @@ public static class TestDataGen
     }
 
     /* fill a sub-range of the image (offset-based fill_image) */
+/// <summary>fill a sub-range of the image (offset-based fill_image)</summary>
+/// <param name="image">the image parameter</param>
+/// <param name="start">the start parameter</param>
+/// <param name="size">the size</param>
     internal static void FillImage(byte[] image, int start, int size)
     {
         int seed = unchecked((int)(((ulong)size ^ ((ulong)size >> 8) ^ ((ulong)(size - 1) * 25387)) & 0xFFFFFFFF));

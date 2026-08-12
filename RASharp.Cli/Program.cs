@@ -12,10 +12,14 @@ namespace RASharp.Cli;
 
 
 using RASharp.Core.Models;
+/// <summary>New implementation, behavior parity with RALibretro RAHasher (GPL-3.0, used as reference only) — src/RAHasher.cpp. The console metadata table is factual data (s</summary>
 internal static class Program
 {
     internal const string Version = "1.8.3";
 
+/// <summary>main.</summary>
+/// <param name="args">the command-line arguments</param>
+/// <returns>the result</returns>
     private static int Main(string[] args)
     {
         try
@@ -43,6 +47,8 @@ internal static class Program
      * startup) unless RASHARP_BUGREPORT_API_KEY overrides it;
      * RASHARP_BUGREPORT_DISABLE=1 forces forwarding off. The sink never
      * writes to stdout/stderr, so parity output is unaffected. */
+/// <summary>Serilog wiring. The console sink reproduces the original's byte-exact output (message + platform newline, no themes); the bug-report sink forwards Warning+ even</summary>
+/// <returns>the result</returns>
     private static void ConfigureLogging()
     {
         var configuration = new LoggerConfiguration()
@@ -66,6 +72,9 @@ internal static class Program
         Log.Logger = configuration.CreateLogger();
     }
 
+/// <summary>Executes the CLI argument loop.</summary>
+/// <param name="args">the command-line arguments</param>
+/// <returns>the result</returns>
     private static int Run(string[] args)
     {
         int consoleId = 0;
@@ -182,6 +191,9 @@ internal static class Program
         return 0;
     }
 
+/// <summary>Resolves a console key or numeric id to a console id.</summary>
+/// <param name="key">the console key or numeric id</param>
+/// <returns>the console id, or 0 when unknown</returns>
     private static int FindConsoleId(string key)
     {
         foreach (var console in Consoles.All)
@@ -195,6 +207,9 @@ internal static class Program
     }
 
     /* C atoi semantics: optional sign, leading digits, 0 when none */
+/// <summary>C atoi semantics: optional sign, leading digits, 0 when none</summary>
+/// <param name="s">the s parameter</param>
+/// <returns>the result</returns>
     private static int Atoi(string s)
     {
         int i = 0;
@@ -215,6 +230,9 @@ internal static class Program
         return negative ? -value : value;
     }
 
+/// <summary>Prints the usage banner and console table.</summary>
+/// <param name="appname">the application name</param>
+/// <returns>the result</returns>
     private static void Usage(string appname)
     {
         Console.WriteLine("RASharp {0}", Version);
@@ -246,18 +264,28 @@ internal static class Program
         Console.WriteLine("Warning: consoles with a 'blank' group are currently not supported by RA!");
     }
 
+/// <summary>Verbose message callback routed through Serilog.</summary>
+/// <param name="message">the message text</param>
+/// <returns>the result</returns>
     private static void RhashLog(string message)
     {
         /* parity-critical: the console sink must emit message + newline only */
         Log.Information("{Message}", message);
     }
 
+/// <summary>Error message callback routed through Serilog (stderr).</summary>
+/// <param name="message">the message text</param>
+/// <returns>the result</returns>
     private static void RhashLogErrorMessage(string message)
     {
         /* parity-critical: goes to stderr via standardErrorFromLevel */
         Log.Error("{Message}", message);
     }
 
+/// <summary>Processes a single file for a console.</summary>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="file">the file path</param>
+/// <returns>the result</returns>
     private static int ProcessFile(int consoleId, string file)
     {
         string filePath = FileUtil.FullPath(file);
@@ -313,6 +341,10 @@ internal static class Program
         return 0;
     }
 
+/// <summary>Processes one wildcard match, printing the hash and filename.</summary>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="file">the file path</param>
+/// <returns>the result</returns>
     private static int ProcessIteratedFile(int consoleId, string file)
     {
         int result = ProcessFile(consoleId, file);
@@ -323,6 +355,10 @@ internal static class Program
         return result;
     }
 
+/// <summary>Expands a wildcard pattern and processes every match.</summary>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="pattern">the wildcard pattern</param>
+/// <returns>the result</returns>
     private static int ProcessFiles(int consoleId, string pattern)
     {
         int count = 0;

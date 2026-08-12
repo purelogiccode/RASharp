@@ -8,31 +8,41 @@ namespace RASharp.Core;
 using RASharp.Core.Models;
 using Serilog;
 
+/// <summary>Ported from rcheevos (MIT) — include/rc_hash.h Public API mirror. Deprecated single-shot functions plus the global init functions; the iterator-based API lives </summary>
 public static class RcHash
 {
     /* deprecated global message callbacks */
+/// <summary>deprecated global message callbacks</summary>
+/// <param name="callback">the callback to register</param>
     public static void InitErrorMessageCallback(RcHashMessageCallbackDeprecated? callback)
     {
         HashEngine.HashInitErrorMessageCallback(callback);
     }
 
+/// <summary>Registers the global verbose message callback.</summary>
+/// <param name="callback">the callback to register</param>
     public static void InitVerboseMessageCallback(RcHashMessageCallbackDeprecated? callback)
     {
         HashEngine.HashInitVerboseMessageCallback(callback);
     }
 
     /* deprecated global filereader */
+/// <summary>deprecated global filereader</summary>
+/// <param name="reader">the reader to register</param>
     public static void InitCustomFilereader(RcHashFilereader? reader)
     {
         HashEngine.InitCustomFilereader(reader);
     }
 
     /* deprecated global cdreader */
+/// <summary>deprecated global cdreader</summary>
+/// <param name="cdreader">the cdreader parameter</param>
     public static void GetDefaultCdreader(RcHashCdreader cdreader)
     {
         HashEngine.GetDefaultCdreader(cdreader);
     }
 
+/// <summary>Registers the default CD reader as the global cdreader.</summary>
     public static void InitDefaultCdreader()
     {
         var cdreader = new RcHashCdreader();
@@ -40,23 +50,35 @@ public static class RcHash
         InitCustomCdreader(cdreader);
     }
 
+/// <summary>Registers a custom global cdreader.</summary>
+/// <param name="reader">the reader to register</param>
     public static void InitCustomCdreader(RcHashCdreader? reader)
     {
         HashEngine.InitCustomCdreader(reader);
     }
 
     /* deprecated global 3DS key functions */
+/// <summary>deprecated global 3DS key functions</summary>
+/// <param name="func">the func parameter</param>
     public static void Init3DsGetCiaNormalKeyFunc(RcHash3DsGetCiaNormalKeyFunc func)
     {
         HashEngine.HashInit3DsGetCiaNormalKeyFunc(func);
     }
 
+/// <summary>Registers the 3DS NCCH normal-keys provider.</summary>
+/// <param name="func">the func parameter</param>
     public static void Init3DsGetNcchNormalKeysFunc(RcHash3DsGetNcchNormalKeysFunc func)
     {
         HashEngine.HashInit3DsGetNcchNormalKeysFunc(func);
     }
 
     /* deprecated single-shot hashing */
+/// <summary>deprecated single-shot hashing</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="bufferSize">the size of the buffer</param>
+/// <returns>true on success; otherwise false</returns>
     public static bool GenerateFromBuffer(out string hash, uint consoleId, byte[] buffer, int bufferSize)
     {
         hash = "";
@@ -80,6 +102,11 @@ public static class RcHash
         }
     }
 
+/// <summary>Generates the hash for a console from a file on disk.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="path">the file path</param>
+/// <returns>true on success; otherwise false</returns>
     public static bool GenerateFromFile(out string hash, uint consoleId, string path)
     {
         hash = "";

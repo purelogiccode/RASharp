@@ -9,6 +9,7 @@ using RASharp.Core.Models;
 
 namespace RASharp.Core;
 
+/// <summary>Ported from rcheevos (MIT) — src/rhash/cdreader.c Default CD reader: .cue/.gdi/.bin track opening, sector-size heuristics, and the track -&gt; sector read logic (r</summary>
 public static class CdReader
 {
     /* cdreader_get_sector - convert the MSF value in the sync header to a
@@ -233,6 +234,9 @@ public static class CdReader
         return size;
     }
 
+/// <summary>is space.</summary>
+/// <param name="b">the b parameter</param>
+/// <returns>true on success; otherwise false</returns>
     internal static bool IsSpace(byte b)
     {
         return b == ' ' || b == '\t' || b == '\n' || b == '\v' || b == '\f' || b == '\r';
@@ -269,6 +273,12 @@ public static class CdReader
     }
 
     /* strncasecmp(ptr, str, len) — case-insensitive ASCII compare of len bytes */
+/// <summary>strncasecmp(ptr, str, len) — case-insensitive ASCII compare of len bytes</summary>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="pos">the pos parameter</param>
+/// <param name="len">the len parameter</param>
+/// <param name="str">the str parameter</param>
+/// <returns>true on success; otherwise false</returns>
     internal static bool StartsWithIgnoreCase(byte[] buffer, int pos, int len, string str)
     {
         if (pos + str.Length > len)
@@ -291,6 +301,10 @@ public static class CdReader
     }
 
     /* memcmp(ptr, str, strlen(str)) */
+/// <summary>memcmp(ptr, str, strlen(str))</summary>
+/// <param name="text">the text parameter</param>
+/// <param name="prefix">the prefix parameter</param>
+/// <returns>true on success; otherwise false</returns>
     internal static bool StartsWith(string text, string prefix)
     {
         if (prefix.Length > text.Length)
@@ -306,6 +320,11 @@ public static class CdReader
     }
 
     /* memcmp(ptr, str, strlen(str)) */
+/// <summary>memcmp(ptr, str, strlen(str))</summary>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="pos">the pos parameter</param>
+/// <param name="str">the str parameter</param>
+/// <returns>true on success; otherwise false</returns>
     internal static bool StartsWith(byte[] buffer, int pos, string str)
     {
         if (pos + str.Length > buffer.Length)
@@ -320,6 +339,12 @@ public static class CdReader
         return true;
     }
 
+/// <summary>Compares a buffer region with a pattern byte-for-byte.</summary>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="offset">the byte offset</param>
+/// <param name="pattern">the wildcard pattern</param>
+/// <param name="length">the length parameter</param>
+/// <returns>true on success; otherwise false</returns>
     internal static bool Matches(byte[] buffer, int offset, byte[] pattern, int length)
     {
         for (int i = 0; i < length; ++i)
@@ -331,6 +356,12 @@ public static class CdReader
         return true;
     }
 
+/// <summary>Compares a buffer region with a pattern byte-for-byte.</summary>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="offset">the byte offset</param>
+/// <param name="pattern">the wildcard pattern</param>
+/// <param name="length">the length parameter</param>
+/// <returns>true on success; otherwise false</returns>
     internal static bool Matches(byte[] buffer, int offset, string pattern, int length)
     {
         for (int i = 0; i < length; ++i)
@@ -343,6 +374,12 @@ public static class CdReader
     }
 
     /* strncasecmp(ptr, str, length) with the length given explicitly */
+/// <summary>strncasecmp(ptr, str, length) with the length given explicitly</summary>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="pos">the pos parameter</param>
+/// <param name="str">the str parameter</param>
+/// <param name="length">the length parameter</param>
+/// <returns>true on success; otherwise false</returns>
     internal static bool CompareIgnoreCase(byte[] buffer, int pos, string str, int length)
     {
         for (int i = 0; i < length; ++i)
@@ -362,6 +399,11 @@ public static class CdReader
     }
 
     /* decode a NUL-terminated ASCII string from the buffer (strcmp-style reads) */
+/// <summary>decode a NUL-terminated ASCII string from the buffer (strcmp-style reads)</summary>
+/// <param name="buffer">the buffer holding the data</param>
+/// <param name="offset">the byte offset</param>
+/// <param name="MaxValue">the max value parameter</param>
+/// <returns>the generated value</returns>
     internal static string GetNulTerminatedString(byte[] buffer, int offset, int maxLength = int.MaxValue)
     {
         int end = offset;
@@ -387,6 +429,8 @@ public static class CdReader
         public string Mode = "";
         public string Filename = "";
 
+/// <summary>copy from.</summary>
+/// <param name="other">the other parameter</param>
         public void CopyFrom(CueTrack other)
         {
             Id = other.Id;
@@ -401,6 +445,7 @@ public static class CdReader
             Filename = other.Filename;
         }
 
+/// <summary>reset.</summary>
         public void Reset()
         {
             Id = 0;
@@ -979,6 +1024,8 @@ public static class CdReader
     }
 
     /* rc_hash_get_default_cdreader */
+/// <summary>rc_hash_get_default_cdreader</summary>
+/// <param name="cdreader">the cdreader parameter</param>
     public static void GetDefaultCdreader(RcHashCdreader cdreader)
     {
         cdreader.OpenTrack = null;

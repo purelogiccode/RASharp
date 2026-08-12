@@ -15,6 +15,7 @@ using VideoGameFileSystemParser.Parsers;
 
 namespace RASharp.Core;
 
+/// <summary>Adapter over VideoGameFileSystemParser (NuGet 1.2.0) — the alternative filesystem backend to the engine's ISO9660 mini-parser (HashDisc.CdFindFileSector). Resol</summary>
 public sealed class FileSystemResolver : IDisposable
 {
     private readonly ChdContainer _container;
@@ -35,6 +36,11 @@ public sealed class FileSystemResolver : IDisposable
 
     /* resolve a path to the first extent of the file, like
      * rc_cd_find_file_sector's (sector, size) out params */
+/// <summary>resolve a path to the first extent of the file, like rc_cd_find_file_sector's (sector, size) out params</summary>
+/// <param name="path">the file path</param>
+/// <param name="lba">the lba parameter</param>
+/// <param name="size">the size</param>
+/// <returns>true on success; otherwise false</returns>
     public bool TryResolve(string path, out uint lba, out ulong size)
     {
         lba = 0;
@@ -49,6 +55,9 @@ public sealed class FileSystemResolver : IDisposable
         return true;
     }
 
+/// <summary>find.</summary>
+/// <param name="path">the file path</param>
+/// <returns>the result</returns>
     public FileEntry? Find(string path)
     {
         string normalized = path.Replace('/', '\\');
@@ -58,6 +67,7 @@ public sealed class FileSystemResolver : IDisposable
         return _container.FindFile(normalized);
     }
 
+/// <summary>Releases the mounted filesystem.</summary>
     public void Dispose()
     {
         _container.Dispose();

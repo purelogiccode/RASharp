@@ -9,6 +9,7 @@ namespace RASharp.Core;
 
 
 using RASharp.Core.Models;
+/// <summary>HashZip — port of rcheevos hash_zip.c (MIT). Byte-level ZIP parsing (no System.IO.Compression) to reproduce the exact hash semantics: EOCD scan, Zip64 handling,</summary>
 public static class HashZip
 {
     /* typedef rc_hash_zip_filter_t */
@@ -314,6 +315,10 @@ public static class HashZip
     }
 
     /* rc_hash_arduboyfx */
+/// <summary>rc_hash_arduboyfx</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashArduboyFx(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -465,6 +470,10 @@ public static class HashZip
     }
 
     /* rc_hash_ms_dos */
+/// <summary>rc_hash_ms_dos</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashMsDos(out string hash, RcHashIterator iterator)
     {
         hash = "";

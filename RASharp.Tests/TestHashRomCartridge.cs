@@ -9,6 +9,7 @@ namespace RASharp.Tests;
 
 
 using RASharp.Core.Models;
+/// <summary>Ported from rcheevos (MIT) — test/rhash/test_hash_rom.c (Phase 2 subset) Cartridge algorithms: Arcade, Atari 7800, NES/FDS, N64, NDS/DSi, SCV, Arduboy (Intel HE</summary>
 public class TestHashRomCartridge
 {
     public TestHashRomCartridge()
@@ -70,6 +71,9 @@ public class TestHashRomCartridge
     [InlineData("/home/user/snes/game.zip", "c8d46d341bea4fd5bff866a65ff8aea9")]
     [InlineData("/home/user/nes2/game.zip", "c8d46d341bea4fd5bff866a65ff8aea9")]
     /* aliases generate different hashes than a plain arcade ROM with the same filename */
+/// <summary>aliases generate different hashes than a plain arcade ROM with the same filename</summary>
+/// <param name="path">the file path</param>
+/// <param name="expectedMd5">the expected md5 parameter</param>
     [InlineData("/home/user/chf/game.zip", "6ef57f16562ea0c7f49d93853b313e32")]
     [InlineData("/home/user/channelf/game.zip", "7b6506637a0cc79bd1d24a43a34fa3b9")]
     [InlineData("/home/user/coleco/game.zip", "c546f63ae7de98add4b9f221a4749260")]
@@ -104,6 +108,7 @@ public class TestHashRomCartridge
         return TestDataGen.GenerateAtari7800File(kb, withHeader, out imageSize);
     }
 
+/// <summary>Tests hash atari7800.</summary>
     [Fact]
     public void TestHashAtari7800()
     {
@@ -113,6 +118,7 @@ public class TestHashRomCartridge
         Assert.Equal(16384, imageSize);
     }
 
+/// <summary>Tests hash atari7800 with header.</summary>
     [Fact]
     public void TestHashAtari7800WithHeader()
     {
@@ -126,6 +132,7 @@ public class TestHashRomCartridge
     /* ========================================================================= */
     /* NES / FDS                                                                 */
 
+/// <summary>========================================================================= NES / FDS</summary>
     [Fact]
     public void TestHashNes32k()
     {
@@ -135,6 +142,7 @@ public class TestHashRomCartridge
         Assert.Equal(32768, imageSize);
     }
 
+/// <summary>Tests hashing of a NES/Famicom image.</summary>
     [Fact]
     public void TestHashNes32kWithHeader()
     {
@@ -145,6 +153,7 @@ public class TestHashRomCartridge
         Assert.Equal(32768 + 16, imageSize);
     }
 
+/// <summary>Tests hashing of a NES/Famicom image.</summary>
     [Fact]
     public void TestHashNes256k()
     {
@@ -154,6 +163,7 @@ public class TestHashRomCartridge
         Assert.Equal(262144, imageSize);
     }
 
+/// <summary>Tests hash fds two sides.</summary>
     [Fact]
     public void TestHashFdsTwoSides()
     {
@@ -163,6 +173,7 @@ public class TestHashRomCartridge
         Assert.Equal(65500 * 2, imageSize);
     }
 
+/// <summary>Tests hash fds two sides with header.</summary>
     [Fact]
     public void TestHashFdsTwoSidesWithHeader()
     {
@@ -173,6 +184,7 @@ public class TestHashRomCartridge
         Assert.Equal(65500 * 2 + 16, imageSize);
     }
 
+/// <summary>Tests hashing of a NES/Famicom image.</summary>
     [Fact]
     public void TestHashNesFile32k()
     {
@@ -183,6 +195,7 @@ public class TestHashRomCartridge
         Assert.Equal(32768, imageSize);
     }
 
+/// <summary>Tests hashing of a NES/Famicom image.</summary>
     [Fact]
     public void TestHashNesIterator32k()
     {
@@ -199,6 +212,7 @@ public class TestHashRomCartridge
         HashIterator.DestroyIterator(iterator);
     }
 
+/// <summary>Tests hashing of a NES/Famicom image.</summary>
     [Fact]
     public void TestHashNesFileIterator32k()
     {
@@ -214,6 +228,7 @@ public class TestHashRomCartridge
         HashIterator.DestroyIterator(iterator);
     }
 
+/// <summary>Tests hash file without ext.</summary>
     [Fact]
     public void TestHashFileWithoutExt()
     {
@@ -292,54 +307,63 @@ public class TestHashRomCartridge
         HashIterator.DestroyIterator(iterator);
     }
 
+/// <summary>Tests hashing of a Nintendo 64 image.</summary>
     [Fact]
     public void TestHashN64Z64()
     {
         TestHashN64(TestRomZ64, "06096d7ce21cb6bcde38391534c4eb91");
     }
 
+/// <summary>Tests hashing of a Nintendo 64 image.</summary>
     [Fact]
     public void TestHashN64V64()
     {
         TestHashN64(TestRomV64, "06096d7ce21cb6bcde38391534c4eb91");
     }
 
+/// <summary>Tests hashing of a Nintendo 64 image.</summary>
     [Fact]
     public void TestHashN64N64()
     {
         TestHashN64(TestRomN64, "06096d7ce21cb6bcde38391534c4eb91");
     }
 
+/// <summary>Tests hashing of a Nintendo 64 image.</summary>
     [Fact]
     public void TestHashN64Ndd()
     {
         TestHashN64(TestRomNdd, "a698b32a52970d8a52a5a52c83acc2a9");
     }
 
+/// <summary>Tests hashing of a Nintendo 64 image.</summary>
     [Fact]
     public void TestHashN64FileZ64()
     {
         TestHashN64File("game.z64", TestRomZ64, "06096d7ce21cb6bcde38391534c4eb91");
     }
 
+/// <summary>Tests hashing of a Nintendo 64 image.</summary>
     [Fact]
     public void TestHashN64FileV64()
     {
         TestHashN64File("game.v64", TestRomV64, "06096d7ce21cb6bcde38391534c4eb91");
     }
 
+/// <summary>Tests hashing of a Nintendo 64 image.</summary>
     [Fact]
     public void TestHashN64FileN64()
     {
         TestHashN64File("game.n64", TestRomN64, "06096d7ce21cb6bcde38391534c4eb91");
     }
 
+/// <summary>Tests hashing of a Nintendo 64 image.</summary>
     [Fact]
     public void TestHashN64FileMisnamedN64()
     {
         TestHashN64File("game.n64", TestRomZ64, "06096d7ce21cb6bcde38391534c4eb91"); /* misnamed */
     }
 
+/// <summary>Tests hashing of a Nintendo 64 image.</summary>
     [Fact]
     public void TestHashN64FileMisnamedZ64()
     {
@@ -406,24 +430,35 @@ public class TestHashRomCartridge
         HashIterator.DestroyIterator(fileIterator);
     }
 
+/// <summary>Tests hash nds.</summary>
+/// <param name="false">the false parameter</param>
     [Fact]
     public void TestHashNds() => TestHashNdsCore(supercard: false, buffered: false, dsi: false);
 
+/// <summary>Tests hash nds supercard.</summary>
+/// <param name="false">the false parameter</param>
     [Fact]
     public void TestHashNdsSupercard() => TestHashNdsCore(supercard: true, buffered: false, dsi: false);
 
+/// <summary>Tests hash nds buffered.</summary>
+/// <param name="false">the false parameter</param>
     [Fact]
     public void TestHashNdsBuffered() => TestHashNdsCore(supercard: false, buffered: true, dsi: false);
 
+/// <summary>Tests hashing of a Nintendo DSi image.</summary>
+/// <param name="true">the true parameter</param>
     [Fact]
     public void TestHashDsi() => TestHashNdsCore(supercard: false, buffered: false, dsi: true);
 
+/// <summary>Tests hashing of a Nintendo DSi image.</summary>
+/// <param name="true">the true parameter</param>
     [Fact]
     public void TestHashDsiBuffered() => TestHashNdsCore(supercard: false, buffered: true, dsi: true);
 
     /* ========================================================================= */
     /* Super Cassette Vision                                                      */
 
+/// <summary>========================================================================= Super Cassette Vision</summary>
     [Fact]
     public void TestHashScvCart()
     {
@@ -462,6 +497,7 @@ public class TestHashRomCartridge
         HashIterator.DestroyIterator(iterator);
     }
 
+/// <summary>Tests hashing of a Arduboy image.</summary>
     [Fact]
     public void TestHashArduboy()
     {
@@ -473,6 +509,7 @@ public class TestHashRomCartridge
             "67b64633285a7f965064ba29dab45148");
     }
 
+/// <summary>Tests hashing of a Arduboy image.</summary>
     [Fact]
     public void TestHashArduboyCrlf()
     {
@@ -484,6 +521,7 @@ public class TestHashRomCartridge
             "67b64633285a7f965064ba29dab45148");
     }
 
+/// <summary>Tests hashing of a Arduboy image.</summary>
     [Fact]
     public void TestHashArduboyNoFinalLf()
     {
@@ -498,6 +536,11 @@ public class TestHashRomCartridge
     /* ========================================================================= */
     /* SNES / PCE / SCV full-file vectors (header-strip consoles)                 */
 
+/// <summary>========================================================================= SNES / PCE / SCV full-file vectors (header-strip consoles)</summary>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="filename">the filename parameter</param>
+/// <param name="size">the size</param>
+/// <param name="expectedMd5">the expected md5 parameter</param>
     [Theory]
     [InlineData((uint)3, "test.smc", 524288, "68f0f13b598e0b66461bc578375c3888")] /* SNES */
     [InlineData((uint)3, "test.smc", 524288 + 512, "258c93ebaca1c3f488ab48218e5e8d38")]

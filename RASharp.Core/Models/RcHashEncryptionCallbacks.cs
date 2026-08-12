@@ -7,6 +7,7 @@ using RASharp.Core;
 namespace RASharp.Core.Models;
 
 /* struct rc_hash_encryption_callbacks (nested in rc_hash_callbacks_t) */
+/// <summary>struct rc_hash_encryption_callbacks (nested in rc_hash_callbacks_t)</summary>
 public class RcHashEncryptionCallbacks
 {
     public RcHash3DsGetCiaNormalKeyFunc? Get3DsCiaNormalKey;

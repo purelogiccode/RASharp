@@ -8,6 +8,7 @@ namespace RASharp.Tests;
 
 
 using RASharp.Core.Models;
+/// <summary>Ported from rcheevos (MIT) — test/rhash/test_cdreader.c Cue/gdi track-open semantics, sector-size determination, and read_sector.</summary>
 public class TestCdreader
 {
     private static readonly byte[] SyncPattern =
@@ -135,6 +136,7 @@ public class TestCdreader
         Assert.Equal(sectorSize, track.SectorSize);
     }
 
+/// <summary>Tests open cue track2.</summary>
     [Fact]
     public void TestOpenCueTrack2()
     {
@@ -152,6 +154,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open cue track12.</summary>
     [Fact]
     public void TestOpenCueTrack12()
     {
@@ -169,6 +172,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open cue track14.</summary>
     [Fact]
     public void TestOpenCueTrack14()
     {
@@ -182,6 +186,7 @@ public class TestCdreader
         Assert.Null(trackHandle);
     }
 
+/// <summary>Tests open cue track missing bin.</summary>
     [Fact]
     public void TestOpenCueTrackMissingBin()
     {
@@ -193,6 +198,7 @@ public class TestCdreader
         Assert.Null(trackHandle);
     }
 
+/// <summary>Tests open gdi track3.</summary>
     [Fact]
     public void TestOpenGdiTrack3()
     {
@@ -212,6 +218,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open gdi track3 quoted.</summary>
     [Fact]
     public void TestOpenGdiTrack3Quoted()
     {
@@ -237,6 +244,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open gdi track3 extra whitespace.</summary>
     [Fact]
     public void TestOpenGdiTrack3ExtraWhitespace()
     {
@@ -261,6 +269,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open gdi track last.</summary>
     [Fact]
     public void TestOpenGdiTrackLast()
     {
@@ -279,6 +288,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open cue track largest data.</summary>
     [Fact]
     public void TestOpenCueTrackLargestData()
     {
@@ -296,6 +306,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open cue track largest data multiple bin.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataMultipleBin()
     {
@@ -315,6 +326,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open cue track largest data backwards compatibility.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataBackwardsCompatibility()
     {
@@ -333,6 +345,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open cue track largest data last track.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataLastTrack()
     {
@@ -363,6 +376,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open cue track largest data index0s.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataIndex0s()
     {
@@ -391,6 +405,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open cue track largest data index2.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataIndex2()
     {
@@ -417,6 +432,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open cue track largest data multiple bins.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataMultipleBins()
     {
@@ -437,6 +453,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests open cue track largest data only audio.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataOnlyAudio()
     {
@@ -468,6 +485,7 @@ public class TestCdreader
         Assert.Null(trackHandle);
     }
 
+/// <summary>Tests open cue track first data.</summary>
     [Fact]
     public void TestOpenCueTrackFirstData()
     {
@@ -561,42 +579,49 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests determine sector size sync2352.</summary>
     [Fact]
     public void TestDetermineSectorSizeSync2352()
     {
         TestDetermineSectorSizeSync(2352);
     }
 
+/// <summary>Tests determine sector size sync primary volume descriptor2352.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptor2352()
     {
         TestDetermineSectorSizeSyncPrimaryVolumeDescriptor(2352);
     }
 
+/// <summary>Tests determine sector size sync primary volume descriptor index02352.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex02352()
     {
         TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex0(2352);
     }
 
+/// <summary>Tests determine sector size sync2336.</summary>
     [Fact]
     public void TestDetermineSectorSizeSync2336()
     {
         TestDetermineSectorSizeSync(2336);
     }
 
+/// <summary>Tests determine sector size sync primary volume descriptor2336.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptor2336()
     {
         TestDetermineSectorSizeSyncPrimaryVolumeDescriptor(2336);
     }
 
+/// <summary>Tests determine sector size sync primary volume descriptor index02336.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex02336()
     {
         TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex0(2336);
     }
 
+/// <summary>Tests determine sector size sync2048.</summary>
     [Fact]
     public void TestDetermineSectorSizeSync2048()
     {
@@ -620,6 +645,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests determine sector size sync primary volume descriptor2048.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptor2048()
     {
@@ -643,6 +669,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests determine sector size sync primary volume descriptor index02048.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex02048()
     {
@@ -676,6 +703,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests absolute sector to track sector cue pregap.</summary>
     [Fact]
     public void TestAbsoluteSectorToTrackSectorCuePregap()
     {
@@ -712,6 +740,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests absolute sector to track sector gdi.</summary>
     [Fact]
     public void TestAbsoluteSectorToTrackSectorGdi()
     {
@@ -731,6 +760,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
+/// <summary>Tests read sector.</summary>
     [Fact]
     public void TestReadSector()
     {

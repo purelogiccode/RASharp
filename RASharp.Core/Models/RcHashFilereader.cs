@@ -6,6 +6,7 @@
 namespace RASharp.Core.Models;
 
 /* struct rc_hash_filereader_t */
+/// <summary>struct rc_hash_filereader_t</summary>
 public class RcHashFilereader
 {
     public Func<string, object?>? Open;

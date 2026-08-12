@@ -12,6 +12,7 @@ namespace RASharp.Core;
 
 
 using RASharp.Core.Models;
+/// <summary>Ported from rcheevos (MIT) — src/rhash/hash_disc.c Disc-based hashing: PSX, Saturn, Sega CD, PCE-CD, PC-FX, 3DO, Jaguar CD, Neo Geo CD, Dreamcast, GameCube, Wii</summary>
 public static class HashDisc
 {
     /* ===================================================== */
@@ -75,6 +76,12 @@ public static class HashDisc
 
     /* rc_cd_find_file_sector - ISO9660 mini-parser: resolve path (backslash
      * separated, starting at the root) to a sector; optionally return the size */
+/// <summary>rc_cd_find_file_sector - ISO9660 mini-parser: resolve path (backslash separated, starting at the root) to a sector; optionally return the size</summary>
+/// <param name="iterator">the hash iterator</param>
+/// <param name="trackHandle">the open track handle</param>
+/// <param name="path">the file path</param>
+/// <param name="size">the size</param>
+/// <returns>the result</returns>
     internal static int CdFindFileSector(RcHashIterator iterator, object? trackHandle, string path, out uint size)
     {
         byte[] buffer = new byte[2048];
@@ -212,6 +219,10 @@ public static class HashDisc
 
     /* ===================================================== */
 
+/// <summary>=====================================================</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHash3Do(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -335,6 +346,10 @@ public static class HashDisc
         return HashEngine.Finalize(iterator, md5, out hash);
     }
 
+/// <summary>Hashes a Dreamcast disc (IP.BIN / track rules).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashDreamcast(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -521,6 +536,10 @@ public static class HashDisc
         return 1;
     }
 
+/// <summary>Hashes a GameCube disc (partition reading).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashGamecube(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -554,6 +573,10 @@ public static class HashDisc
     /* helper variable only used for testing */
     internal static string? JaguarCdHomebrewHash = null;
 
+/// <summary>Hashes a Atari Jaguar CD image.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashJaguarCd(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -676,6 +699,10 @@ public static class HashDisc
         } while (true);
     }
 
+/// <summary>Hashes a Neo Geo CD disc (IPL.TXT executables).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashNeogeoCd(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -811,6 +838,10 @@ public static class HashDisc
         return HashEngine.Finalize(iterator, md5, out hash);
     }
 
+/// <summary>Hashes a PC Engine CD disc.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashPceCd(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -826,6 +857,10 @@ public static class HashDisc
         return result;
     }
 
+/// <summary>Hashes a PC-FX image.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashPcfxCd(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -971,6 +1006,10 @@ public static class HashDisc
         return sector;
     }
 
+/// <summary>Hashes a PlayStation disc (SYSTEM.CNF boot executable).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashPsx(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -1030,6 +1069,10 @@ public static class HashDisc
         return result;
     }
 
+/// <summary>Hashes a PlayStation 2 disc (BOOT2 ELF via ISO9660).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashPs2(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -1075,6 +1118,10 @@ public static class HashDisc
         return result;
     }
 
+/// <summary>Hashes a PSP disc (PARAM.SFO + EBOOT.BIN).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashPsp(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -1129,6 +1176,10 @@ public static class HashDisc
         return HashEngine.Finalize(iterator, md5, out hash);
     }
 
+/// <summary>Hashes a Sega CD / Saturn disc (first 512 bytes of sector 0).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashSegaCd(out string hash, RcHashIterator iterator)
     {
         hash = "";
@@ -1368,6 +1419,10 @@ public static class HashDisc
         return 1;
     }
 
+/// <summary>Hashes a Wii disc (partition path).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashWii(out string hash, RcHashIterator iterator)
     {
         hash = "";

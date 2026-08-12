@@ -11,6 +11,7 @@ namespace RASharp.Tests;
 
 
 using RASharp.Core.Models;
+/// <summary>Phase E3 (Part II) — .neo (Geolith Neo Geo cart) vectors, ported from rcheevos 12.4.0 test/rhash/test_hash_rom.c (test_hash_neo, test_hash_neo_header_variants, </summary>
 public class TestHashNeo
 {
     public TestHashNeo()
@@ -22,6 +23,11 @@ public class TestHashNeo
      * NEO\1 magic, P ROM size (LE) and tool-variant text fields, followed by
      * payload_size bytes of ROM data. fill_image seeds from size, so the
      * payload is byte-identical to GenerateGenericFile(payload_size). */
+/// <summary>generate_neo_file from test_hash_rom.c (12.4.0): 4096-byte header with NEO\1 magic, P ROM size (LE) and tool-variant text fields, followed by payload_size bytes</summary>
+/// <param name="payloadSize">the payload size parameter</param>
+/// <param name="name">the name parameter</param>
+/// <param name="manufacturer">the manufacturer parameter</param>
+/// <returns>the result</returns>
     internal static byte[] GenerateNeoFile(int payloadSize, string name, string manufacturer)
     {
         const int headerSize = 4096;
@@ -40,6 +46,7 @@ public class TestHashNeo
         return image;
     }
 
+/// <summary>Tests hash neo file.</summary>
     [Fact]
     public void TestHashNeoFile()
     {
@@ -63,6 +70,7 @@ public class TestHashNeo
         Assert.Equal(hashIterator, hashPayload);
     }
 
+/// <summary>Tests hash neo header variants.</summary>
     [Fact]
     public void TestHashNeoHeaderVariants()
     {
@@ -80,6 +88,7 @@ public class TestHashNeo
         Assert.Equal(hash1, hash2);
     }
 
+/// <summary>Tests hash neo bad magic.</summary>
     [Fact]
     public void TestHashNeoBadMagic()
     {
@@ -92,6 +101,7 @@ public class TestHashNeo
         Assert.False(RcHash.GenerateFromFile(out _, ConsoleIds.RC_CONSOLE_ARCADE, "game.neo"));
     }
 
+/// <summary>Tests ext table neo and sms.</summary>
     [Fact]
     public void TestExtTableNeoAndSms()
     {

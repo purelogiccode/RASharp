@@ -10,6 +10,7 @@ namespace RASharp.Tests;
 
 
 using RASharp.Core.Models;
+/// <summary>Ported from rcheevos (MIT) — test/rhash/test_hash_disc.c (Phase 3 subset) Disc hashing vectors: 3DO, Jaguar CD, Dreamcast, GameCube, Neo Geo CD, PCE-CD, PC-FX, </summary>
 public class TestHashDisc
 {
     public TestHashDisc()
@@ -73,6 +74,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHash3DoBin()
     {
@@ -95,6 +97,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a 3DO image.</summary>
     [Fact]
     public void TestHash3DoCue()
     {
@@ -117,6 +120,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a 3DO image.</summary>
     [Fact]
     public void TestHash3DoIso()
     {
@@ -138,6 +142,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a 3DO image.</summary>
     [Fact]
     public void TestHash3DoInvalidHeader()
     {
@@ -153,6 +158,7 @@ public class TestHashDisc
         Assert.False(RcHash.GenerateFromFile(out _, ConsoleIds.RC_CONSOLE_3DO, "game.bin"));
     }
 
+/// <summary>Tests hashing of a 3DO image.</summary>
     [Fact]
     public void TestHash3DoLaunchmeCaseInsensitive()
     {
@@ -170,6 +176,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashFile);
     }
 
+/// <summary>Tests hashing of a 3DO image.</summary>
     [Fact]
     public void TestHash3DoNoLaunchme()
     {
@@ -182,6 +189,7 @@ public class TestHashDisc
         Assert.False(RcHash.GenerateFromFile(out _, ConsoleIds.RC_CONSOLE_3DO, "game.bin"));
     }
 
+/// <summary>Tests hashing of a 3DO image.</summary>
     [Fact]
     public void TestHash3DoLongDirectory()
     {
@@ -197,6 +205,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashAtariJaguarCd()
     {
@@ -235,6 +244,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hash atari jaguar cd byteswapped.</summary>
     [Fact]
     public void TestHashAtariJaguarCdByteswapped()
     {
@@ -273,6 +283,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hash atari jaguar cd track3.</summary>
     [Fact]
     public void TestHashAtariJaguarCdTrack3()
     {
@@ -311,6 +322,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hash atari jaguar cd no header.</summary>
     [Fact]
     public void TestHashAtariJaguarCdNoHeader()
     {
@@ -341,6 +353,7 @@ public class TestHashDisc
         MockFilereader.InitMockCdreader();
     }
 
+/// <summary>Tests hash atari jaguar cd no sessions.</summary>
     [Fact]
     public void TestHashAtariJaguarCdNoSessions()
     {
@@ -366,6 +379,7 @@ public class TestHashDisc
         MockFilereader.InitMockCdreader();
     }
 
+/// <summary>Tests hash atari jaguar cd homebrew.</summary>
     [Fact]
     public void TestHashAtariJaguarCdHomebrew()
     {
@@ -428,6 +442,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashDreamcastSingleBin()
     {
@@ -452,6 +467,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a Dreamcast image.</summary>
     [Fact]
     public void TestHashDreamcastSplitBin()
     {
@@ -478,6 +494,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a Dreamcast image.</summary>
     [Fact]
     public void TestHashDreamcastCue()
     {
@@ -531,6 +548,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashGamecube()
     {
@@ -555,6 +573,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashNeogeoCd()
     {
@@ -584,6 +603,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a Neo Geo CD image.</summary>
     [Fact]
     public void TestHashNeogeoCdMultiplePrg()
     {
@@ -616,6 +636,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a Neo Geo CD image.</summary>
     [Fact]
     public void TestHashNeogeoCdLowercaseIplContents()
     {
@@ -647,6 +668,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashPceCd()
     {
@@ -669,6 +691,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a PC Engine image.</summary>
     [Fact]
     public void TestHashPceCdInvalidHeader()
     {
@@ -685,6 +708,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashPcfx()
     {
@@ -707,6 +731,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a PC-FX image.</summary>
     [Fact]
     public void TestHashPcfxInvalidHeader()
     {
@@ -721,6 +746,7 @@ public class TestHashDisc
         TestHashUnknownFormat(ConsoleIds.RC_CONSOLE_PCFX, "game.cue");
     }
 
+/// <summary>Tests hashing of a PC-FX image.</summary>
     [Fact]
     public void TestHashPcfxPceCd()
     {
@@ -747,6 +773,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashPsxCd()
     {
@@ -770,6 +797,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a PlayStation image.</summary>
     [Fact]
     public void TestHashPsxCdNoSystemCnf()
     {
@@ -802,6 +830,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a PlayStation image.</summary>
     [Fact]
     public void TestHashPsxCdExeInSubfolder()
     {
@@ -825,6 +854,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a PlayStation image.</summary>
     [Fact]
     public void TestHashPsxCdExtraSlash()
     {
@@ -850,6 +880,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashPs2Iso()
     {
@@ -871,6 +902,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a PlayStation 2 image.</summary>
     [Fact]
     public void TestHashPs2Psx()
     {
@@ -898,6 +930,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashPsp()
     {
@@ -926,6 +959,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a PSP image.</summary>
     [Fact]
     public void TestHashPspVideo()
     {
@@ -952,6 +986,7 @@ public class TestHashDisc
         HashIterator.DestroyIterator(iterator);
     }
 
+/// <summary>Tests hashing of a PSP image.</summary>
     [Fact]
     public void TestHashPspHomebrew()
     {
@@ -976,6 +1011,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashSegaCd()
     {
@@ -1001,6 +1037,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a Sega CD image.</summary>
     [Fact]
     public void TestHashSegaCdInvalidHeader()
     {
@@ -1013,6 +1050,7 @@ public class TestHashDisc
         TestHashUnknownFormat(ConsoleIds.RC_CONSOLE_SEGA_CD, "game.cue");
     }
 
+/// <summary>Tests hashing of a Sega Saturn image.</summary>
     [Fact]
     public void TestHashSaturn()
     {
@@ -1038,6 +1076,7 @@ public class TestHashDisc
         Assert.Equal(expectedMd5, hashIterator);
     }
 
+/// <summary>Tests hashing of a Sega Saturn image.</summary>
     [Fact]
     public void TestHashSaturnInvalidHeader()
     {
@@ -1052,6 +1091,7 @@ public class TestHashDisc
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashFullFileAmstradPc()
     {
@@ -1059,6 +1099,7 @@ public class TestHashDisc
         TestHashM3u(ConsoleIds.RC_CONSOLE_AMSTRAD_PC, "test.dsk", 194816, "9d616e4ad3f16966f61422c57e22aadd");
     }
 
+/// <summary>Tests hash full file apple ii.</summary>
     [Fact]
     public void TestHashFullFileAppleII()
     {
@@ -1067,6 +1108,7 @@ public class TestHashDisc
         TestHashM3u(ConsoleIds.RC_CONSOLE_APPLE_II, "test.dsk", 143360, "88be638f4d78b4072109e55f13e8a0ac");
     }
 
+/// <summary>Tests hash full file commodore64.</summary>
     [Fact]
     public void TestHashFullFileCommodore64()
     {
@@ -1075,6 +1117,7 @@ public class TestHashDisc
         TestHashM3u(ConsoleIds.RC_CONSOLE_COMMODORE_64, "test.d64", 174848, "ecd5a8ef4e77f2e9469d9b6e891394f0");
     }
 
+/// <summary>Tests hash full file msx.</summary>
     [Fact]
     public void TestHashFullFileMsx()
     {
@@ -1082,6 +1125,7 @@ public class TestHashDisc
         TestHashM3u(ConsoleIds.RC_CONSOLE_MSX, "test.dsk", 737280, "0e73fe94e5f2e2d8216926eae512b7a6");
     }
 
+/// <summary>Tests hash full file pc8800.</summary>
     [Fact]
     public void TestHashFullFilePc8800()
     {
@@ -1089,6 +1133,7 @@ public class TestHashDisc
         TestHashM3u(ConsoleIds.RC_CONSOLE_PC8800, "test.d88", 348288, "8cca4121bf87200f45e91b905a9f5afd");
     }
 
+/// <summary>Tests hash full file zx spectrum.</summary>
     [Fact]
     public void TestHashFullFileZxSpectrum()
     {

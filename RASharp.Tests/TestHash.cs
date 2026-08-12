@@ -11,6 +11,7 @@ namespace RASharp.Tests;
 
 
 using RASharp.Core.Models;
+/// <summary>Ported from rcheevos (MIT) — test/rhash/test_hash.c (Phase 1 subset) Full-file hashing, m3u playlist handling, and the extension-handler table order test. test_</summary>
 public class TestHash
 {
     public TestHash()
@@ -80,6 +81,7 @@ public class TestHash
         HashIterator.DestroyIterator(iterator);
     }
 
+/// <summary>Tests hash m3u buffered.</summary>
     [Fact]
     public void TestHashM3uBuffered()
     {
@@ -101,6 +103,7 @@ public class TestHash
         HashIterator.DestroyIterator(iterator);
     }
 
+/// <summary>Tests hash m3u with comments.</summary>
     [Fact]
     public void TestHashM3uWithComments()
     {
@@ -108,6 +111,7 @@ public class TestHash
             "#EXTM3U\r\n\r\n#EXTBYT:131072\r\ntest.d88\r\n");
     }
 
+/// <summary>Tests hash m3u empty.</summary>
     [Fact]
     public void TestHashM3uEmpty()
     {
@@ -126,6 +130,7 @@ public class TestHash
         HashIterator.DestroyIterator(iterator);
     }
 
+/// <summary>Tests hash m3u trailing whitespace.</summary>
     [Fact]
     public void TestHashM3uTrailingWhitespace()
     {
@@ -133,6 +138,7 @@ public class TestHash
             "#EXTM3U  \r\n  \r\n#EXTBYT:131072  \r\ntest.d88  \t  \r\n");
     }
 
+/// <summary>Tests hash m3u line ending.</summary>
     [Fact]
     public void TestHashM3uLineEnding()
     {
@@ -140,6 +146,7 @@ public class TestHash
             "#EXTM3U\n\n#EXTBYT:131072\ntest.d88\n");
     }
 
+/// <summary>Tests hash m3u extension case.</summary>
     [Fact]
     public void TestHashM3uExtensionCase()
     {
@@ -147,6 +154,7 @@ public class TestHash
             "#EXTM3U\r\n\r\n#EXTBYT:131072\r\ntest.D88\r\n");
     }
 
+/// <summary>Tests hash m3u relative path.</summary>
     [Fact]
     public void TestHashM3uRelativePath()
     {
@@ -154,6 +162,8 @@ public class TestHash
             "#EXTM3U\r\n\r\n#EXTBYT:131072\r\nfolder2/test.d88");
     }
 
+/// <summary>Tests hash m3u absolute path.</summary>
+/// <param name="absolutePath">the absolute path parameter</param>
     [Theory]
     [InlineData("/absolute/test.d88")]
     [InlineData("\\absolute\\test.d88")]
@@ -166,6 +176,7 @@ public class TestHash
         AssertValidM3u(absolutePath, "relative/test.m3u", m3uContents);
     }
 
+/// <summary>Tests hash handler table order.</summary>
     [Fact]
     public void TestHashHandlerTableOrder()
     {
@@ -180,6 +191,11 @@ public class TestHash
     /* ========================================================================= */
     /* test_hash() suite — full-file and m3u console vectors                     */
 
+/// <summary>========================================================================= test_hash() suite — full-file and m3u console vectors</summary>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="filename">the filename parameter</param>
+/// <param name="size">the size</param>
+/// <param name="expectedMd5">the expected md5 parameter</param>
     [Theory]
     [InlineData((uint)37, "test.dsk", 194816, "9d616e4ad3f16966f61422c57e22aadd")] /* Amstrad CPC */
     [InlineData((uint)38, "test.nib", 232960, "96e8d33bdc385fd494327d6e6791cbe4")] /* Apple II */
@@ -195,6 +211,11 @@ public class TestHash
         TestHashFullFile(consoleId, filename, size, expectedMd5);
     }
 
+/// <summary>Tests hash m3u vectors.</summary>
+/// <param name="consoleId">the console identifier</param>
+/// <param name="filename">the filename parameter</param>
+/// <param name="size">the size</param>
+/// <param name="expectedMd5">the expected md5 parameter</param>
     [Theory]
     [InlineData((uint)37, "test.dsk", 194816, "9d616e4ad3f16966f61422c57e22aadd")] /* Amstrad CPC */
     [InlineData((uint)38, "test.dsk", 143360, "88be638f4d78b4072109e55f13e8a0ac")] /* Apple II */

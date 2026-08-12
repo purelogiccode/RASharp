@@ -12,6 +12,7 @@ namespace RASharp.Core;
 
 
 using RASharp.Core.Models;
+/// <summary>ChdCdReader — CD/GD-ROM reader over CHDSharp. Behavior parity with RALibretro RAHasher's HashCHD.cpp (GPL, used as reference only — this is a new implementation</summary>
 public static class ChdCdReader
 {
     /* struct metadata_t in HashCHD.cpp */
@@ -538,6 +539,7 @@ public static class ChdCdReader
     }
 
     /* rc_hash_init_chd_cdreader */
+/// <summary>rc_hash_init_chd_cdreader</summary>
     public static void InitChdCdreader()
     {
         var cdreader = new RcHashCdreader

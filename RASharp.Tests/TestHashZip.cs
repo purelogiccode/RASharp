@@ -10,18 +10,37 @@ namespace RASharp.Tests;
 
 
 using RASharp.Core.Models;
+/// <summary>Phase 7 — ZIP hashing tests (port of test_hash_zip.c). The mock zip builder reproduces the C's mock_zip_add_file/mock_zip_finalize byte-for-byte (incl. the Zip6</summary>
 public class TestHashZip
 {
+/// <summary>Phase 7 — ZIP hashing tests (port of test_hash_zip.c). The mock zip builder reproduces the C's mock_zip_add_file/mock_zip_finalize byte-for-byte (incl. the Zip6</summary>
     public sealed class MockZipFileDebug : MockZipFile
     {
         public MockZipFileDebug(int capacity) : base(capacity) { }
+/// <summary>take.</summary>
+/// <param name="Buffer">the buffer parameter</param>
+/// <param name="0">the 0 parameter</param>
+/// <param name="r">the r parameter</param>
+/// <param name="0">the 0 parameter</param>
+/// <param name="n">the n parameter</param>
+/// <returns>the result</returns>
         public byte[] Take(int n) { var r = new byte[n]; Array.Copy(Buffer, 0, r, 0, n); return r; }
+/// <summary>add file.</summary>
+/// <param name="f">the f parameter</param>
+/// <param name="c">the c parameter</param>
+/// <param name="f">the f parameter</param>
+/// <param name="c">the c parameter</param>
+/// <param name="s">the s parameter</param>
         public new void AddFile(string f, uint c, uint s) { base.AddFile(f, c, s); }
     }
 
+/// <summary>Phase 7 — ZIP hashing tests (port of test_hash_zip.c). The mock zip builder reproduces the C's mock_zip_add_file/mock_zip_finalize byte-for-byte (incl. the Zip6</summary>
     public class MockZipFile
     {
         public byte[] Buffer;
+/// <summary>finalize public.</summary>
+/// <param name="c">the c parameter</param>
+/// <returns>the result</returns>
         public int FinalizePublic(string c) { return Finalize(c); }
         public int Ptr;
         public int[] FilePtr = new int[8];
@@ -33,6 +52,10 @@ public class TestHashZip
             Buffer = new byte[capacity];
         }
 
+/// <summary>add file.</summary>
+/// <param name="filename">the filename parameter</param>
+/// <param name="crc32">the crc32 parameter</param>
+/// <param name="size">the size</param>
         public void AddFile(string filename, uint crc32, uint size)
         {
             byte[] name = System.Text.Encoding.ASCII.GetBytes(filename);
@@ -105,6 +128,9 @@ public class TestHashZip
             Ptr = outPos;
         }
 
+/// <summary>Finalizes the MD5 and produces the 32-char hash.</summary>
+/// <param name="comment">the comment parameter</param>
+/// <returns>the result</returns>
         public int Finalize(string comment)
         {
             byte[] commentBytes = System.Text.Encoding.ASCII.GetBytes(comment);
@@ -334,6 +360,7 @@ public class TestHashZip
 
     /* ========================================================================= */
 
+/// <summary>=========================================================================</summary>
     [Fact]
     public void TestHashArduboyFx()
     {
@@ -361,6 +388,7 @@ public class TestHashZip
         HashIterator.DestroyIterator(iterator);
     }
 
+/// <summary>Tests hash msdos dosz.</summary>
     [Fact]
     public void TestHashMsdosDosz()
     {
@@ -386,6 +414,7 @@ public class TestHashZip
         HashIterator.DestroyIterator(iterator);
     }
 
+/// <summary>Tests hash msdos dosz zip64.</summary>
     [Fact]
     public void TestHashMsdosDoszZip64()
     {
@@ -404,6 +433,7 @@ public class TestHashZip
         Assert.Equal("927dad0a57a2860267ab7bcdb8bc3f61", hashFile);
     }
 
+/// <summary>Tests hash msdos dosz with dosc.</summary>
     [Fact]
     public void TestHashMsdosDoszWithDosc()
     {
@@ -424,6 +454,7 @@ public class TestHashZip
         Assert.Equal("dd0c0b0c170c30722784e5e962764c35", hashDosc);
     }
 
+/// <summary>Tests hash msdos dosz with parent.</summary>
     [Fact]
     public void TestHashMsdosDoszWithParent()
     {

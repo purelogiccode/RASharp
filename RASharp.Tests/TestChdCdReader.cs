@@ -15,6 +15,7 @@ namespace RASharp.Tests;
 
 
 using RASharp.Core.Models;
+/// <summary>Phase 5 — CHD reader tests. Uses vendored synthetic CHDs (created with chdman from generated disc images; the expected hashes are the outputs of the original RA</summary>
 public class TestChdCdReader
 {
     private static string TestDataPath(string name)
@@ -50,12 +51,14 @@ public class TestChdCdReader
             Handle = handle;
         }
 
+/// <summary>Releases the mounted filesystem.</summary>
         public void Dispose()
         {
             Iterator.Callbacks.Cdreader.CloseTrack!(Handle);
         }
     }
 
+/// <summary>Tests chd open tracks.</summary>
     [Fact]
     public void TestChdOpenTracks()
     {
@@ -104,6 +107,7 @@ public class TestChdCdReader
         }
     }
 
+/// <summary>Tests chd pregap.</summary>
     [Fact]
     public void TestChdPregap()
     {
@@ -143,6 +147,7 @@ public class TestChdCdReader
         }
     }
 
+/// <summary>Tests chd track selection.</summary>
     [Fact]
     public void TestChdTrackSelection()
     {
@@ -177,6 +182,7 @@ public class TestChdCdReader
         }
     }
 
+/// <summary>Tests chd metadata vs chd sharp tracks.</summary>
     [Fact]
     public void TestChdMetadataVsChdSharpTracks()
     {
@@ -213,6 +219,7 @@ public class TestChdCdReader
         }
     }
 
+/// <summary>Tests chd hash psx.</summary>
     [Fact]
     public void TestChdHashPsx()
     {
@@ -223,6 +230,7 @@ public class TestChdCdReader
         Assert.Equal("db433fb038cde4fb15c144e8c7dea6e3", hash);
     }
 
+/// <summary>Tests chd hash psp.</summary>
     [Fact]
     public void TestChdHashPsp()
     {
@@ -265,6 +273,7 @@ public class TestChdCdReader
         iterator.Callbacks.Cdreader.CloseTrack!(trackHandle!);
     }
 
+/// <summary>Tests fs resolver agreement psx.</summary>
     [Fact]
     public void TestFsResolverAgreementPsx()
     {
@@ -272,6 +281,7 @@ public class TestChdCdReader
             new[] { "SYSTEM.CNF", "SLUS_007.45" });
     }
 
+/// <summary>Tests fs resolver agreement psp.</summary>
     [Fact]
     public void TestFsResolverAgreementPsp()
     {

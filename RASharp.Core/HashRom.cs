@@ -9,6 +9,7 @@ namespace RASharp.Core;
 
 
 using RASharp.Core.Models;
+/// <summary>Ported from rcheevos (MIT) — src/rhash/hash_rom.c Cartridge hash algorithms: 7800, Arcade, Arduboy (Intel HEX text hash), Lynx, NES/FDS, N64 (byteswap variants)</summary>
 public static class HashRom
 {
     private static int UnheaderedIteratorBuffer(out string hash, RcHashIterator iterator, int headerSize)
@@ -42,6 +43,10 @@ public static class HashRom
 
     /* ===================================================== */
 
+/// <summary>=====================================================</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHash7800(out string hash, RcHashIterator iterator)
     {
         /* if the file contains a header, ignore it */
@@ -54,6 +59,10 @@ public static class HashRom
         return IteratorBuffer(out hash, iterator);
     }
 
+/// <summary>Hashes an arcade romset by filename (FBNeo semantics).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashArcade(out string hash, RcHashIterator iterator)
     {
         /* arcade hash is just the hash of the filename (no extension) - the cores are pretty stringent about having the right ROM data */
@@ -180,6 +189,10 @@ public static class HashRom
      * The first 4096 bytes are a header (magic, ROM section sizes, metadata
      * text fields that can differ between conversion tools), so only the
      * decrypted ROM data after the header participates in the hash. */
+/// <summary>rc_hash_neogeo_cart (rcheevos 12.4.0): Geolith .neo cart format. The first 4096 bytes are a header (magic, ROM section sizes, metadata text fields that can diff</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashNeogeoCart(out string hash, RcHashIterator iterator)
     {
         const int headerSize = 4096;
@@ -252,6 +265,10 @@ public static class HashRom
         return result;
     }
 
+/// <summary>Hashes an Arduboy image (zip or Intel HEX text).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashArduboy(out string hash, RcHashIterator iterator)
     {
         if (iterator.Path != null && HashEngine.PathCompareExtension(iterator.Path, "arduboy") != 0)
@@ -266,6 +283,10 @@ public static class HashRom
         return RcHashText(out hash, iterator);
     }
 
+/// <summary>Hashes an Atari Lynx cartridge (64-byte header stripped when present).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashLynx(out string hash, RcHashIterator iterator)
     {
         /* if the file contains a header, ignore it */
@@ -279,6 +300,10 @@ public static class HashRom
         return IteratorBuffer(out hash, iterator);
     }
 
+/// <summary>Hashes a NES/FDS image (iNES/FDS header stripped when present).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashNes(out string hash, RcHashIterator iterator)
     {
         /* if the file contains a header, ignore it */
@@ -297,6 +322,10 @@ public static class HashRom
         return IteratorBuffer(out hash, iterator);
     }
 
+/// <summary>Hashes a Nintendo 64 cartridge (byte-swap + 1 MiB cap).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashN64(out string hash, RcHashIterator iterator)
     {
         const int bufferSize = 65536;
@@ -378,6 +407,10 @@ public static class HashRom
         return HashEngine.Finalize(iterator, md5, out hash);
     }
 
+/// <summary>Hashes a Nintendo DS/DSi image (SuperCard variant supported).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashNintendoDs(out string hash, RcHashIterator iterator)
     {
         byte[] header = new byte[512];
@@ -465,6 +498,10 @@ public static class HashRom
         return HashEngine.Finalize(iterator, md5, out hash);
     }
 
+/// <summary>Hashes a PC Engine HuCard.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashPce(out string hash, RcHashIterator iterator)
     {
         /* The PCE header doesn't bear any distinguishable marks, so we have to detect
@@ -481,6 +518,10 @@ public static class HashRom
         return IteratorBuffer(out hash, iterator);
     }
 
+/// <summary>Hashes a Super Cassette Vision cartridge (32-byte header stripped).</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashScv(out string hash, RcHashIterator iterator)
     {
         /* if the file contains a header, ignore it */
@@ -494,6 +535,10 @@ public static class HashRom
         return IteratorBuffer(out hash, iterator);
     }
 
+/// <summary>Hashes the image for the console.</summary>
+/// <param name="hash">the generated 32-char hash</param>
+/// <param name="iterator">the hash iterator</param>
+/// <returns>the result</returns>
     public static int RcHashSnes(out string hash, RcHashIterator iterator)
     {
         /* if the file contains a header, ignore it */

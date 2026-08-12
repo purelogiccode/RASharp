@@ -8,6 +8,7 @@ using RASharp.Core;
 
 namespace RASharp.Tests;
 
+/// <summary>TestDataGen3ds — synthetic 3DS fixtures for Phase 6. The encryption side mirrors the C's decryption choreography exactly (same keys, same continuous CTR counter</summary>
 internal static class TestDataGen3ds
 {
     /* chosen key material for the synthetic aes_keys.txt (all first bytes non-zero,
@@ -24,6 +25,8 @@ internal static class TestDataGen3ds
     public const string Common4 = "9192939495969798999A9B9C9D9E9FA0";
     public const string Common5 = "A1A2A3A4A5A6A7A8A9AAABACADAEAFB0";
 
+/// <summary>aes keys txt.</summary>
+/// <returns>the generated value</returns>
     public static string AesKeysTxt()
     {
         return string.Join("\n",
@@ -40,6 +43,10 @@ internal static class TestDataGen3ds
             "common5=" + Common5) + "\n";
     }
 
+/// <summary>generate seed db bin.</summary>
+/// <param name="programId">the program id parameter</param>
+/// <param name="seed">the seed parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateSeedDbBin(byte[] programId, byte[] seed)
     {
         byte[] result = new byte[4 + 12 + 8 + 16 + 8];
@@ -58,6 +65,10 @@ internal static class TestDataGen3ds
     }
 
     /* the key-normalization used by the hasher (mirror of Hash3DS.NormalizeKeys) */
+/// <summary>the key-normalization used by the hasher (mirror of Hash3DS.NormalizeKeys)</summary>
+/// <param name="keyX">the key x parameter</param>
+/// <param name="keyY">the key y parameter</param>
+/// <returns>the result</returns>
     public static byte[] NormalizeKeys(byte[] keyX, byte[] keyY)
     {
         byte[] keyN = (byte[])keyX.Clone();
@@ -100,6 +111,18 @@ internal static class TestDataGen3ds
         };
     }
 
+/// <summary>generate ncch.</summary>
+/// <param name="encrypted">the encrypted parameter</param>
+/// <param name="fixedKey">the fixed key parameter</param>
+/// <param name="seedCrypto">the seed crypto parameter</param>
+/// <param name="cryptoMethod">the crypto method parameter</param>
+/// <param name="version">the version parameter</param>
+/// <param name="programId">the program id parameter</param>
+/// <param name="seed">the seed parameter</param>
+/// <param name="primaryKey">the primary key parameter</param>
+/// <param name="secondaryKey">the secondary key parameter</param>
+/// <param name="byte">the byte parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateNcch(
         bool encrypted, bool fixedKey, bool seedCrypto, byte cryptoMethod, ushort version,
         byte[]? programId, byte[]? seed, out byte[] primaryKey, out byte[] secondaryKey,
@@ -218,6 +241,8 @@ internal static class TestDataGen3ds
         return ncch;
     }
 
+/// <summary>generate3 dsx.</summary>
+/// <returns>the result</returns>
     public static byte[] Generate3Dsx()
     {
         const uint headerSize = 0x80;
@@ -239,6 +264,13 @@ internal static class TestDataGen3ds
         return file;
     }
 
+/// <summary>generate cia.</summary>
+/// <param name="ncch">the ncch parameter</param>
+/// <param name="titleId">the title id parameter</param>
+/// <param name="commonKeyIndex">the common key index parameter</param>
+/// <param name="titleKey">the title key parameter</param>
+/// <param name="encryptContent">the encrypt content parameter</param>
+/// <returns>the result</returns>
     public static byte[] GenerateCia(byte[] ncch, byte[] titleId, byte commonKeyIndex, byte[] titleKey, bool encryptContent)
     {
         const uint certSize = 0;

@@ -11,6 +11,7 @@ using System.Text;
 
 namespace RASharp.Cli;
 
+/// <summary>Application constants. The bug report API key is deliberately NOT stored in plaintext: it is double-encoded (Base64 applied twice, see InstructionsToSendBugs.md</summary>
 internal static class Constants
 {
     /* double-encoded value of the bug report API key */
