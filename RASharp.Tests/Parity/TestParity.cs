@@ -13,7 +13,6 @@
 
 using System.Security.Cryptography;
 using System.Text;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace RASharp.Tests.Parity;
@@ -21,12 +20,12 @@ namespace RASharp.Tests.Parity;
 /// <summary>Phase 8 — Tier-2 parity tests. For every case in the generated corpus, both executables (RASharp.exe and the reference RAHasher 1.8.3 oracle) run with identical</summary>
 public sealed record ParityCase(
     string Label,
-    string[] Flags,         // CLI flags before the console token; "{SYSTEM}" is replaced with the 3DS system dir
-    string ConsoleKey,      // console key form ("?" for auto-detect)
-    uint ConsoleId,         // numeric fallback for oracle builds without key support
-    string[] Files,         // paths relative to the working dir (wildcards allowed)
-    string? ExpectedHash,   // expected stdout for a plain single-file success (trimmed)
-    bool ExpectSuccess,     // require exit code 0
+    string[] Flags, // CLI flags before the console token; "{SYSTEM}" is replaced with the 3DS system dir
+    string ConsoleKey, // console key form ("?" for auto-detect)
+    uint ConsoleId, // numeric fallback for oracle builds without key support
+    string[] Files, // paths relative to the working dir (wildcards allowed)
+    string? ExpectedHash, // expected stdout for a plain single-file success (trimmed)
+    bool ExpectSuccess, // require exit code 0
     bool NormalizeNames = false, // replace "RAHasher" with "RASharp" before comparing (usage output embeds the exe name)
     string? WorkingDir = null); // default: corpus root
 
@@ -35,26 +34,29 @@ public class TestParity
 {
     private readonly ITestOutputHelper _output;
 
-    public TestParity(ITestOutputHelper output) => _output = output;
+    public TestParity(ITestOutputHelper output)
+    {
+        _output = output;
+    }
 
     /* set by BuildCorpus before BuildCases runs (Lazy ordering); used to pin the
      * .neo expected hash to the MD5 of the payload alone */
-    private static string s_neoPayloadHash = "";
+    private static string _sNeoPayloadHash = "";
 
     private sealed record CorpusPaths(string CorpusDir, string SystemDir);
 
-    private static readonly Lazy<CorpusPaths> s_corpus = new(BuildCorpus);
+    private static readonly Lazy<CorpusPaths> SCorpus = new(BuildCorpus);
 
-/// <summary>cases.</summary>
-/// <returns>the result</returns>
+    /// <summary>cases.</summary>
+    /// <returns>the result</returns>
     public static IEnumerable<object[]> Cases()
     {
-        foreach (ParityCase test in BuildCases(s_corpus.Value))
-            yield return new object[] { test };
+        foreach (ParityCase test in BuildCases())
+            yield return [test];
     }
 
-/// <summary>parity.</summary>
-/// <param name="test">the test parameter</param>
+    /// <summary>parity.</summary>
+    /// <param name="test">the test parameter</param>
     [Theory]
     [MemberData(nameof(Cases))]
     public void Parity(ParityCase test)
@@ -65,9 +67,9 @@ public class TestParity
             return;
         }
 
-        CorpusPaths corpus = s_corpus.Value;
-        string workDir = test.WorkingDir ?? corpus.CorpusDir;
-        string probe = Path.Combine(corpus.CorpusDir, "nes.nes");
+        CorpusPaths corpus = SCorpus.Value;
+        var workDir = test.WorkingDir ?? corpus.CorpusDir;
+        var probe = Path.Combine(corpus.CorpusDir, "nes.nes");
 
         if (string.Equals(test.ConsoleKey, "?", StringComparison.Ordinal) && !ParityHarness.OracleAcceptsQuestion(probe))
         {
@@ -75,11 +77,11 @@ public class TestParity
             return;
         }
 
-        string console = string.Equals(test.ConsoleKey, "?", StringComparison.Ordinal) ? "?" :
+        var console = string.Equals(test.ConsoleKey, "?", StringComparison.Ordinal) ? "?" :
             ParityHarness.OracleAcceptsKeys(probe) ? test.ConsoleKey : test.ConsoleId.ToString();
 
         var args = new List<string>();
-        foreach (string flag in test.Flags)
+        foreach (var flag in test.Flags)
             args.Add(flag.Replace("{SYSTEM}", corpus.SystemDir));
         args.Add(console);
         args.AddRange(test.Files);
@@ -87,10 +89,10 @@ public class TestParity
         ParityHarness.Result oracle = ParityHarness.Run(ParityHarness.OraclePath!, args, workDir);
         ParityHarness.Result cli = ParityHarness.Run(ParityHarness.CliPath, args, workDir);
 
-        string oracleOut = ParityHarness.ToText(oracle.StdOut);
-        string cliOut = ParityHarness.ToText(cli.StdOut);
-        string oracleErr = ParityHarness.ToText(oracle.StdErr);
-        string cliErr = ParityHarness.ToText(cli.StdErr);
+        var oracleOut = ParityHarness.ToText(oracle.StdOut);
+        var cliOut = ParityHarness.ToText(cli.StdOut);
+        var oracleErr = ParityHarness.ToText(oracle.StdErr);
+        var cliErr = ParityHarness.ToText(cli.StdErr);
 
         if (test.NormalizeNames)
         {
@@ -116,15 +118,9 @@ public class TestParity
 
     /* ========================================================================= */
 
-    private static List<ParityCase> BuildCases(CorpusPaths corpus)
+    private static List<ParityCase> BuildCases()
     {
         var cases = new List<ParityCase>();
-
-        void Add(string label, string key, uint id, string expected, params string[] files) =>
-            cases.Add(new ParityCase(label, Array.Empty<string>(), key, id, files, expected, ExpectSuccess: true));
-
-        void AddFail(string label, string key, uint id, params string[] files) =>
-            cases.Add(new ParityCase(label, Array.Empty<string>(), key, id, files, ExpectedHash: null, ExpectSuccess: false));
 
         /* ---- generic whole-file consoles (vector table from test_hash_rom.c) ---- */
         Add("whole/A2001", "A2001", 73, "572686c3a073162e4ec6eff86e6f6e3a", "w_A2001.bin");
@@ -161,23 +157,23 @@ public class TestParity
         Add("cart/NES", "NES", 7, "6a2305a2b6675a97ff792709be1ca857", "nes.nes");
         Add("cart/NES-FDS", "NES", 7, "fd770d4d34c00760fabda6ad294a8f0b", "fds.fds");
         /* RC_CONSOLE_FDS is not in the 1.8.3 dispatch table — both binaries reject it */
-        cases.Add(new ParityCase("cart/FDS", Array.Empty<string>(), "FDS", 81, new[] { "fds.fds" }, null, ExpectSuccess: false));
+        cases.Add(new ParityCase("cart/FDS", [], "FDS", 81, ["fds.fds"], null, ExpectSuccess: false));
         Add("cart/7800", "7800", 51, "455f07d8500f3fabc54906737866167f", "a78.a78");
         Add("cart/NDS", "DS", 18, "56b30c276cba4affa886bd38e8e34d7e", "nds.nds");
         /* ESCV is a NULL-group console: the 1.8.3 CLI only accepts keys for group != NULL
          * consoles (others fall back to atoi), so the corpus uses the numeric id */
         Add("cart/SCV", "55", 55, "4309c9844b44f9ff8256dfc04687b8fd", "escv.cart");
-        cases.Add(new ParityCase("cart/SNES", Array.Empty<string>(), "SNES", 3, new[] { "sn.sfc" }, null, ExpectSuccess: true));
-        cases.Add(new ParityCase("cart/N64", Array.Empty<string>(), "N64", 2, new[] { "n64.z64" }, null, ExpectSuccess: true));
-        cases.Add(new ParityCase("cart/Lynx", Array.Empty<string>(), "Lynx", 13, new[] { "lynx.lnx" }, null, ExpectSuccess: true));
+        cases.Add(new ParityCase("cart/SNES", [], "SNES", 3, ["sn.sfc"], null, ExpectSuccess: true));
+        cases.Add(new ParityCase("cart/N64", [], "N64", 2, ["n64.z64"], null, ExpectSuccess: true));
+        cases.Add(new ParityCase("cart/Lynx", [], "Lynx", 13, ["lynx.lnx"], null, ExpectSuccess: true));
 
         /* ---- disc consoles ---- */
         Add("disc/PSX", "PS1", 12, "db433fb038cde4fb15c144e8c7dea6e3", "psx.cue");
         Add("disc/PSX-homebrew", "PS1", 12, "e494c79a7315be0dc3e8571c45df162c", "psx_homebrew.cue");
-        cases.Add(new ParityCase("disc/PSX-bin", Array.Empty<string>(), "PS1", 12, new[] { "psx.bin" }, null, ExpectSuccess: true));
+        cases.Add(new ParityCase("disc/PSX-bin", [], "PS1", 12, ["psx.bin"], null, ExpectSuccess: true));
         Add("disc/PS2", "PS2", 21, "01a517e4ad72c6c2654d1b839be7579d", "ps2.iso");
         Add("disc/PSP", "PSP", 41, "27ec2f9b7238b2ef29af31ddd254f201", "psp.iso");
-        cases.Add(new ParityCase("disc/PSP-pbp", Array.Empty<string>(), "PSP", 41, new[] { "eboot.pbp" }, null, ExpectSuccess: true));
+        cases.Add(new ParityCase("disc/PSP-pbp", [], "PSP", 41, ["eboot.pbp"], null, ExpectSuccess: true));
         Add("disc/SegaCD", "SCD", 9, "574498e1453cb8934df60c4ab906e783", "sega.cue");
         Add("disc/Saturn", "SAT", 39, "4cd9c8e41cd8d137be15bbe6a93ae1d8", "saturn.cue");
         Add("disc/3DO", "3DO", 43, "59622882e3261237e8a1e396825ae4f5", "3do.bin");
@@ -191,7 +187,7 @@ public class TestParity
         /* ---- CHD (vendored fixtures) ---- */
         Add("chd/PSX", "PS1", 12, "db433fb038cde4fb15c144e8c7dea6e3", "chd/psx.chd");
         Add("chd/PSP", "PSP", 41, "a7070bf07f5c1a0afb2b2d202d7e3893", "chd/psp.chd");
-        cases.Add(new ParityCase("chd/pregap", Array.Empty<string>(), "PS1", 12, new[] { "chd/pregap.chd" }, null, ExpectSuccess: false)); /* fixture is a pregap test disc, not a PSX game */
+        cases.Add(new ParityCase("chd/pregap", [], "PS1", 12, ["chd/pregap.chd"], null, ExpectSuccess: false)); /* fixture is a pregap test disc, not a PSX game */
         AddFail("chd/multi-pcfx", "PC-FX", 49, "chd/multi.chd"); /* LARGEST-track quirk: both report "Not a PC-FX CD" */
 
         /* ---- zip (DOS is a NULL-group console; numeric id only) ---- */
@@ -202,126 +198,82 @@ public class TestParity
         /* parent-chain: real-file resolution differs from the mock vectors (the mock's
          * directory semantics don't match the real path building); oracle==cli is the
          * assertion here, the mock semantics stay covered by the unit tests */
-        cases.Add(new ParityCase("zip/parent-chain", Array.Empty<string>(), "26", 26, new[] { "child.dosz" }, null, ExpectSuccess: true));
-        cases.Add(new ParityCase("zip/parent-chain+dosc", Array.Empty<string>(), "26", 26, new[] { "child.dosz" }, null, ExpectSuccess: true));
-        cases.Add(new ParityCase("zip/parent-chain+child-dosc", Array.Empty<string>(), "26", 26, new[] { "child.dosz" }, null, ExpectSuccess: true));
+        cases.Add(new ParityCase("zip/parent-chain", [], "26", 26, ["child.dosz"], null, ExpectSuccess: true));
+        cases.Add(new ParityCase("zip/parent-chain+dosc", [], "26", 26, ["child.dosz"], null, ExpectSuccess: true));
+        cases.Add(new ParityCase("zip/parent-chain+child-dosc", [], "26", 26, ["child.dosz"], null, ExpectSuccess: true));
 
         /* ---- 3DS (NULL-group console; numeric id only — the "3DS" key resolves via
          * atoi to console 3 (SNES) in the original CLI) ---- */
-        string[] threeDs = { "-s", "{SYSTEM}" };
-        cases.Add(new ParityCase("3ds/encrypted", threeDs, "62", 62, new[] { "3ds/encrypted.ncch" }, "eb334fea757807e4a4b81ee99905437c", ExpectSuccess: true));
-        cases.Add(new ParityCase("3ds/encrypted-v1", threeDs, "62", 62, new[] { "3ds/encrypted_v1.ncch" }, "552ef040edf82bffada8b7615b8b2faa", ExpectSuccess: true));
-        cases.Add(new ParityCase("3ds/seed", threeDs, "62", 62, new[] { "3ds/seed.ncch" }, "29b0b5a9e83ac39e635c792a5142f5e4", ExpectSuccess: true));
-        cases.Add(new ParityCase("3ds/unaligned", threeDs, "62", 62, new[] { "3ds/unaligned.ncch" }, "3e2d3dfe1808dd0498ecf6c77e36ea46", ExpectSuccess: true));
-        cases.Add(new ParityCase("3ds/encrypted-cia", threeDs, "62", 62, new[] { "3ds/encrypted.cia" }, "eb334fea757807e4a4b81ee99905437c", ExpectSuccess: true));
-        cases.Add(new ParityCase("3ds/plain-cia", threeDs, "62", 62, new[] { "3ds/plain.cia" }, "eb334fea757807e4a4b81ee99905437c", ExpectSuccess: true));
-        cases.Add(new ParityCase("3ds/homebrew", threeDs, "62", 62, new[] { "3ds/homebrew.3dsx" }, "ca7161a502db8be8089d16a8b2280970", ExpectSuccess: true));
-        cases.Add(new ParityCase("3ds/junk", threeDs, "62", 62, new[] { "3ds/junk.bin" }, null, ExpectSuccess: false));
+        string[] threeDs = ["-s", "{SYSTEM}"];
+        cases.Add(new ParityCase("3ds/encrypted", threeDs, "62", 62, ["3ds/encrypted.ncch"], "eb334fea757807e4a4b81ee99905437c", ExpectSuccess: true));
+        cases.Add(new ParityCase("3ds/encrypted-v1", threeDs, "62", 62, ["3ds/encrypted_v1.ncch"], "552ef040edf82bffada8b7615b8b2faa", ExpectSuccess: true));
+        cases.Add(new ParityCase("3ds/seed", threeDs, "62", 62, ["3ds/seed.ncch"], "29b0b5a9e83ac39e635c792a5142f5e4", ExpectSuccess: true));
+        cases.Add(new ParityCase("3ds/unaligned", threeDs, "62", 62, ["3ds/unaligned.ncch"], "3e2d3dfe1808dd0498ecf6c77e36ea46", ExpectSuccess: true));
+        cases.Add(new ParityCase("3ds/encrypted-cia", threeDs, "62", 62, ["3ds/encrypted.cia"], "eb334fea757807e4a4b81ee99905437c", ExpectSuccess: true));
+        cases.Add(new ParityCase("3ds/plain-cia", threeDs, "62", 62, ["3ds/plain.cia"], "eb334fea757807e4a4b81ee99905437c", ExpectSuccess: true));
+        cases.Add(new ParityCase("3ds/homebrew", threeDs, "62", 62, ["3ds/homebrew.3dsx"], "ca7161a502db8be8089d16a8b2280970", ExpectSuccess: true));
+        cases.Add(new ParityCase("3ds/junk", threeDs, "62", 62, ["3ds/junk.bin"], null, ExpectSuccess: false));
 
         /* ---- .neo (Geolith Neo Geo cart; Part II) ---- */
-        Add("cart/neogeo-neo", "ARC", 27, s_neoPayloadHash, "game.neo");
-        Add("cart/neogeo-neo-variant", "ARC", 27, s_neoPayloadHash, "game_alt.neo");
-        cases.Add(new ParityCase("cart/neogeo-neo-badmagic", Array.Empty<string>(), "ARC", 27, new[] { "bad.neo" }, null, ExpectSuccess: false));
-        cases.Add(new ParityCase("args/iterate-neo", Array.Empty<string>(), "?", 91, new[] { "game.neo" }, null, ExpectSuccess: true));
-        cases.Add(new ParityCase("args/iterate-sms", Array.Empty<string>(), "?", 91, new[] { "game.sms" }, null, ExpectSuccess: true));
+        Add("cart/neogeo-neo", "ARC", 27, _sNeoPayloadHash, "game.neo");
+        Add("cart/neogeo-neo-variant", "ARC", 27, _sNeoPayloadHash, "game_alt.neo");
+        cases.Add(new ParityCase("cart/neogeo-neo-badmagic", [], "ARC", 27, ["bad.neo"], null, ExpectSuccess: false));
+        cases.Add(new ParityCase("args/iterate-neo", [], "?", 91, ["game.neo"], null, ExpectSuccess: true));
+        cases.Add(new ParityCase("args/iterate-sms", [], "?", 91, ["game.sms"], null, ExpectSuccess: true));
 
         /* ---- malformed GDI (12.4.0 bounds checks) ---- */
-        cases.Add(new ParityCase("disc/gdi-unterminated-quote", Array.Empty<string>(), "DC", 40, new[] { "gdi_badquote.gdi" }, null, ExpectSuccess: false));
-        cases.Add(new ParityCase("disc/gdi-long-filename", Array.Empty<string>(), "DC", 40, new[] { "gdi_longname.gdi" }, null, ExpectSuccess: false));
+        cases.Add(new ParityCase("disc/gdi-unterminated-quote", [], "DC", 40, ["gdi_badquote.gdi"], null, ExpectSuccess: false));
+        cases.Add(new ParityCase("disc/gdi-long-filename", [], "DC", 40, ["gdi_longname.gdi"], null, ExpectSuccess: false));
 
         /* ---- m3u ---- */
         Add("m3u/MD", "MD", 1, "da9461b3b0f74becc3ccf6c2a094c516", "play.m3u");
 
         /* ---- CLI arg modes ---- */
-        cases.Add(new ParityCase("args/iterate-nes", Array.Empty<string>(), "?", 91, new[] { "nes.nes" }, null, ExpectSuccess: true));
-        cases.Add(new ParityCase("args/iterate-psx", Array.Empty<string>(), "?", 91, new[] { "psx.cue" }, null, ExpectSuccess: true));
-        cases.Add(new ParityCase("args/wildcard", Array.Empty<string>(), "GB", 4, new[] { "wild\\*.gb" }, null, ExpectSuccess: true));
+        cases.Add(new ParityCase("args/iterate-nes", [], "?", 91, ["nes.nes"], null, ExpectSuccess: true));
+        cases.Add(new ParityCase("args/iterate-psx", [], "?", 91, ["psx.cue"], null, ExpectSuccess: true));
+        cases.Add(new ParityCase("args/wildcard", [], "GB", 4, ["wild\\*.gb"], null, ExpectSuccess: true));
         /* directory-less wildcard scans the current directory ("*.gb" in the wild/ dir) */
-        cases.Add(new ParityCase("args/wildcard-cwd", Array.Empty<string>(), "GB", 4, new[] { "*.gb" }, null, ExpectSuccess: true,
-            WorkingDir: Path.Combine(s_corpus.Value.CorpusDir, "wild")));
-        cases.Add(new ParityCase("args/multi-file", Array.Empty<string>(), "GB", 4, new[] { "w_GB.bin", "w_GB.bin" }, null, ExpectSuccess: true));
-        cases.Add(new ParityCase("args/verbose", new[] { "-v" }, "PS1", 12, new[] { "psx.cue" }, null, ExpectSuccess: true));
-        cases.Add(new ParityCase("args/usage", Array.Empty<string>(), "GB", 4, Array.Empty<string>(), null, ExpectSuccess: false, NormalizeNames: true));
+        cases.Add(new ParityCase("args/wildcard-cwd", [], "GB", 4, ["*.gb"], null, ExpectSuccess: true,
+            WorkingDir: Path.Combine(SCorpus.Value.CorpusDir, "wild")));
+        cases.Add(new ParityCase("args/multi-file", [], "GB", 4, ["w_GB.bin", "w_GB.bin"], null, ExpectSuccess: true));
+        cases.Add(new ParityCase("args/verbose", ["-v"], "PS1", 12, ["psx.cue"], null, ExpectSuccess: true));
+        cases.Add(new ParityCase("args/usage", [], "GB", 4, [], null, ExpectSuccess: false, NormalizeNames: true));
         /* "0" resolves to console id 0 on every build (keys and numeric alike) -> usage + exit 1 */
-        cases.Add(new ParityCase("args/unknown-key", Array.Empty<string>(), "0", 0, new[] { "w_GB.bin" }, null, ExpectSuccess: false, NormalizeNames: true));
-        cases.Add(new ParityCase("args/unknown-flag", new[] { "-x" }, "GB", 4, new[] { "w_GB.bin" }, null, ExpectSuccess: false, NormalizeNames: true));
-        cases.Add(new ParityCase("args/missing-file", Array.Empty<string>(), "GB", 4, new[] { "nope.bin" }, null, ExpectSuccess: false));
+        cases.Add(new ParityCase("args/unknown-key", [], "0", 0, ["w_GB.bin"], null, ExpectSuccess: false, NormalizeNames: true));
+        cases.Add(new ParityCase("args/unknown-flag", ["-x"], "GB", 4, ["w_GB.bin"], null, ExpectSuccess: false, NormalizeNames: true));
+        cases.Add(new ParityCase("args/missing-file", [], "GB", 4, ["nope.bin"], null, ExpectSuccess: false));
 
         return cases;
+
+        void AddFail(string label, string key, uint id, params string[] files)
+        {
+            cases.Add(new ParityCase(label, [], key, id, files, ExpectedHash: null, ExpectSuccess: false));
+        }
+
+        void Add(string label, string key, uint id, string expected, params string[] files)
+        {
+            cases.Add(new ParityCase(label, [], key, id, files, expected, ExpectSuccess: true));
+        }
     }
 
     /* ========================================================================= */
 
     private static CorpusPaths BuildCorpus()
     {
-        string corpusDir = Path.Combine(Path.GetTempPath(), "rasharp_parity_corpus_" + Guid.NewGuid().ToString("N")[..8]);
+        var corpusDir = Path.Combine(Path.GetTempPath(), "rasharp_parity_corpus_" + Guid.NewGuid().ToString("N")[..8]);
         if (Directory.Exists(corpusDir))
             Directory.Delete(corpusDir, recursive: true);
         Directory.CreateDirectory(corpusDir);
 
-        string systemDir = Path.Combine(corpusDir, "system");
+        var systemDir = Path.Combine(corpusDir, "system");
         Directory.CreateDirectory(systemDir);
         Directory.CreateDirectory(Path.Combine(corpusDir, "wild"));
         Directory.CreateDirectory(Path.Combine(corpusDir, "chd"));
         Directory.CreateDirectory(Path.Combine(corpusDir, "3ds"));
 
-        void Write(string name, byte[] bytes) => File.WriteAllBytes(Path.Combine(corpusDir, name), bytes);
-        void WriteText(string name, string text) => File.WriteAllText(Path.Combine(corpusDir, name), text, Encoding.ASCII);
-
-        string CueMode2Raw2352(string bin) =>
-            $"FILE \"{bin}\" BINARY\n  TRACK 01 MODE2/2352\n    INDEX 01 00:00:00\n";
-        string CueMode1Raw2048(string bin) =>
-            $"FILE \"{bin}\" BINARY\n  TRACK 01 MODE1/2048\n    INDEX 01 00:00:00\n";
-
-        /* 2048-byte-sector ISO image -> raw 2352 sectors with an 8-byte XA subheader
-         * (data at offset 24). Sector headers carry real MSF (LBA 0 = 00:02:00) —
-         * the cdreader computes track_first_sector from the sector-16 header as
-         * msf_to_lba - 16, which must come out as 0 for the ISO walker's absolute
-         * LBA reads to pass its sector guard. */
-        byte[] ToXaRaw(byte[] iso)
-        {
-            int numSectors = (iso.Length + 2047) / 2048;
-            byte[] raw = new byte[numSectors * 2352];
-            uint firstSector = 150; /* LBA 0 = MSF 00:02:00 */
-            byte minutes, seconds, frames;
-            frames = (byte)(firstSector % 75);
-            firstSector /= 75;
-            seconds = (byte)(firstSector % 60);
-            minutes = (byte)(firstSector / 60);
-            for (int s = 0; s < numSectors; s++)
-            {
-                int dst = s * 2352;
-                raw[dst] = 0x00;
-                for (int i = 1; i < 11; i++)
-                    raw[dst + i] = 0xFF;
-                raw[dst + 11] = 0x00;
-                raw[dst + 12] = (byte)(((minutes / 10) << 4) | (minutes % 10));
-                raw[dst + 13] = (byte)(((seconds / 10) << 4) | (seconds % 10));
-                raw[dst + 14] = (byte)(((frames / 10) << 4) | (frames % 10));
-                if (++frames == 75) { frames = 0; if (++seconds == 60) { seconds = 0; ++minutes; } }
-                raw[dst + 15] = 2; /* mode 2 */
-                /* 8-byte XA subheader (zeroed) at 16..23; data at 24 */
-                int src = s * 2048;
-                int chunk = Math.Min(2048, iso.Length - src);
-                Array.Copy(iso, src, raw, dst + 24, chunk);
-            }
-
-            return raw;
-        }
-
-        /* (a stream-chunking 2048->2352 helper: AUDIO tracks are read headerless, so
-         * the reader sees exactly the mock stream the unit vectors were computed on) */
-        byte[] ChunkTo2352(byte[] iso)
-        {
-            int rawSize = ((iso.Length + 2351) / 2352) * 2352;
-            byte[] raw = new byte[rawSize];
-            Array.Copy(iso, raw, iso.Length);
-            return raw;
-        }
-
         /* ---- generic whole-file files (sizes from the test_hash_rom.c vector table) ---- */
         (string Name, int Size)[] wholeFiles =
-        {
+        [
             ("w_A2001.bin", 4096), ("w_2600.bin", 2048), ("w_JAG.bin", 0x400000), ("w_CV.bin", 16384),
             ("w_ELEK.bin", 4096), ("w_CHF.bin", 2048), ("w_GB.bin", 131072), ("w_GBC.bin", 2097152),
             ("w_GBA.bin", 4194304), ("w_GG.bin", 524288), ("w_INTV.bin", 8192), ("w_VC4000.bin", 2048),
@@ -329,9 +281,9 @@ public class TestParity
             ("w_NGP.bin", 2097152), ("w_Oric.bin", 18119), ("w_MINI.bin", 524288), ("w_32X.bin", 3145728),
             ("w_SG1K.bin", 32768), ("w_TI83.bin", 1695), ("w_TIC80.bin", 67682), ("w_UZE.bin", 53654),
             ("w_VECT.bin", 4096), ("w_VB.bin", 524288), ("w_WSV.bin", 32768), ("w_WASM4.bin", 33454),
-            ("w_WS.bin", 524288),
-        };
-        foreach ((string name, int size) in wholeFiles)
+            ("w_WS.bin", 524288)
+        ];
+        foreach (var (name, size) in wholeFiles)
             Write(name, TestDataGen.GenerateGenericFile(size));
 
         /* ---- cartridges ---- */
@@ -340,27 +292,31 @@ public class TestParity
         Write("nds.nds", TestDataGen.GenerateNdsFile(2, 1234567, 654321, out _));
         Write("a78.a78", TestDataGen.GenerateAtari7800File(16, withHeader: true, out _));
 
-        byte[] escv = TestDataGen.GenerateGenericFile(32768 + 32);
-        Array.Copy(Encoding.ASCII.GetBytes("EmuSCV....CART.............................."), escv, 32);
+        var escv = TestDataGen.GenerateGenericFile(32768 + 32);
+        Array.Copy("EmuSCV....CART.............................."u8.ToArray(), escv, 32);
         Write("escv.cart", escv);
 
-        byte[] generic256k = TestDataGen.GenerateGenericFile(256 * 1024);
-        Write("sn.sfc", generic256k);
-        Write("n64.z64", generic256k);
-        Write("lynx.lnx", generic256k);
+        var generic256K = TestDataGen.GenerateGenericFile(256 * 1024);
+        Write("sn.sfc", generic256K);
+        Write("n64.z64", generic256K);
+        Write("lynx.lnx", generic256K);
 
         /* ---- PSX (raw 2352 XA sectors + real cue, same format genchdimg.c validated) ---- */
-        byte[] psx2048 = TestDataGenDisc.GeneratePsxBin("SLUS_007.45", 0x07D800, out _);
+        var psx2048 = TestDataGenDisc.GeneratePsxBin("SLUS_007.45", 0x07D800, out _);
         Write("psx.bin", ToXaRaw(psx2048));
         WriteText("psx.cue", CueMode2Raw2352("psx.bin"));
 
         /* PSX homebrew (no SYSTEM.CNF; PS-X EXE in root) */
         const uint homebrewSize = 0x12000;
-        uint sectorsNeeded = ((homebrewSize + 2047) / 2048) + 20;
-        byte[] homebrew2048 = TestDataGenDisc.GenerateIso9660Bin(sectorsNeeded, "HOMEBREW", out _);
-        int exe = TestDataGenDisc.GenerateIso9660File(homebrew2048, "PSX.EXE", null, (int)homebrewSize);
-        Encoding.ASCII.GetBytes("PS-X EXE").CopyTo(homebrew2048, exe);
-        uint adjustedSize = homebrewSize - 2048;
+        const uint sectorsNeeded = ((homebrewSize + 2047) / 2048) + 20;
+        var homebrew2048 = TestDataGenDisc.GenerateIso9660Bin(sectorsNeeded, "HOMEBREW", out _);
+        var exe = TestDataGenDisc.GenerateIso9660File(homebrew2048, "PSX.EXE", null, (int)homebrewSize);
+        "PS-X EXE"u8.ToArray().CopyTo(homebrew2048, exe);
+        /* binary_size is a runtime parameter in the C reference (data.c:
+         * generate_psx_bin), so the size-field shifts below are runtime
+         * expressions — keep adjustedSize non-const to mirror that */
+        // ReSharper disable once ConvertToConstant.Local
+        var adjustedSize = homebrewSize - 2048;
         homebrew2048[exe + 28] = (byte)(adjustedSize & 0xFF);
         homebrew2048[exe + 29] = (byte)((adjustedSize >> 8) & 0xFF);
         homebrew2048[exe + 30] = (byte)((adjustedSize >> 16) & 0xFF);
@@ -371,33 +327,33 @@ public class TestParity
         /* ---- PS2 / PSP ---- */
         Write("ps2.iso", TestDataGenDisc.GeneratePs2Bin("SLUS_200.64", 0x07D800, out _));
 
-        byte[] psp = TestDataGenDisc.GenerateIso9660Bin(160, "TEST", out _);
-        byte[] paramSfo = TestDataGen.GenerateGenericFile(690);
-        byte[] ebootBin = TestDataGen.GenerateGenericFile(273470);
+        var psp = TestDataGenDisc.GenerateIso9660Bin(160, "TEST", out _);
+        var paramSfo = TestDataGen.GenerateGenericFile(690);
+        var ebootBin = TestDataGen.GenerateGenericFile(273470);
         TestDataGenDisc.GenerateIso9660File(psp, "PSP_GAME\\PARAM.SFO", paramSfo, paramSfo.Length);
-        TestDataGenDisc.GenerateIso9660File(psp, "PSP_GAME\\SYSDIR\\EBOOT.BIN", ebootBin, ebootBin.Length);
+        TestDataGenDisc.GenerateIso9660File(psp, @"PSP_GAME\SYSDIR\EBOOT.BIN", ebootBin, ebootBin.Length);
         Write("psp.iso", psp);
         Write("eboot.pbp", TestDataGen.GenerateGenericFile(65536));
 
         /* ---- Sega CD / Saturn (512-byte sector-0 magic; MODE1/2048 sector 0 data is
          * the exact GenerateGenericFile(512) vector the unit tests hashed) ---- */
-        byte[] sega512 = TestDataGen.GenerateGenericFile(512);
-        Encoding.ASCII.GetBytes("SEGADISCSYSTEM  ").CopyTo(sega512, 0);
-        byte[] segaImg = new byte[2048 * 8];
+        var sega512 = TestDataGen.GenerateGenericFile(512);
+        "SEGADISCSYSTEM  "u8.ToArray().CopyTo(sega512, 0);
+        var segaImg = new byte[2048 * 8];
         Array.Copy(sega512, segaImg, 512);
         Write("sega.bin", segaImg);
         WriteText("sega.cue", CueMode1Raw2048("sega.bin"));
 
-        byte[] saturn512 = TestDataGen.GenerateGenericFile(512);
-        Encoding.ASCII.GetBytes("SEGA SEGASATURN ").CopyTo(saturn512, 0);
-        byte[] saturnImg = new byte[2048 * 8];
+        var saturn512 = TestDataGen.GenerateGenericFile(512);
+        "SEGA SEGASATURN "u8.ToArray().CopyTo(saturn512, 0);
+        var saturnImg = new byte[2048 * 8];
         Array.Copy(saturn512, saturnImg, 512);
         Write("saturn.bin", saturnImg);
         WriteText("saturn.cue", CueMode1Raw2048("saturn.bin"));
 
         /* ---- 3DO (case-insensitive launchme) ---- */
-        byte[] threeDo = TestDataGenDisc.Generate3DoBin(1, 6543, out _);
-        Encoding.ASCII.GetBytes("launchme").CopyTo(threeDo, 2048 + 0x14 + 0x48 + 0x20);
+        var threeDo = TestDataGenDisc.Generate3DoBin(1, 6543, out _);
+        "launchme"u8.ToArray().CopyTo(threeDo, 2048 + 0x14 + 0x48 + 0x20);
         Write("3do.bin", threeDo);
 
         /* ---- Jaguar CD (data in track 2 of session 2). AUDIO tracks are read with
@@ -417,9 +373,9 @@ public class TestParity
             "FILE \"jag03.bin\" BINARY\n" +
             "  TRACK 03 AUDIO\n" +
             "    INDEX 01 00:00:00\n");
-        Write("jag01.bin", Array.Empty<byte>());
+        Write("jag01.bin", []);
         Write("jag02.bin", ChunkTo2352(TestDataGenDisc.GenerateJaguarcdBin(2, 60024, 0, out _)));
-        Write("jag03.bin", Array.Empty<byte>());
+        Write("jag03.bin", []);
 
         /* ---- PCE-CD / PC-FX (2048-byte-sector ISO content; MODE1/2048 cue) ---- */
         Write("pce.bin", TestDataGenDisc.GeneratePceCdBin(72, out _));
@@ -436,13 +392,12 @@ public class TestParity
             "3 45000 4 2352 track03.bin 0\n");
         Write("track01.bin", new byte[2352]);
         Write("track02.bin", new byte[2352]);
-        int dcSize = 0;
-        Write("track03.bin", TestDataGenDisc.ConvertTo2352(TestDataGenDisc.GenerateDreamcastBin(45000, 1458208, out dcSize), ref dcSize, 45000));
+        Write("track03.bin", TestDataGenDisc.ConvertTo2352(TestDataGenDisc.GenerateDreamcastBin(45000, 1458208, out var dcSize), ref dcSize, 45000));
 
         /* ---- Neo Geo CD ---- */
-        byte[] ngcd = TestDataGenDisc.GenerateIso9660Bin(160, "TEST", out _);
-        byte[] ipl = Encoding.ASCII.GetBytes("FIXA.FIX,0,0\r\nPROG.PRG,0,0\r\nSOUND.PCM,0,0\r\n\x1a");
-        byte[] progPrg = TestDataGen.GenerateGenericFile(273470);
+        var ngcd = TestDataGenDisc.GenerateIso9660Bin(160, "TEST", out _);
+        var ipl = "FIXA.FIX,0,0\r\nPROG.PRG,0,0\r\nSOUND.PCM,0,0\r\n\x1a"u8.ToArray();
+        var progPrg = TestDataGen.GenerateGenericFile(273470);
         TestDataGenDisc.GenerateIso9660File(ngcd, "IPL.TXT", ipl, ipl.Length);
         TestDataGenDisc.GenerateIso9660File(ngcd, "PROG.PRG", progPrg, progPrg.Length);
         Write("ngcd.bin", ngcd);
@@ -452,21 +407,10 @@ public class TestParity
         Write("gc.iso", TestDataGenDisc.GenerateGamecubeIso(32, out _));
 
         /* ---- CHD fixtures (vendored in TestData) ---- */
-        foreach (string chd in new[] { "psx.chd", "psp.chd", "multi.chd", "pregap.chd" })
+        foreach (var chd in new[] { "psx.chd", "psp.chd", "multi.chd", "pregap.chd" })
         {
-            string src = Path.Combine(AppContext.BaseDirectory, "TestData", chd);
+            var src = Path.Combine(AppContext.BaseDirectory, "TestData", chd);
             File.Copy(src, Path.Combine(corpusDir, "chd", chd));
-        }
-
-        /* ---- zip fixtures (MockZipFile reproduces the C's mock byte-for-byte) ---- */
-        void WriteZip(string name, Action<TestHashZip.MockZipFile> build, string comment)
-        {
-            var zip = new TestHashZip.MockZipFile(1024);
-            build(zip);
-            int size = zip.Finalize(comment);
-            byte[] bytes = new byte[size];
-            Array.Copy(zip.Buffer, 0, bytes, 0, size);
-            Write(name, bytes);
         }
 
         WriteZip("arduboy.arduboy", zip =>
@@ -529,32 +473,32 @@ public class TestParity
         }, "");
 
         /* ---- 3DS system dir + fixtures ---- */
-        File.WriteAllText(Path.Combine(systemDir, "aes_keys.txt"), TestDataGen3ds.AesKeysTxt());
-        byte[] programId = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88 };
-        byte[] seed = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
-        File.WriteAllBytes(Path.Combine(systemDir, "seeddb.bin"), TestDataGen3ds.GenerateSeedDbBin(programId, seed));
+        File.WriteAllText(Path.Combine(systemDir, "aes_keys.txt"), TestDataGen3Ds.AesKeysTxt());
+        byte[] programId = [0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88];
+        byte[] seed = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10];
+        File.WriteAllBytes(Path.Combine(systemDir, "seeddb.bin"), TestDataGen3Ds.GenerateSeedDbBin(programId, seed));
 
-        string threeDsDir = Path.Combine(corpusDir, "3ds");
-        File.WriteAllBytes(Path.Combine(threeDsDir, "plain.ncch"), TestDataGen3ds.GenerateNcch(false, false, false, 0x01, 0, null, null, out _, out _));
-        File.WriteAllBytes(Path.Combine(threeDsDir, "encrypted.ncch"), TestDataGen3ds.GenerateNcch(true, false, false, 0x01, 0, null, null, out _, out _));
-        File.WriteAllBytes(Path.Combine(threeDsDir, "encrypted_v1.ncch"), TestDataGen3ds.GenerateNcch(true, false, false, 0x01, 1, null, null, out _, out _));
-        File.WriteAllBytes(Path.Combine(threeDsDir, "unaligned.ncch"), TestDataGen3ds.GenerateNcch(true, false, false, 0x01, 0, null, null, out _, out _, 0x641));
-        File.WriteAllBytes(Path.Combine(threeDsDir, "seed.ncch"), TestDataGen3ds.GenerateNcch(true, false, true, 0x0B, 0, programId, seed, out _, out _));
+        var threeDsDir = Path.Combine(corpusDir, "3ds");
+        File.WriteAllBytes(Path.Combine(threeDsDir, "plain.ncch"), TestDataGen3Ds.GenerateNcch(false, false, false, 0x01, 0, null, null, out _, out _));
+        File.WriteAllBytes(Path.Combine(threeDsDir, "encrypted.ncch"), TestDataGen3Ds.GenerateNcch(true, false, false, 0x01, 0, null, null, out _, out _));
+        File.WriteAllBytes(Path.Combine(threeDsDir, "encrypted_v1.ncch"), TestDataGen3Ds.GenerateNcch(true, false, false, 0x01, 1, null, null, out _, out _));
+        File.WriteAllBytes(Path.Combine(threeDsDir, "unaligned.ncch"), TestDataGen3Ds.GenerateNcch(true, false, false, 0x01, 0, null, null, out _, out _, 0x641));
+        File.WriteAllBytes(Path.Combine(threeDsDir, "seed.ncch"), TestDataGen3Ds.GenerateNcch(true, false, true, 0x0B, 0, programId, seed, out _, out _));
 
-        byte[] titleKey = { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00 };
-        byte[] titleId = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
-        byte[] encNcch = TestDataGen3ds.GenerateNcch(true, false, false, 0x01, 0, null, null, out _, out _);
-        File.WriteAllBytes(Path.Combine(threeDsDir, "encrypted.cia"), TestDataGen3ds.GenerateCia(encNcch, titleId, 0, titleKey, true));
-        File.WriteAllBytes(Path.Combine(threeDsDir, "plain.cia"), TestDataGen3ds.GenerateCia(TestDataGen3ds.GenerateNcch(false, false, false, 0x01, 0, null, null, out _, out _), titleId, 0, titleKey, false));
-        File.WriteAllBytes(Path.Combine(threeDsDir, "homebrew.3dsx"), TestDataGen3ds.Generate3Dsx());
+        byte[] titleKey = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00];
+        byte[] titleId = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07];
+        var encNcch = TestDataGen3Ds.GenerateNcch(true, false, false, 0x01, 0, null, null, out _, out _);
+        File.WriteAllBytes(Path.Combine(threeDsDir, "encrypted.cia"), TestDataGen3Ds.GenerateCia(encNcch, titleId, 0, titleKey, true));
+        File.WriteAllBytes(Path.Combine(threeDsDir, "plain.cia"), TestDataGen3Ds.GenerateCia(TestDataGen3Ds.GenerateNcch(false, false, false, 0x01, 0, null, null, out _, out _), titleId, 0, titleKey, false));
+        File.WriteAllBytes(Path.Combine(threeDsDir, "homebrew.3dsx"), TestDataGen3Ds.Generate3Dsx());
         File.WriteAllBytes(Path.Combine(threeDsDir, "junk.bin"), new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 });
 
         /* ---- .neo fixtures (rcheevos 12.4.0 test data) ---- */
-        byte[] neoPayload = TestDataGen.GenerateGenericFile(131072);
-        s_neoPayloadHash = Convert.ToHexStringLower(MD5.HashData(neoPayload));
+        var neoPayload = TestDataGen.GenerateGenericFile(131072);
+        _sNeoPayloadHash = Convert.ToHexStringLower(MD5.HashData(neoPayload));
         Write("game.neo", TestHashNeo.GenerateNeoFile(131072, "Test Game", "TestCorp"));
         Write("game_alt.neo", TestHashNeo.GenerateNeoFile(131072, "test game (alt name)", "OtherTool"));
-        byte[] neoBad = TestHashNeo.GenerateNeoFile(131072, "Test Game", "TestCorp");
+        var neoBad = TestHashNeo.GenerateNeoFile(131072, "Test Game", "TestCorp");
         neoBad[3] = 2; /* unsupported version */
         Write("bad.neo", neoBad);
         Write("game.sms", neoPayload); /* .sms iterate maps to Master System */
@@ -580,5 +524,93 @@ public class TestParity
         Write(Path.Combine("wild", "b.gb"), TestDataGen.GenerateGenericFile(131072));
 
         return new CorpusPaths(corpusDir, systemDir);
+
+        void Write(string name, byte[] bytes)
+        {
+            File.WriteAllBytes(Path.Combine(corpusDir, name), bytes);
+        }
+
+        void WriteText(string name, string text)
+        {
+            File.WriteAllText(Path.Combine(corpusDir, name), text, Encoding.ASCII);
+        }
+
+        static string CueMode2Raw2352(string bin)
+        {
+            return $"FILE \"{bin}\" BINARY\n  TRACK 01 MODE2/2352\n    INDEX 01 00:00:00\n";
+        }
+
+        static string CueMode1Raw2048(string bin)
+        {
+            return $"FILE \"{bin}\" BINARY\n  TRACK 01 MODE1/2048\n    INDEX 01 00:00:00\n";
+        }
+
+        /* 2048-byte-sector ISO image -> raw 2352 sectors with an 8-byte XA subheader
+         * (data at offset 24). Sector headers carry real MSF (LBA 0 = 00:02:00) —
+         * the cdreader computes track_first_sector from the sector-16 header as
+         * msf_to_lba - 16, which must come out as 0 for the ISO walker's absolute
+         * LBA reads to pass its sector guard. */
+        static byte[] ToXaRaw(byte[] iso)
+        {
+            var numSectors = (iso.Length + 2047) / 2048;
+            var raw = new byte[numSectors * 2352];
+            uint firstSector = 150; /* LBA 0 = MSF 00:02:00 */
+            var frames = (byte)(firstSector % 75);
+            firstSector /= 75;
+            var seconds = (byte)(firstSector % 60);
+            var minutes = (byte)(firstSector / 60);
+            for (var s = 0; s < numSectors; s++)
+            {
+                var dst = s * 2352;
+                raw[dst] = 0x00;
+                for (var i = 1; i < 11; i++)
+                {
+                    raw[dst + i] = 0xFF;
+                }
+
+                raw[dst + 11] = 0x00;
+                raw[dst + 12] = (byte)(((minutes / 10) << 4) | (minutes % 10));
+                raw[dst + 13] = (byte)(((seconds / 10) << 4) | (seconds % 10));
+                raw[dst + 14] = (byte)(((frames / 10) << 4) | (frames % 10));
+                if (++frames == 75)
+                {
+                    frames = 0;
+                    if (++seconds == 60)
+                    {
+                        seconds = 0;
+                        ++minutes;
+                    }
+                }
+
+                raw[dst + 15] = 2; /* mode 2 */
+                /* 8-byte XA subheader (zeroed) at 16..23; data at 24 */
+                var src = s * 2048;
+                var chunk = Math.Min(2048, iso.Length - src);
+                Array.Copy(iso, src, raw, dst + 24, chunk);
+            }
+
+            return raw;
+        }
+
+        /* (a stream-chunking 2048->2352 helper: AUDIO tracks are read headerless, so
+         * the reader sees exactly the mock stream the unit vectors were computed on) */
+        static byte[] ChunkTo2352(byte[] iso)
+        {
+            var rawSize = ((iso.Length + 2351) / 2352) * 2352;
+            var raw = new byte[rawSize];
+            Array.Copy(iso, raw, iso.Length);
+            return raw;
+        }
+
+        /* ---- zip fixtures (MockZipFile reproduces the C's mock byte-for-byte) ---- */
+        void WriteZip(string name, Action<TestHashZip.MockZipFile> build, string comment)
+        {
+            var zip = new TestHashZip.MockZipFile(1024);
+            build(zip);
+            var size = zip.Finalize(comment);
+            var bytes = new byte[size];
+            Array.Copy(zip.Buffer, 0, bytes, 0, size);
+            Write(name, bytes);
+        }
     }
 }

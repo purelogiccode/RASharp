@@ -20,16 +20,16 @@ public static class HashIterator
         if (iterator.BufferSize == 0)
         {
             /* raw bin file may be a CD track. if it's more than 32MB, try a CD hash. */
-            long size = HashEngine.FileSize(iterator, iterator.Path!);
+            var size = HashEngine.FileSize(iterator, iterator.Path!);
             if (size > 32 * 1024 * 1024)
             {
-                iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_3DO; /* 4DO supports directly opening the bin file */
-                iterator.Consoles[1] = ConsoleIds.RC_CONSOLE_PLAYSTATION; /* PCSX ReARMed supports directly opening the bin file*/
-                iterator.Consoles[2] = ConsoleIds.RC_CONSOLE_PLAYSTATION_2; /* PCSX2 supports directly opening the bin file*/
-                iterator.Consoles[3] = ConsoleIds.RC_CONSOLE_SEGA_CD; /* Genesis Plus GX supports directly opening the bin file*/
+                iterator.Consoles[0] = ConsoleIds.RcConsole3Do; /* 4DO supports directly opening the bin file */
+                iterator.Consoles[1] = ConsoleIds.RcConsolePlaystation; /* PCSX ReARMed supports directly opening the bin file*/
+                iterator.Consoles[2] = ConsoleIds.RcConsolePlaystation2; /* PCSX2 supports directly opening the bin file*/
+                iterator.Consoles[3] = ConsoleIds.RcConsoleSegaCd; /* Genesis Plus GX supports directly opening the bin file*/
 
                 /* fallback to megadrive which just does a full hash. */
-                iterator.Consoles[4] = ConsoleIds.RC_CONSOLE_MEGA_DRIVE;
+                iterator.Consoles[4] = ConsoleIds.RcConsoleMegaDrive;
                 return;
             }
         }
@@ -37,101 +37,102 @@ public static class HashIterator
         /* bin is associated with MegaDrive, Sega32X, Atari 2600, Watara Supervision, MegaDuck,
          * Fairchild Channel F, Arcadia 2001, Interton VC 4000, and Super Cassette Vision.
          * Since they all use the same hashing algorithm, only specify one of them */
-        iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_MEGA_DRIVE;
+        iterator.Consoles[0] = ConsoleIds.RcConsoleMegaDrive;
     }
 
     private static void InitializeIteratorChd(RcHashIterator iterator, int data)
     {
-        iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_PLAYSTATION;
-        iterator.Consoles[1] = ConsoleIds.RC_CONSOLE_PLAYSTATION_2;
-        iterator.Consoles[2] = ConsoleIds.RC_CONSOLE_DREAMCAST;
-        iterator.Consoles[3] = ConsoleIds.RC_CONSOLE_SEGA_CD; /* ASSERT: handles both Sega CD and Saturn */
-        iterator.Consoles[4] = ConsoleIds.RC_CONSOLE_PSP;
-        iterator.Consoles[5] = ConsoleIds.RC_CONSOLE_PC_ENGINE_CD;
-        iterator.Consoles[6] = ConsoleIds.RC_CONSOLE_3DO;
-        iterator.Consoles[7] = ConsoleIds.RC_CONSOLE_NEO_GEO_CD;
-        iterator.Consoles[8] = ConsoleIds.RC_CONSOLE_PCFX;
+        iterator.Consoles[0] = ConsoleIds.RcConsolePlaystation;
+        iterator.Consoles[1] = ConsoleIds.RcConsolePlaystation2;
+        iterator.Consoles[2] = ConsoleIds.RcConsoleDreamcast;
+        iterator.Consoles[3] = ConsoleIds.RcConsoleSegaCd; /* ASSERT: handles both Sega CD and Saturn */
+        iterator.Consoles[4] = ConsoleIds.RcConsolePsp;
+        iterator.Consoles[5] = ConsoleIds.RcConsolePcEngineCd;
+        iterator.Consoles[6] = ConsoleIds.RcConsole3Do;
+        iterator.Consoles[7] = ConsoleIds.RcConsoleNeoGeoCd;
+        iterator.Consoles[8] = ConsoleIds.RcConsolePcfx;
     }
 
     private static void InitializeIteratorCue(RcHashIterator iterator, int data)
     {
-        iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_PLAYSTATION;
-        iterator.Consoles[1] = ConsoleIds.RC_CONSOLE_PLAYSTATION_2;
-        iterator.Consoles[2] = ConsoleIds.RC_CONSOLE_DREAMCAST;
-        iterator.Consoles[3] = ConsoleIds.RC_CONSOLE_SEGA_CD; /* ASSERT: handles both Sega CD and Saturn */
-        iterator.Consoles[4] = ConsoleIds.RC_CONSOLE_PC_ENGINE_CD;
-        iterator.Consoles[5] = ConsoleIds.RC_CONSOLE_3DO;
-        iterator.Consoles[6] = ConsoleIds.RC_CONSOLE_PCFX;
-        iterator.Consoles[7] = ConsoleIds.RC_CONSOLE_NEO_GEO_CD;
-        iterator.Consoles[8] = ConsoleIds.RC_CONSOLE_ATARI_JAGUAR_CD;
+        iterator.Consoles[0] = ConsoleIds.RcConsolePlaystation;
+        iterator.Consoles[1] = ConsoleIds.RcConsolePlaystation2;
+        iterator.Consoles[2] = ConsoleIds.RcConsoleDreamcast;
+        iterator.Consoles[3] = ConsoleIds.RcConsoleSegaCd; /* ASSERT: handles both Sega CD and Saturn */
+        iterator.Consoles[4] = ConsoleIds.RcConsolePcEngineCd;
+        iterator.Consoles[5] = ConsoleIds.RcConsole3Do;
+        iterator.Consoles[6] = ConsoleIds.RcConsolePcfx;
+        iterator.Consoles[7] = ConsoleIds.RcConsoleNeoGeoCd;
+        iterator.Consoles[8] = ConsoleIds.RcConsoleAtariJaguarCd;
     }
 
     private static void InitializeIteratorD88(RcHashIterator iterator, int data)
     {
-        iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_PC8800;
-        iterator.Consoles[1] = ConsoleIds.RC_CONSOLE_SHARPX1;
+        iterator.Consoles[0] = ConsoleIds.RcConsolePc8800;
+        iterator.Consoles[1] = ConsoleIds.RcConsoleSharpx1;
     }
 
     private static void InitializeIteratorDsk(RcHashIterator iterator, int data)
     {
         long size = iterator.BufferSize;
         if (size == 0)
+        {
             size = HashEngine.FileSize(iterator, iterator.Path!);
-
-        if (size == 512L * 9 * 80) /* 360KB */
-        {
-            /* FAT-12 3.5" DD (512 byte sectors, 9 sectors per track, 80 tracks per side */
-            /* FAT-12 5.25" DD double-sided (512 byte sectors, 9 sectors per track, 80 tracks per side */
-            iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_MSX;
         }
-        else if (size == 512L * 9 * 80 * 2) /* 720KB */
+
+        switch (size)
         {
+            /* 360KB */
+            case 512L * 9 * 80:
+            /* 720KB */
             /* FAT-12 3.5" DD double-sided (512 byte sectors, 9 sectors per track, 80 tracks per side */
-            iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_MSX;
-        }
-        else if (size == 512L * 9 * 40) /* 180KB */
-        {
-            /* FAT-12 5.25" DD (512 byte sectors, 9 sectors per track, 40 tracks per side */
-            iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_MSX;
+            case 512L * 9 * 80 * 2:
+                /* FAT-12 3.5" DD (512 byte sectors, 9 sectors per track, 80 tracks per side */
+                /* FAT-12 5.25" DD double-sided (512 byte sectors, 9 sectors per track, 80 tracks per side */
+                iterator.Consoles[0] = ConsoleIds.RcConsoleMsx;
+                break;
+            /* 180KB */
+            case 512L * 9 * 40:
+                /* FAT-12 5.25" DD (512 byte sectors, 9 sectors per track, 40 tracks per side */
+                iterator.Consoles[0] = ConsoleIds.RcConsoleMsx;
 
-            /* AMSDOS 3" - 40 tracks */
-            iterator.Consoles[1] = ConsoleIds.RC_CONSOLE_AMSTRAD_PC;
-        }
-        else if (size == 256L * 16 * 35) /* 140KB */
-        {
-            /* Apple II new format - 256 byte sectors, 16 sectors per track, 35 tracks per side */
-            iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_APPLE_II;
-        }
-        else if (size == 256L * 13 * 35) /* 113.75KB */
-        {
+                /* AMSDOS 3" - 40 tracks */
+                iterator.Consoles[1] = ConsoleIds.RcConsoleAmstradPc;
+                break;
+            /* 140KB */
+            case 256L * 16 * 35:
+            /* 113.75KB */
             /* Apple II old format - 256 byte sectors, 13 sectors per track, 35 tracks per side */
-            iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_APPLE_II;
+            case 256L * 13 * 35:
+                /* Apple II new format - 256 byte sectors, 16 sectors per track, 35 tracks per side */
+                iterator.Consoles[0] = ConsoleIds.RcConsoleAppleIi;
+                break;
         }
 
         /* once a best guess has been identified, make sure the others are added as fallbacks */
 
         /* check MSX first, as Apple II isn't supported by RetroArch, and RAppleWin won't use the iterator */
-        AppendConsole(iterator, ConsoleIds.RC_CONSOLE_MSX);
-        AppendConsole(iterator, ConsoleIds.RC_CONSOLE_AMSTRAD_PC);
-        AppendConsole(iterator, ConsoleIds.RC_CONSOLE_ZX_SPECTRUM);
-        AppendConsole(iterator, ConsoleIds.RC_CONSOLE_APPLE_II);
+        AppendConsole(iterator, ConsoleIds.RcConsoleMsx);
+        AppendConsole(iterator, ConsoleIds.RcConsoleAmstradPc);
+        AppendConsole(iterator, ConsoleIds.RcConsoleZxSpectrum);
+        AppendConsole(iterator, ConsoleIds.RcConsoleAppleIi);
     }
 
     private static void InitializeIteratorIso(RcHashIterator iterator, int data)
     {
-        iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_PLAYSTATION_2;
-        iterator.Consoles[1] = ConsoleIds.RC_CONSOLE_PSP;
-        iterator.Consoles[2] = ConsoleIds.RC_CONSOLE_3DO;
-        iterator.Consoles[3] = ConsoleIds.RC_CONSOLE_SEGA_CD; /* ASSERT: handles both Sega CD and Saturn */
-        iterator.Consoles[4] = ConsoleIds.RC_CONSOLE_GAMECUBE;
-        iterator.Consoles[5] = ConsoleIds.RC_CONSOLE_WII;
+        iterator.Consoles[0] = ConsoleIds.RcConsolePlaystation2;
+        iterator.Consoles[1] = ConsoleIds.RcConsolePsp;
+        iterator.Consoles[2] = ConsoleIds.RcConsole3Do;
+        iterator.Consoles[3] = ConsoleIds.RcConsoleSegaCd; /* ASSERT: handles both Sega CD and Saturn */
+        iterator.Consoles[4] = ConsoleIds.RcConsoleGamecube;
+        iterator.Consoles[5] = ConsoleIds.RcConsoleWii;
     }
 
-    private static void InitializeIteratorM3u(RcHashIterator iterator, int data)
+    private static void InitializeIteratorM3U(RcHashIterator iterator, int data)
     {
         /* temporarily read the first disc path out of the playlist. returns an
          * allocated string or NULL, so a failed lookup leaves the path alone */
-        string? firstFilePath = HashEngine.GetFirstItemFromPlaylist(iterator);
+        var firstFilePath = HashEngine.GetFirstItemFromPlaylist(iterator);
         if (firstFilePath == null) /* did not find a disc */
             return;
 
@@ -145,26 +146,26 @@ public static class HashIterator
 
     private static void InitializeIteratorNib(RcHashIterator iterator, int data)
     {
-        iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_APPLE_II;
-        iterator.Consoles[1] = ConsoleIds.RC_CONSOLE_COMMODORE_64;
+        iterator.Consoles[0] = ConsoleIds.RcConsoleAppleIi;
+        iterator.Consoles[1] = ConsoleIds.RcConsoleCommodore64;
     }
 
     private static void InitializeIteratorRom(RcHashIterator iterator, int data)
     {
         /* rom is associated with MSX, Thomson TO-8, and Fairchild Channel F.
          * Since they all use the same hashing algorithm, only specify one of them */
-        iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_MSX;
+        iterator.Consoles[0] = ConsoleIds.RcConsoleMsx;
     }
 
     private static void InitializeIteratorTap(RcHashIterator iterator, int data)
     {
         /* also Oric and ZX Spectrum, but all are full file hashes */
-        iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_COMMODORE_64;
+        iterator.Consoles[0] = ConsoleIds.RcConsoleCommodore64;
     }
 
     private static void AppendConsole(RcHashIterator iterator, uint consoleId)
     {
-        int i = 0;
+        var i = 0;
         while (iterator.Consoles[i] != 0)
         {
             if (iterator.Consoles[i] == consoleId)
@@ -176,97 +177,97 @@ public static class HashIterator
         iterator.Consoles[i] = consoleId;
     }
 
-    private static readonly ExtHandlerEntry[] ExtHandlers = new[]
-    {
-        new ExtHandlerEntry("2d", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SHARPX1),
-        new ExtHandlerEntry("3ds", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_3DS),
-        new ExtHandlerEntry("3dsx", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_3DS),
-        new ExtHandlerEntry("7z", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ARCADE),
-        new ExtHandlerEntry("83g", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_TI83), /* http://tibasicdev.wikidot.com/file-extensions */
-        new ExtHandlerEntry("83p", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_TI83),
-        new ExtHandlerEntry("a26", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ATARI_2600),
-        new ExtHandlerEntry("a78", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ATARI_7800),
-        new ExtHandlerEntry("app", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_3DS),
-        new ExtHandlerEntry("arduboy", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ARDUBOY),
-        new ExtHandlerEntry("axf", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_3DS),
-        new ExtHandlerEntry("bin", InitializeIteratorBin, 0),
-        new ExtHandlerEntry("bs", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SUPER_NINTENDO),
-        new ExtHandlerEntry("cart", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SUPER_CASSETTEVISION),
-        new ExtHandlerEntry("cas", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_MSX),
-        new ExtHandlerEntry("cci", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_3DS),
-        new ExtHandlerEntry("chd", InitializeIteratorChd, 0),
-        new ExtHandlerEntry("chf", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_FAIRCHILD_CHANNEL_F),
-        new ExtHandlerEntry("cia", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_3DS),
-        new ExtHandlerEntry("col", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_COLECOVISION),
-        new ExtHandlerEntry("csw", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ZX_SPECTRUM),
-        new ExtHandlerEntry("cue", InitializeIteratorCue, 0),
-        new ExtHandlerEntry("cxi", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_3DS),
-        new ExtHandlerEntry("d64", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_COMMODORE_64),
-        new ExtHandlerEntry("d88", InitializeIteratorD88, 0),
-        new ExtHandlerEntry("dosz", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_MS_DOS),
-        new ExtHandlerEntry("dsk", InitializeIteratorDsk, 0),
-        new ExtHandlerEntry("elf", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_3DS),
-        new ExtHandlerEntry("fd", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_THOMSONTO8),
-        new ExtHandlerEntry("fds", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO),
-        new ExtHandlerEntry("fig", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SUPER_NINTENDO),
-        new ExtHandlerEntry("gb", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_GAMEBOY),
-        new ExtHandlerEntry("gba", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_GAMEBOY_ADVANCE),
-        new ExtHandlerEntry("gbc", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_GAMEBOY_COLOR),
-        new ExtHandlerEntry("gdi", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_DREAMCAST),
-        new ExtHandlerEntry("gg", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_GAME_GEAR),
-        new ExtHandlerEntry("hex", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ARDUBOY),
-        new ExtHandlerEntry("iso", InitializeIteratorIso, 0),
-        new ExtHandlerEntry("jag", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ATARI_JAGUAR),
-        new ExtHandlerEntry("k7", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_THOMSONTO8), /* tape */
-        new ExtHandlerEntry("lnx", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ATARI_LYNX),
-        new ExtHandlerEntry("m3u", InitializeIteratorM3u, 0),
-        new ExtHandlerEntry("m5", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_THOMSONTO8), /* cartridge */
-        new ExtHandlerEntry("m7", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_THOMSONTO8), /* cartridge */
-        new ExtHandlerEntry("md", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_MEGA_DRIVE),
-        new ExtHandlerEntry("min", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_POKEMON_MINI),
-        new ExtHandlerEntry("mx1", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_MSX),
-        new ExtHandlerEntry("mx2", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_MSX),
-        new ExtHandlerEntry("n64", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_64),
-        new ExtHandlerEntry("ndd", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_64),
-        new ExtHandlerEntry("nds", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_DS), /* handles both DS and DSi */
-        new ExtHandlerEntry("neo", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ARCADE), /* Geolith Neo Geo cart format */
-        new ExtHandlerEntry("nes", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO),
-        new ExtHandlerEntry("ngc", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NEOGEO_POCKET),
-        new ExtHandlerEntry("nib", InitializeIteratorNib, 0),
-        new ExtHandlerEntry("pbp", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_PSP),
-        new ExtHandlerEntry("pce", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_PC_ENGINE),
-        new ExtHandlerEntry("pgm", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ELEKTOR_TV_GAMES_COMPUTER),
-        new ExtHandlerEntry("pzx", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ZX_SPECTRUM),
-        new ExtHandlerEntry("ri", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_MSX),
-        new ExtHandlerEntry("rom", InitializeIteratorRom, 0),
-        new ExtHandlerEntry("sap", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_THOMSONTO8), /* disk */
-        new ExtHandlerEntry("scl", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ZX_SPECTRUM),
-        new ExtHandlerEntry("sfc", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SUPER_NINTENDO),
-        new ExtHandlerEntry("sg", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SG1000),
-        new ExtHandlerEntry("sgx", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_PC_ENGINE),
-        new ExtHandlerEntry("smc", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SUPER_NINTENDO),
-        new ExtHandlerEntry("sms", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_MASTER_SYSTEM),
-        new ExtHandlerEntry("sv", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SUPERVISION),
-        new ExtHandlerEntry("swc", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_SUPER_NINTENDO),
-        new ExtHandlerEntry("tap", InitializeIteratorTap, 0),
-        new ExtHandlerEntry("tic", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_TIC80),
-        new ExtHandlerEntry("trd", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ZX_SPECTRUM),
-        new ExtHandlerEntry("tvc", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ELEKTOR_TV_GAMES_COMPUTER),
-        new ExtHandlerEntry("tzx", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ZX_SPECTRUM),
-        new ExtHandlerEntry("uze", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_UZEBOX),
-        new ExtHandlerEntry("v64", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_64),
-        new ExtHandlerEntry("vb", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_VIRTUAL_BOY),
-        new ExtHandlerEntry("wad", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_WII),
-        new ExtHandlerEntry("wasm", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_WASM4),
-        new ExtHandlerEntry("woz", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_APPLE_II),
-        new ExtHandlerEntry("wsc", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_WONDERSWAN),
-        new ExtHandlerEntry("z64", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_NINTENDO_64),
-        new ExtHandlerEntry("zip", InitializeIteratorSingle, (int)ConsoleIds.RC_CONSOLE_ARCADE),
-    };
+    private static readonly ExtHandlerEntry[] ExtHandlers =
+    [
+        new("2d", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleSharpx1),
+        new("3ds", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo3Ds),
+        new("3dsx", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo3Ds),
+        new("7z", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleArcade),
+        new("83g", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleTi83), /* http://tibasicdev.wikidot.com/file-extensions */
+        new("83p", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleTi83),
+        new("a26", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleAtari2600),
+        new("a78", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleAtari7800),
+        new("app", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo3Ds),
+        new("arduboy", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleArduboy),
+        new("axf", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo3Ds),
+        new("bin", InitializeIteratorBin, 0),
+        new("bs", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleSuperNintendo),
+        new("cart", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleSuperCassettevision),
+        new("cas", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleMsx),
+        new("cci", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo3Ds),
+        new("chd", InitializeIteratorChd, 0),
+        new("chf", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleFairchildChannelF),
+        new("cia", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo3Ds),
+        new("col", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleColecovision),
+        new("csw", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleZxSpectrum),
+        new("cue", InitializeIteratorCue, 0),
+        new("cxi", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo3Ds),
+        new("d64", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleCommodore64),
+        new("d88", InitializeIteratorD88, 0),
+        new("dosz", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleMsDos),
+        new("dsk", InitializeIteratorDsk, 0),
+        new("elf", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo3Ds),
+        new("fd", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleThomsonto8),
+        new("fds", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo),
+        new("fig", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleSuperNintendo),
+        new("gb", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleGameboy),
+        new("gba", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleGameboyAdvance),
+        new("gbc", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleGameboyColor),
+        new("gdi", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleDreamcast),
+        new("gg", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleGameGear),
+        new("hex", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleArduboy),
+        new("iso", InitializeIteratorIso, 0),
+        new("jag", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleAtariJaguar),
+        new("k7", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleThomsonto8), /* tape */
+        new("lnx", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleAtariLynx),
+        new("m3u", InitializeIteratorM3U, 0),
+        new("m5", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleThomsonto8), /* cartridge */
+        new("m7", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleThomsonto8), /* cartridge */
+        new("md", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleMegaDrive),
+        new("min", InitializeIteratorSingle, (int)ConsoleIds.RcConsolePokemonMini),
+        new("mx1", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleMsx),
+        new("mx2", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleMsx),
+        new("n64", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo64),
+        new("ndd", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo64),
+        new("nds", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendoDs), /* handles both DS and DSi */
+        new("neo", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleArcade), /* Geolith Neo Geo cart format */
+        new("nes", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo),
+        new("ngc", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNeogeoPocket),
+        new("nib", InitializeIteratorNib, 0),
+        new("pbp", InitializeIteratorSingle, (int)ConsoleIds.RcConsolePsp),
+        new("pce", InitializeIteratorSingle, (int)ConsoleIds.RcConsolePcEngine),
+        new("pgm", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleElektorTvGamesComputer),
+        new("pzx", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleZxSpectrum),
+        new("ri", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleMsx),
+        new("rom", InitializeIteratorRom, 0),
+        new("sap", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleThomsonto8), /* disk */
+        new("scl", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleZxSpectrum),
+        new("sfc", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleSuperNintendo),
+        new("sg", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleSg1000),
+        new("sgx", InitializeIteratorSingle, (int)ConsoleIds.RcConsolePcEngine),
+        new("smc", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleSuperNintendo),
+        new("sms", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleMasterSystem),
+        new("sv", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleSupervision),
+        new("swc", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleSuperNintendo),
+        new("tap", InitializeIteratorTap, 0),
+        new("tic", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleTic80),
+        new("trd", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleZxSpectrum),
+        new("tvc", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleElektorTvGamesComputer),
+        new("tzx", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleZxSpectrum),
+        new("uze", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleUzebox),
+        new("v64", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo64),
+        new("vb", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleVirtualBoy),
+        new("wad", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleWii),
+        new("wasm", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleWasm4),
+        new("woz", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleAppleIi),
+        new("wsc", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleWonderswan),
+        new("z64", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleNintendo64),
+        new("zip", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleArcade)
+    ];
 
-/// <summary>Returns the extension-to-console handler table.</summary>
-/// <param name="numHandlers">the number of handlers in the table</param>
-/// <returns>the result</returns>
+    /// <summary>Returns the extension-to-console handler table.</summary>
+    /// <param name="numHandlers">the number of handlers in the table</param>
+    /// <returns>the result</returns>
     public static ExtHandlerEntry[] GetIteratorExtHandlers(out int numHandlers)
     {
         numHandlers = ExtHandlers.Length;
@@ -280,30 +281,37 @@ public static class HashIterator
         int lo = 0, hi = ExtHandlers.Length - 1;
         while (lo <= hi)
         {
-            int mid = (lo + hi) / 2;
-            int cmp = string.CompareOrdinal(ExtHandlers[mid].Ext, key);
-            if (cmp == 0)
-                return ExtHandlers[mid];
-            if (cmp < 0)
-                lo = mid + 1;
-            else
-                hi = mid - 1;
+            var mid = (lo + hi) / 2;
+            var cmp = string.CompareOrdinal(ExtHandlers[mid].Ext, key);
+            switch (cmp)
+            {
+                case 0:
+                    return ExtHandlers[mid];
+                case < 0:
+                    lo = mid + 1;
+                    break;
+                default:
+                    hi = mid - 1;
+                    break;
+            }
         }
 
         return null;
     }
 
-/// <summary>initialize iterator from path.</summary>
-/// <param name="iterator">the hash iterator</param>
-/// <param name="path">the file path</param>
+    /// <summary>initialize iterator from path.</summary>
+    /// <param name="iterator">the hash iterator</param>
+    /// <param name="path">the file path</param>
     public static void InitializeIteratorFromPath(RcHashIterator iterator, string path)
     {
-        string ext = HashEngine.PathGetExtension(path);
+        var ext = HashEngine.PathGetExtension(path);
 
         /* lowercase the extension for the search */
-        string key = ext.ToLowerInvariant();
+        var key = ext.ToLowerInvariant();
         if (key.Length > 7)
+        {
             key = key.Substring(0, 7);
+        }
 
         ExtHandlerEntry? handler = FindHandler(key);
         if (handler != null)
@@ -312,9 +320,11 @@ public static class HashIterator
 
             if (iterator.Callbacks.VerboseMessage != null)
             {
-                int count = 0;
+                var count = 0;
                 while (iterator.Consoles[count] != 0)
+                {
                     ++count;
+                }
 
                 HashEngine.IteratorVerboseFormatted(iterator, "Found {0} potential consoles for {1} file extension", count, ext);
             }
@@ -325,15 +335,17 @@ public static class HashIterator
 
             /* if we didn't match the extension, default to something that does a whole file hash */
             if (iterator.Consoles[0] == 0)
-                iterator.Consoles[0] = ConsoleIds.RC_CONSOLE_GAMEBOY;
+            {
+                iterator.Consoles[0] = ConsoleIds.RcConsoleGameboy;
+            }
         }
     }
 
-/// <summary>Initializes an iterator for a path or buffer.</summary>
-/// <param name="iterator">the hash iterator</param>
-/// <param name="path">the file path</param>
-/// <param name="buffer">the buffer holding the data</param>
-/// <param name="bufferSize">the size of the buffer</param>
+    /// <summary>Initializes an iterator for a path or buffer.</summary>
+    /// <param name="iterator">the hash iterator</param>
+    /// <param name="path">the file path</param>
+    /// <param name="buffer">the buffer holding the data</param>
+    /// <param name="bufferSize">the size of the buffer</param>
     public static void InitializeIterator(RcHashIterator iterator, string? path, byte[]? buffer, int bufferSize)
     {
         HashEngine.ResetIterator(iterator);
@@ -341,24 +353,26 @@ public static class HashIterator
         iterator.BufferSize = bufferSize;
 
         if (path != null)
+        {
             iterator.Path = path;
+        }
     }
 
-/// <summary>Releases the iterator resources.</summary>
-/// <param name="iterator">the hash iterator</param>
+    /// <summary>Releases the iterator resources.</summary>
+    /// <param name="iterator">the hash iterator</param>
     public static void DestroyIterator(RcHashIterator iterator)
     {
         iterator.Path = null;
         iterator.Buffer = null;
     }
 
-/// <summary>Walks the handler table and returns the first console that accepts the file.</summary>
-/// <param name="hash">the generated 32-char hash</param>
-/// <param name="iterator">the hash iterator</param>
-/// <returns>nonzero when a console matched; zero when none did</returns>
+    /// <summary>Walks the handler table and returns the first console that accepts the file.</summary>
+    /// <param name="hash">the generated 32-char hash</param>
+    /// <param name="iterator">the hash iterator</param>
+    /// <returns>nonzero when a console matched; zero when none did</returns>
     public static int Iterate(out string hash, RcHashIterator iterator)
     {
-        int result = 0;
+        var result = 0;
         hash = "";
 
         if (iterator.Index == -1)
@@ -372,7 +386,7 @@ public static class HashIterator
             if (iterator.Index >= iterator.Consoles.Length)
                 break;
 
-            int nextConsole = (int)iterator.Consoles[iterator.Index];
+            var nextConsole = (int)iterator.Consoles[iterator.Index];
             if (nextConsole == 0)
             {
                 hash = "";
@@ -389,11 +403,11 @@ public static class HashIterator
         return result;
     }
 
-/// <summary>generate.</summary>
-/// <param name="hash">the generated 32-char hash</param>
-/// <param name="consoleId">the console identifier</param>
-/// <param name="iterator">the hash iterator</param>
-/// <returns>the result</returns>
+    /// <summary>generate.</summary>
+    /// <param name="hash">the generated 32-char hash</param>
+    /// <param name="consoleId">the console identifier</param>
+    /// <param name="iterator">the hash iterator</param>
+    /// <returns>the result</returns>
     public static int Generate(out string hash, uint consoleId, RcHashIterator iterator)
     {
         if (iterator.Buffer != null)

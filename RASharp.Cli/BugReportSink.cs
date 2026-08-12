@@ -20,7 +20,7 @@
 //    sink off (the parity harness sets it so test runs never report).
 //  * A small cooldown keeps us under the API's 10 req/min rate limit.
 
-using System.Net.Http;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -36,9 +36,9 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
     private const int MaxMessageLength = 4000;
     private const int MaxStackTraceLength = 8000;
 
-    private static readonly HttpClient s_http = new() { Timeout = TimeSpan.FromSeconds(10) };
-    private static readonly Lock s_rateLock = new();
-    private static DateTime s_lastSentUtc = DateTime.MinValue;
+    private static readonly HttpClient SHttp = new() { Timeout = TimeSpan.FromSeconds(10) };
+    private static readonly Lock SRateLock = new();
+    private static DateTime _sLastSentUtc = DateTime.MinValue;
 
     private readonly string _url;
     private readonly string _apiKey;
@@ -51,31 +51,31 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
         _apiKey = apiKey;
     }
 
-/// <summary>Forwards a log event to the bug report API (Warning+ events).</summary>
-/// <param name="logEvent">the log event</param>
+    /// <summary>Forwards a log event to the bug report API (Warning+ events).</summary>
+    /// <param name="logEvent">the log event</param>
     public void Emit(LogEvent logEvent)
     {
         try
         {
-            lock (s_rateLock)
+            lock (SRateLock)
             {
-                if ((DateTime.UtcNow - s_lastSentUtc).TotalSeconds < 5)
+                if ((DateTime.UtcNow - _sLastSentUtc).TotalSeconds < 5)
                     return; /* rate-limit guard (API allows 10/min per IP) */
 
-                s_lastSentUtc = DateTime.UtcNow;
+                _sLastSentUtc = DateTime.UtcNow;
             }
 
-            string message = BuildReport(logEvent);
+            var message = BuildReport(logEvent);
             var payload = new Dictionary<string, string?>(StringComparer.Ordinal)
             {
                 ["message"] = message,
                 ["applicationName"] = "RASharp",
                 ["version"] = Program.Version,
                 ["environment"] = "cli",
-                ["stackTrace"] = logEvent.Exception is null ? null : Truncate(logEvent.Exception.ToString(), MaxStackTraceLength),
+                ["stackTrace"] = logEvent.Exception is null ? null : Truncate(logEvent.Exception.ToString(), MaxStackTraceLength)
             };
 
-            string json = JsonSerializer.Serialize(payload);
+            var json = JsonSerializer.Serialize(payload);
             lock (_pendingLock)
             {
                 _pending.Add(Task.Run(() => PostAsync(json)));
@@ -95,7 +95,7 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
             request.Headers.Add("X-API-KEY", _apiKey);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            using HttpResponseMessage response = await s_http.SendAsync(request).ConfigureAwait(false);
+            using HttpResponseMessage response = await SHttp.SendAsync(request).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
         }
         catch
@@ -104,7 +104,7 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
         }
     }
 
-/// <summary>Releases the mounted filesystem.</summary>
+    /// <summary>Releases the mounted filesystem.</summary>
     public void Dispose()
     {
         Task[] pending;
@@ -132,14 +132,14 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
         var sb = new StringBuilder();
 
         sb.AppendLine("=== Environment Details ===");
-        sb.Append("Date: ").AppendLine(DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz", System.Globalization.CultureInfo.InvariantCulture));
+        sb.Append("Date: ").AppendLine(DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz", CultureInfo.InvariantCulture));
         sb.Append("Application Name: ").AppendLine("RASharp");
         sb.Append("Application Version: ").AppendLine(Program.Version);
         sb.Append("OS Version: ").AppendLine(Environment.OSVersion.VersionString);
         sb.Append("Architecture: ").AppendLine(RuntimeInformation.OSArchitecture.ToString("G"));
         sb.Append("Bitness: ").AppendLine(Environment.Is64BitOperatingSystem ? "64" : "32");
         sb.Append("Windows Version: ").AppendLine(Environment.OSVersion.Version.ToString(4));
-        sb.Append("Processor Count: ").AppendLine(Environment.ProcessorCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        sb.Append("Processor Count: ").AppendLine(Environment.ProcessorCount.ToString(CultureInfo.InvariantCulture));
         sb.Append("Base Directory: ").AppendLine(AppContext.BaseDirectory);
         sb.Append("Temp Path: ").AppendLine(Path.GetTempPath());
 

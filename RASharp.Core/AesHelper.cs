@@ -15,12 +15,12 @@ public static class AesHelper
     public const int BlockLen = 16;
 
     /* AES_CBC_decrypt_buffer */
-/// <summary>AES_CBC_decrypt_buffer</summary>
-/// <param name="data">the data</param>
-/// <param name="offset">the byte offset</param>
-/// <param name="length">the length parameter</param>
-/// <param name="key">the console key or numeric id</param>
-/// <param name="iv">the iv parameter</param>
+    /// <summary>AES_CBC_decrypt_buffer</summary>
+    /// <param name="data">the data</param>
+    /// <param name="offset">the byte offset</param>
+    /// <param name="length">the length parameter</param>
+    /// <param name="key">the console key or numeric id</param>
+    /// <param name="iv">the iv parameter</param>
     public static void AesCbcDecrypt(byte[] data, int offset, int length, byte[] key, byte[] iv)
     {
         using var aes = Aes.Create();
@@ -35,12 +35,12 @@ public static class AesHelper
     }
 
     /* AES_CBC_encrypt_buffer (test-fixture helper; the engine only decrypts) */
-/// <summary>AES_CBC_encrypt_buffer (test-fixture helper; the engine only decrypts)</summary>
-/// <param name="data">the data</param>
-/// <param name="offset">the byte offset</param>
-/// <param name="length">the length parameter</param>
-/// <param name="key">the console key or numeric id</param>
-/// <param name="iv">the iv parameter</param>
+    /// <summary>AES_CBC_encrypt_buffer (test-fixture helper; the engine only decrypts)</summary>
+    /// <param name="data">the data</param>
+    /// <param name="offset">the byte offset</param>
+    /// <param name="length">the length parameter</param>
+    /// <param name="key">the console key or numeric id</param>
+    /// <param name="iv">the iv parameter</param>
     public static void AesCbcEncrypt(byte[] data, int offset, int length, byte[] key, byte[] iv)
     {
         using var aes = Aes.Create();
@@ -57,12 +57,12 @@ public static class AesHelper
     /* AES_CTR_xcrypt_buffer — XORs `length` bytes with the keystream derived
      * from `counter` (mutated: incremented after every full 16-byte block,
      * exactly like the C's Iv member) */
-/// <summary>AES_CTR_xcrypt_buffer — XORs `length` bytes with the keystream derived from `counter` (mutated: incremented after every full 16-byte block, exactly like the C's</summary>
-/// <param name="data">the data</param>
-/// <param name="offset">the byte offset</param>
-/// <param name="length">the length parameter</param>
-/// <param name="key">the console key or numeric id</param>
-/// <param name="counter">the counter parameter</param>
+    /// <summary>AES_CTR_xcrypt_buffer — XORs `length` bytes with the keystream derived from `counter` (mutated: incremented after every full 16-byte block, exactly like the C's</summary>
+    /// <param name="data">the data</param>
+    /// <param name="offset">the byte offset</param>
+    /// <param name="length">the length parameter</param>
+    /// <param name="key">the console key or numeric id</param>
+    /// <param name="counter">the counter parameter</param>
     public static void AesCtrXcrypt(byte[] data, int offset, int length, byte[] key, byte[] counter)
     {
         using var aes = Aes.Create();
@@ -76,14 +76,14 @@ public static class AesHelper
         /* encrypt the counter stream in 64 KiB chunks: each chunk holds
          * consecutive 128-bit big-endian counters */
         const int chunkCounters = 4096; /* 4096 * 16 = 64 KiB */
-        byte[] counterStream = new byte[chunkCounters * BlockLen];
+        var counterStream = new byte[chunkCounters * BlockLen];
 
-        int pos = 0;
+        var pos = 0;
         while (pos < length)
         {
             /* fill the chunk with consecutive counters */
-            int counters = Math.Min(chunkCounters, (length - pos + BlockLen - 1) / BlockLen);
-            for (int c = 0; c < counters; c++)
+            var counters = Math.Min(chunkCounters, (length - pos + BlockLen - 1) / BlockLen);
+            for (var c = 0; c < counters; c++)
             {
                 Array.Copy(counter, 0, counterStream, c * BlockLen, BlockLen);
                 IncrementCounter(counter);
@@ -91,9 +91,12 @@ public static class AesHelper
 
             encryptor.TransformBlock(counterStream, 0, counters * BlockLen, counterStream, 0);
 
-            int count = Math.Min(counters * BlockLen, length - pos);
-            for (int i = 0; i < count; i++)
+            var count = Math.Min(counters * BlockLen, length - pos);
+            for (var i = 0; i < count; i++)
+            {
                 data[offset + pos + i] ^= counterStream[i];
+            }
+
             pos += count;
         }
     }
@@ -101,7 +104,7 @@ public static class AesHelper
     /* full 128-bit big-endian increment (the C's byte-wise carry loop) */
     private static void IncrementCounter(byte[] counter)
     {
-        for (int i = BlockLen - 1; i >= 0; i--)
+        for (var i = BlockLen - 1; i >= 0; i--)
         {
             if (counter[i] == 255)
             {

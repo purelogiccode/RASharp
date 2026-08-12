@@ -11,14 +11,16 @@ public static class TestDataGenDisc
 {
     private static void CopyString(byte[] image, int offset, string text, int length)
     {
-        for (int i = 0; i < length && i < text.Length; ++i)
+        for (var i = 0; i < length && i < text.Length; ++i)
+        {
             image[offset + i] = (byte)text[i];
+        }
     }
 
     /* memcmp(&image[offset], text, length) — case sensitive */
     private static bool Matches(byte[] image, int offset, string text, int length)
     {
-        for (int i = 0; i < length; ++i)
+        for (var i = 0; i < length; ++i)
         {
             if (image[offset + i] != (byte)text[i])
                 return false;
@@ -28,18 +30,18 @@ public static class TestDataGenDisc
     }
 
     /* generate_gamecube_iso from data.c */
-/// <summary>generate_gamecube_iso from data.c</summary>
-/// <param name="mb">the mb parameter</param>
-/// <param name="imageSize">the image size parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate_gamecube_iso from data.c</summary>
+    /// <param name="mb">the mb parameter</param>
+    /// <param name="imageSize">the image size parameter</param>
+    /// <returns>the result</returns>
     public static byte[] GenerateGamecubeIso(int mb, out int imageSize)
     {
-        int sizeNeeded = mb * 1024 * 1024;
-        uint apploaderSizesAddr = 0x2440 + 0x14;
-        uint dolOffsetAddr = 0x420;
-        uint dolSizesAddr = 0x3000;
+        var sizeNeeded = mb * 1024 * 1024;
+        const uint apploaderSizesAddr = 0x2440 + 0x14;
+        const uint dolOffsetAddr = 0x420;
+        const uint dolSizesAddr = 0x3000;
 
-        byte[] image = new byte[sizeNeeded];
+        var image = new byte[sizeNeeded];
         TestDataGen.FillImage(image, 0, sizeNeeded);
 
         image[0x1c] = 0xC2;
@@ -47,17 +49,19 @@ public static class TestDataGenDisc
         image[0x1e] = 0x9F;
         image[0x1f] = 0x3D;
 
-        for (int ix = 0; ix < 8; ix++)
+        for (var ix = 0; ix < 8; ix++)
         {
             /* 0x000000ff for both */
             image[apploaderSizesAddr + ix] = (ix % 4 == 3) ? (byte)0xff : (byte)0;
         }
-        for (int ix = 0; ix < 4; ix++)
+
+        for (var ix = 0; ix < 4; ix++)
         {
             /* 0x00003000 */
             image[dolOffsetAddr + ix] = (ix % 4 == 2) ? (byte)0x30 : (byte)0;
         }
-        for (int ix = 0; ix < 18 * 4; ix++)
+
+        for (var ix = 0; ix < 18 * 4; ix++)
         {
             /* offsets start at 0x00003100 and increment */
             image[dolSizesAddr + ix] = (ix % 4 == 2) ? (byte)(0x30 + 1 + ix / 4) : (byte)0;
@@ -70,15 +74,15 @@ public static class TestDataGenDisc
     }
 
     /* generate_3do_bin from data.c */
-/// <summary>generate_3do_bin from data.c</summary>
-/// <param name="rootDirectorySectors">the root directory sectors parameter</param>
-/// <param name="binarySize">the binary size parameter</param>
-/// <param name="imageSize">the image size parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate_3do_bin from data.c</summary>
+    /// <param name="rootDirectorySectors">the root directory sectors parameter</param>
+    /// <param name="binarySize">the binary size parameter</param>
+    /// <param name="imageSize">the image size parameter</param>
+    /// <returns>the result</returns>
     public static byte[] Generate3DoBin(uint rootDirectorySectors, uint binarySize, out int imageSize)
     {
-        byte[] volumeHeader = new byte[]
-        {
+        byte[] volumeHeader =
+        [
             0x01, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x01, 0x00, /* header */
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* comment */
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -97,11 +101,11 @@ public static class TestDataGenDisc
             0x00, 0x00, 0x00, 0x01,
             0x00, 0x00, 0x00, 0x01,
             0x00, 0x00, 0x00, 0x01,
-            0x00, 0x00, 0x00, 0x01, /* block location of last copy of root directory */
-        };
+            0x00, 0x00, 0x00, 0x01 /* block location of last copy of root directory */
+        ];
 
-        byte[] directoryData = new byte[]
-        {
+        byte[] directoryData =
+        [
             0xFF, 0xFF, 0xFF, 0xFF, /* next block */
             0xFF, 0xFF, 0xFF, 0xFF, /* previous block */
             0x00, 0x00, 0x00, 0x00, /* flags */
@@ -132,12 +136,12 @@ public static class TestDataGenDisc
             (byte)'L', (byte)'a', (byte)'u', (byte)'n', (byte)'c', (byte)'h', (byte)'M', (byte)'e', 0, 0, 0, 0, 0, 0, 0, 0, /* filename */
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0x00, 0x00, 0x00, 0x00, /* extra copies */
-            0x00, 0x00, 0x00, 0x02, /* directory block address */
-        };
+            0x00, 0x00, 0x00, 0x02 /* directory block address */
+        ];
 
-        int sizeNeeded = (int)((rootDirectorySectors + 1 + ((binarySize + 2047) / 2048)) * 2048);
-        byte[] image = new byte[sizeNeeded];
-        int offset = 2048;
+        var sizeNeeded = (int)((rootDirectorySectors + 1 + ((binarySize + 2047) / 2048)) * 2048);
+        var image = new byte[sizeNeeded];
+        var offset = 2048;
         uint i;
 
         /* first sector - volume header */
@@ -188,34 +192,33 @@ public static class TestDataGenDisc
     }
 
     /* generate_dreamcast_bin from data.c */
-/// <summary>generate_dreamcast_bin from data.c</summary>
-/// <param name="trackFirstSector">the track first sector parameter</param>
-/// <param name="binarySize">the binary size parameter</param>
-/// <param name="imageSize">the image size parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate_dreamcast_bin from data.c</summary>
+    /// <param name="trackFirstSector">the track first sector parameter</param>
+    /// <param name="binarySize">the binary size parameter</param>
+    /// <param name="imageSize">the image size parameter</param>
+    /// <returns>the result</returns>
     public static byte[] GenerateDreamcastBin(uint trackFirstSector, uint binarySize, out int imageSize)
     {
         /* https://mc.pp.se/dc/ip0000.bin.html */
-        string volumeHeader =
-            "SEGA SEGAKATANA " +
-            "SEGA ENTERPRISES" +
-            "5966 GD-ROM1/1  " + /* device info */
-            " U      918FA01 " + /* region and peripherals */
-            "X-1234N   V1.001" + /* product number and version */
-            "20200910        " + /* release date */
-            "1ST_READ.BIN    " + /* boot file */
-            "RETROACHIEVEMENT" + /* company name */
-            "UNIT TEST       " + /* product name */
-            "                " +
-            "                " +
-            "                " +
-            "                " +
-            "                " +
-            "                " +
-            "                ";
+        const string volumeHeader = "SEGA SEGAKATANA " +
+                                    "SEGA ENTERPRISES" +
+                                    "5966 GD-ROM1/1  " + /* device info */
+                                    " U      918FA01 " + /* region and peripherals */
+                                    "X-1234N   V1.001" + /* product number and version */
+                                    "20200910        " + /* release date */
+                                    "1ST_READ.BIN    " + /* boot file */
+                                    "RETROACHIEVEMENT" + /* company name */
+                                    "UNIT TEST       " + /* product name */
+                                    "                " +
+                                    "                " +
+                                    "                " +
+                                    "                " +
+                                    "                " +
+                                    "                " +
+                                    "                ";
 
-        byte[] directoryData = new byte[]
-        {
+        byte[] directoryData =
+        [
             0x30, /* length of directory record */
             0x00, /* extended attribute record length */
             0xD9, 0xAF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* first logical block of file */
@@ -224,21 +227,21 @@ public static class TestDataGenDisc
             0x00, 0x00, 0x00, /* flags, unit size, gap size */
             0x00, 0x00, 0x00, 0x00, /* sequence number */
             0x0E, /* length of file identifier */
-            (byte)'1', (byte)'S', (byte)'T', (byte)'_', (byte)'R', (byte)'E', (byte)'A', (byte)'D', (byte)'.', (byte)'B', (byte)'I', (byte)'N', (byte)';', (byte)'1', /* file identifier */
-        };
+            (byte)'1', (byte)'S', (byte)'T', (byte)'_', (byte)'R', (byte)'E', (byte)'A', (byte)'D', (byte)'.', (byte)'B', (byte)'I', (byte)'N', (byte)';', (byte)'1' /* file identifier */
+        ];
 
-        uint binarySectors = (binarySize + 2047) / 2048;
-        int sizeNeeded = (int)((binarySectors + 18) * 2048);
-        byte[] image = new byte[sizeNeeded];
+        var binarySectors = (binarySize + 2047) / 2048;
+        var sizeNeeded = (int)((binarySectors + 18) * 2048);
+        var image = new byte[sizeNeeded];
 
         /* volume header goes in sector 0 */
         CopyString(image, 0, volumeHeader, 256);
 
         /* directory information goes in sectors 16 and 17 */
         CopyString(image, 2048 * 16, "1CD001", 6);
-        image[2048 * 16 + 156 + 2] = (byte)(45017 & 0xFF);
-        image[2048 * 16 + 156 + 3] = (byte)((45017 >> 8) & 0xFF);
-        image[2048 * 16 + 156 + 4] = (byte)((45017 >> 16) & 0xFF);
+        image[2048 * 16 + 156 + 2] = 45017 & 0xFF;
+        image[2048 * 16 + 156 + 3] = (45017 >> 8) & 0xFF;
+        image[2048 * 16 + 156 + 4] = (45017 >> 16) & 0xFF;
         Array.Copy(directoryData, 0, image, 2048 * 17, directoryData.Length);
 
         trackFirstSector += 18;
@@ -258,33 +261,33 @@ public static class TestDataGenDisc
     }
 
     /* generate_pce_cd_bin from data.c */
-/// <summary>generate_pce_cd_bin from data.c</summary>
-/// <param name="binarySectors">the binary sectors parameter</param>
-/// <param name="imageSize">the image size parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate_pce_cd_bin from data.c</summary>
+    /// <param name="binarySectors">the binary sectors parameter</param>
+    /// <param name="imageSize">the image size parameter</param>
+    /// <returns>the result</returns>
     public static byte[] GeneratePceCdBin(uint binarySectors, out int imageSize)
     {
-        byte[] volumeHeader = new byte[]
-        {
-            0x00, 0x00, 0x02,       /* first sector of boot code */
-            0x14,                   /* number of sectors for boot code */
-            0x00, 0x40,             /* program load address */
-            0x00, 0x40,             /* program execute address  */
-            0, 1, 2, 3, 4,          /* IPLMPR */
-            0,                      /* open mode */
-            0, 0, 0, 0, 0, 0,       /* GRPBLK and addr */
-            0, 0, 0, 0, 0,          /* ADPBLK and rate */
-            0, 0, 0, 0, 0, 0, 0,    /* reserved */
+        byte[] volumeHeader =
+        [
+            0x00, 0x00, 0x02, /* first sector of boot code */
+            0x14, /* number of sectors for boot code */
+            0x00, 0x40, /* program load address */
+            0x00, 0x40, /* program execute address  */
+            0, 1, 2, 3, 4, /* IPLMPR */
+            0, /* open mode */
+            0, 0, 0, 0, 0, 0, /* GRPBLK and addr */
+            0, 0, 0, 0, 0, /* ADPBLK and rate */
+            0, 0, 0, 0, 0, 0, 0, /* reserved */
             (byte)'P', (byte)'C', (byte)' ', (byte)'E', (byte)'n', (byte)'g', (byte)'i', (byte)'n', (byte)'e', (byte)' ', (byte)'C', (byte)'D', (byte)'-', (byte)'R', (byte)'O', (byte)'M',
             (byte)' ', (byte)'S', (byte)'Y', (byte)'S', (byte)'T', (byte)'E', (byte)'M', 0, (byte)'C', (byte)'o', (byte)'p', (byte)'y', (byte)'r', (byte)'i', (byte)'g', (byte)'h',
             (byte)'t', (byte)' ', (byte)'H', (byte)'U', (byte)'D', (byte)'S', (byte)'O', (byte)'N', (byte)' ', (byte)'S', (byte)'O', (byte)'F', (byte)'T', (byte)' ', (byte)'/', (byte)' ',
             (byte)'N', (byte)'E', (byte)'C', (byte)' ', (byte)'H', (byte)'o', (byte)'m', (byte)'e', (byte)' ', (byte)'E', (byte)'l', (byte)'e', (byte)'c', (byte)'t', (byte)'r', (byte)'o',
             (byte)'n', (byte)'i', (byte)'c', (byte)'s', (byte)',', (byte)'L', (byte)'t', (byte)'d', (byte)'.', 0, (byte)'G', (byte)'A', (byte)'M', (byte)'E', (byte)'N', (byte)'A',
             (byte)'M', (byte)'E', (byte)' ', (byte)' ', (byte)' ', (byte)' ', (byte)' ', (byte)' ', (byte)' ', (byte)' ', (byte)' ', (byte)' ', (byte)' ', (byte)' ', (byte)' ', (byte)' '
-        };
+        ];
 
-        int sizeNeeded = (int)((binarySectors + 2) * 2048);
-        byte[] image = new byte[sizeNeeded];
+        var sizeNeeded = (int)((binarySectors + 2) * 2048);
+        var image = new byte[sizeNeeded];
 
         /* volume header goes in second sector */
         Array.Copy(volumeHeader, 0, image, 2048, volumeHeader.Length);
@@ -298,33 +301,33 @@ public static class TestDataGenDisc
     }
 
     /* generate_pcfx_bin from data.c */
-/// <summary>generate_pcfx_bin from data.c</summary>
-/// <param name="binarySectors">the binary sectors parameter</param>
-/// <param name="imageSize">the image size parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate_pcfx_bin from data.c</summary>
+    /// <param name="binarySectors">the binary sectors parameter</param>
+    /// <param name="imageSize">the image size parameter</param>
+    /// <returns>the result</returns>
     public static byte[] GeneratePcfxBin(uint binarySectors, out int imageSize)
     {
-        byte[] volumeHeader = new byte[]
-        {
+        byte[] volumeHeader =
+        [
             (byte)'G', (byte)'A', (byte)'M', (byte)'E', (byte)'N', (byte)'A', (byte)'M', (byte)'E', 0, 0, 0, 0, 0, 0, 0, 0, /* title (32-bytes) */
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0x02, 0x00, 0x00, 0x00, /* first sector of boot code */
             0x14, 0x00, 0x00, 0x00, /* number of sectors for boot code */
             0x00, 0x80, 0x00, 0x00, /* program load address */
             0x00, 0x80, 0x00, 0x00, /* program execute address  */
-            (byte)'N', (byte)'/', (byte)'A', 0,    /* maker id */
+            (byte)'N', (byte)'/', (byte)'A', 0, /* maker id */
             (byte)'r', (byte)'c', (byte)'h', (byte)'e', (byte)'e', (byte)'v', (byte)'o', (byte)'s', (byte)'t', (byte)'e', (byte)'s', (byte)'t', 0, 0, 0, 0, /* maker name (60-bytes) */
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0x00, 0x00, 0x00, 0x00, /* volume number */
-            0x00, 0x01,             /* version */
-            0x01, 0x00,             /* country */
-            (byte)'2', (byte)'0', (byte)'2', (byte)'0', (byte)'X', (byte)'X', (byte)'X', (byte)'X', /* date */
-        };
+            0x00, 0x01, /* version */
+            0x01, 0x00, /* country */
+            (byte)'2', (byte)'0', (byte)'2', (byte)'0', (byte)'X', (byte)'X', (byte)'X', (byte)'X' /* date */
+        ];
 
-        int sizeNeeded = (int)((binarySectors + 2) * 2048);
-        byte[] image = new byte[sizeNeeded];
+        var sizeNeeded = (int)((binarySectors + 2) * 2048);
+        var image = new byte[sizeNeeded];
 
         /* volume header goes in second sector */
         CopyString(image, 0, "PC-FX:Hu_CD-ROM", 15);
@@ -339,19 +342,19 @@ public static class TestDataGenDisc
     }
 
     /* generate_iso9660_bin from data.c */
-/// <summary>generate_iso9660_bin from data.c</summary>
-/// <param name="numSectors">the num sectors parameter</param>
-/// <param name="volumeLabel">the volume label parameter</param>
-/// <param name="imageSize">the image size parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate_iso9660_bin from data.c</summary>
+    /// <param name="numSectors">the num sectors parameter</param>
+    /// <param name="volumeLabel">the volume label parameter</param>
+    /// <param name="imageSize">the image size parameter</param>
+    /// <returns>the result</returns>
     public static byte[] GenerateIso9660Bin(uint numSectors, string volumeLabel, out int imageSize)
     {
-        byte[] identifier = { 0x01, (byte)'C', (byte)'D', (byte)'0', (byte)'0', (byte)'1', 0x01, 0x00 };
+        byte[] identifier = [0x01, (byte)'C', (byte)'D', (byte)'0', (byte)'0', (byte)'1', 0x01, 0x00];
 
         imageSize = (int)(numSectors * 2048);
-        byte[] image = new byte[imageSize];
+        var image = new byte[imageSize];
 
-        int volumeDescriptor = 16 * 2048;
+        const int volumeDescriptor = 16 * 2048;
 
         /* CD001 identifier */
         Array.Copy(identifier, 0, image, volumeDescriptor, identifier.Length);
@@ -366,8 +369,8 @@ public static class TestDataGenDisc
         image[volumeDescriptor + 83] = image[84] = (byte)((numSectors >> 24) & 0xFF);
 
         /* size of each sector */
-        image[volumeDescriptor + 128] = (byte)(2048 & 0xFF);
-        image[volumeDescriptor + 129] = (byte)((2048 >> 8) & 0xFF);
+        image[volumeDescriptor + 128] = 2048 & 0xFF;
+        image[volumeDescriptor + 129] = (2048 >> 8) & 0xFF;
 
         /* root directory record location */
         image[volumeDescriptor + 158] = 17;
@@ -379,35 +382,35 @@ public static class TestDataGenDisc
     }
 
     /* generate_iso9660_file from data.c — returns the contents start offset */
-/// <summary>generate_iso9660_file from data.c — returns the contents start offset</summary>
-/// <param name="image">the image parameter</param>
-/// <param name="filename">the filename parameter</param>
-/// <param name="contents">the contents parameter</param>
-/// <param name="contentsSize">the contents size parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate_iso9660_file from data.c — returns the contents start offset</summary>
+    /// <param name="image">the image parameter</param>
+    /// <param name="filename">the filename parameter</param>
+    /// <param name="contents">the contents parameter</param>
+    /// <param name="contentsSize">the contents size parameter</param>
+    /// <returns>the result</returns>
     public static int GenerateIso9660File(byte[] image, string filename, byte[]? contents, int contentsSize)
     {
         const int rootDirectoryRecordOffset = 17 * 2048;
-        int fileEntryStart = rootDirectoryRecordOffset;
-        int fileContentsStart;
+        var fileEntryStart = rootDirectoryRecordOffset;
         int filenameLen;
-        int nextFreeSector = image[rootDirectoryRecordOffset - 4] |
-            (image[rootDirectoryRecordOffset - 3] << 8) | (image[rootDirectoryRecordOffset - 2] << 16);
-        int separator;
+        var nextFreeSector = image[rootDirectoryRecordOffset - 4] |
+                             (image[rootDirectoryRecordOffset - 3] << 8) | (image[rootDirectoryRecordOffset - 2] << 16);
 
         /* we start at the root. ignore explicit root path */
         if (filename.Length > 0 && filename[0] == '\\')
+        {
             filename = filename.Substring(1);
+        }
 
         /* handle subdirectories */
         do
         {
-            separator = filename.IndexOf('\\');
+            var separator = filename.IndexOf('\\');
             if (separator < 0)
                 break;
 
             filenameLen = separator;
-            int found = 0;
+            var found = 0;
             while (image[fileEntryStart] != 0)
             {
                 if (image[fileEntryStart + 25] != 0 && /* is directory */
@@ -449,7 +452,9 @@ public static class TestDataGenDisc
 
         /* skip over any items already in the directory */
         while (image[fileEntryStart] != 0)
+        {
             fileEntryStart += image[fileEntryStart];
+        }
 
         /* create the new entry */
 
@@ -473,7 +478,7 @@ public static class TestDataGenDisc
         image[fileEntryStart + 34 + filenameLen] = (byte)'1';
 
         /* contents */
-        fileContentsStart = nextFreeSector * 2048;
+        var fileContentsStart = nextFreeSector * 2048;
 
         if (contents != null)
             Array.Copy(contents, 0, image, fileContentsStart, contentsSize);
@@ -491,16 +496,16 @@ public static class TestDataGenDisc
     }
 
     /* generate_jaguarcd_bin from data.c */
-/// <summary>generate_jaguarcd_bin from data.c</summary>
-/// <param name="headerOffset">the header offset parameter</param>
-/// <param name="binarySize">the binary size parameter</param>
-/// <param name="byteswapped">the byteswapped parameter</param>
-/// <param name="imageSize">the image size parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate_jaguarcd_bin from data.c</summary>
+    /// <param name="headerOffset">the header offset parameter</param>
+    /// <param name="binarySize">the binary size parameter</param>
+    /// <param name="byteswapped">the byteswapped parameter</param>
+    /// <param name="imageSize">the image size parameter</param>
+    /// <returns>the result</returns>
     public static byte[] GenerateJaguarcdBin(uint headerOffset, uint binarySize, int byteswapped, out int imageSize)
     {
-        int sizeNeeded = (int)((((binarySize + 64 + 32 + 8) + 2351) / 2352) * 2352);
-        byte[] image = new byte[sizeNeeded];
+        var sizeNeeded = (int)((((binarySize + 64 + 32 + 8) + 2351) / 2352) * 2352);
+        var image = new byte[sizeNeeded];
         uint i;
 
         /* header is 64 bytes of ATRI repeating followed by approved data message, load address, and binary size */
@@ -519,9 +524,7 @@ public static class TestDataGenDisc
         {
             for (i = 0; i < sizeNeeded; i += 2)
             {
-                byte tmp = image[i];
-                image[i] = image[i + 1];
-                image[i + 1] = tmp;
+                (image[i], image[i + 1]) = (image[i + 1], image[i]);
             }
         }
 
@@ -530,22 +533,22 @@ public static class TestDataGenDisc
     }
 
     /* generate_psx_bin from data.c */
-/// <summary>generate_psx_bin from data.c</summary>
-/// <param name="binaryName">the binary name parameter</param>
-/// <param name="binarySize">the binary size parameter</param>
-/// <param name="imageSize">the image size parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate_psx_bin from data.c</summary>
+    /// <param name="binaryName">the binary name parameter</param>
+    /// <param name="binarySize">the binary size parameter</param>
+    /// <param name="imageSize">the image size parameter</param>
+    /// <returns>the result</returns>
     public static byte[] GeneratePsxBin(string binaryName, uint binarySize, out int imageSize)
     {
-        uint sectorsNeeded = (((binarySize + 2047) / 2048) + 20);
-        string systemCnf = string.Format("BOOT=cdrom:\\{0};1\nTCB=4\nEVENT=10\nSTACK=801FFFF0\n", binaryName);
-        byte[] cnfBytes = Encoding.ASCII.GetBytes(systemCnf);
+        var sectorsNeeded = (((binarySize + 2047) / 2048) + 20);
+        var systemCnf = $"BOOT=cdrom:\\{binaryName};1\nTCB=4\nEVENT=10\nSTACK=801FFFF0\n";
+        var cnfBytes = Encoding.ASCII.GetBytes(systemCnf);
 
-        byte[] image = GenerateIso9660Bin(sectorsNeeded, "TEST", out imageSize);
+        var image = GenerateIso9660Bin(sectorsNeeded, "TEST", out imageSize);
         GenerateIso9660File(image, "SYSTEM.CNF", cnfBytes, cnfBytes.Length);
 
         /* binary data */
-        int exe = GenerateIso9660File(image, binaryName, null, (int)binarySize);
+        var exe = GenerateIso9660File(image, binaryName, null, (int)binarySize);
         CopyString(image, exe, "PS-X EXE", 8);
 
         binarySize -= 2048;
@@ -558,22 +561,22 @@ public static class TestDataGenDisc
     }
 
     /* generate_ps2_bin from data.c */
-/// <summary>generate_ps2_bin from data.c</summary>
-/// <param name="binaryName">the binary name parameter</param>
-/// <param name="binarySize">the binary size parameter</param>
-/// <param name="imageSize">the image size parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate_ps2_bin from data.c</summary>
+    /// <param name="binaryName">the binary name parameter</param>
+    /// <param name="binarySize">the binary size parameter</param>
+    /// <param name="imageSize">the image size parameter</param>
+    /// <returns>the result</returns>
     public static byte[] GeneratePs2Bin(string binaryName, uint binarySize, out int imageSize)
     {
-        uint sectorsNeeded = ((binarySize + 2047) / 2048) + 20;
-        string systemCnf = string.Format("BOOT2 = cdrom0:\\{0};1\nVER = 1.0\nVMODE = NTSC\n", binaryName);
-        byte[] cnfBytes = Encoding.ASCII.GetBytes(systemCnf);
+        var sectorsNeeded = ((binarySize + 2047) / 2048) + 20;
+        var systemCnf = $"BOOT2 = cdrom0:\\{binaryName};1\nVER = 1.0\nVMODE = NTSC\n";
+        var cnfBytes = Encoding.ASCII.GetBytes(systemCnf);
 
-        byte[] image = GenerateIso9660Bin(sectorsNeeded, "TEST", out imageSize);
+        var image = GenerateIso9660Bin(sectorsNeeded, "TEST", out imageSize);
         GenerateIso9660File(image, "SYSTEM.CNF", cnfBytes, cnfBytes.Length);
 
         /* binary data */
-        int exe = GenerateIso9660File(image, binaryName, null, (int)binarySize);
+        var exe = GenerateIso9660File(image, binaryName, null, (int)binarySize);
         image[exe + 0] = 0x7F;
         image[exe + 1] = (byte)'E';
         image[exe + 2] = (byte)'L';
@@ -583,30 +586,29 @@ public static class TestDataGenDisc
     }
 
     /* convert_to_2352 from data.c */
-/// <summary>convert_to_2352 from data.c</summary>
-/// <param name="input">the input parameter</param>
-/// <param name="size">the size</param>
-/// <param name="firstSector">the first sector parameter</param>
-/// <returns>the result</returns>
+    /// <summary>convert_to_2352 from data.c</summary>
+    /// <param name="input">the input parameter</param>
+    /// <param name="size">the size</param>
+    /// <param name="firstSector">the first sector parameter</param>
+    /// <returns>the result</returns>
     public static byte[] ConvertTo2352(byte[] input, ref int size, uint firstSector)
     {
-        uint numSectors = (uint)((size + 2047) / 2048);
-        int outputSize = (int)(numSectors * 2352);
+        var numSectors = (uint)((size + 2047) / 2048);
+        var outputSize = (int)(numSectors * 2352);
         byte[] syncPattern =
-        {
+        [
             0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00
-        };
-        byte[] output = new byte[outputSize];
-        int inputPtr = 0;
-        int ptr = 0;
-        byte minutes, seconds, frames;
+        ];
+        var output = new byte[outputSize];
+        var inputPtr = 0;
+        var ptr = 0;
         uint i;
 
         firstSector += 150;
-        frames = (byte)(firstSector % 75);
+        var frames = (byte)(firstSector % 75);
         firstSector /= 75;
-        seconds = (byte)(firstSector % 60);
-        minutes = (byte)(firstSector / 60);
+        var seconds = (byte)(firstSector % 60);
+        var minutes = (byte)(firstSector / 60);
 
         for (i = 0; i < numSectors; i++)
         {
@@ -625,6 +627,7 @@ public static class TestDataGenDisc
                     ++minutes;
                 }
             }
+
             output[ptr++] = 2;
 
             /* 2048 bytes data */

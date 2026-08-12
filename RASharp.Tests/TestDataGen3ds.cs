@@ -4,12 +4,14 @@
 // RAHasher 1.8.3 (the oracle) can decrypt and hash them; the expected
 // hashes embedded in TestHash3Ds.cs come from that oracle.
 
+using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
 using RASharp.Core;
 
 namespace RASharp.Tests;
 
 /// <summary>TestDataGen3ds — synthetic 3DS fixtures for Phase 6. The encryption side mirrors the C's decryption choreography exactly (same keys, same continuous CTR counter</summary>
-internal static class TestDataGen3ds
+internal static class TestDataGen3Ds
 {
     /* chosen key material for the synthetic aes_keys.txt (all first bytes non-zero,
      * as the C's "have" flags use key[0]) */
@@ -25,8 +27,8 @@ internal static class TestDataGen3ds
     public const string Common4 = "9192939495969798999A9B9C9D9E9FA0";
     public const string Common5 = "A1A2A3A4A5A6A7A8A9AAABACADAEAFB0";
 
-/// <summary>aes keys txt.</summary>
-/// <returns>the generated value</returns>
+    /// <summary>aes keys txt.</summary>
+    /// <returns>the generated value</returns>
     public static string AesKeysTxt()
     {
         return string.Join("\n",
@@ -43,13 +45,13 @@ internal static class TestDataGen3ds
             "common5=" + Common5) + "\n";
     }
 
-/// <summary>generate seed db bin.</summary>
-/// <param name="programId">the program id parameter</param>
-/// <param name="seed">the seed parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate seed db bin.</summary>
+    /// <param name="programId">the program id parameter</param>
+    /// <param name="seed">the seed parameter</param>
+    /// <returns>the result</returns>
     public static byte[] GenerateSeedDbBin(byte[] programId, byte[] seed)
     {
-        byte[] result = new byte[4 + 12 + 8 + 16 + 8];
+        var result = new byte[4 + 12 + 8 + 16 + 8];
         result[0] = 1;
         Array.Copy(programId, 0, result, 4 + 12, 8);
         Array.Copy(seed, 0, result, 4 + 12 + 8, 16);
@@ -58,40 +60,48 @@ internal static class TestDataGen3ds
 
     private static byte[] HexToBytes(string hex)
     {
-        byte[] result = new byte[hex.Length / 2];
-        for (int i = 0; i < result.Length; i++)
+        var result = new byte[hex.Length / 2];
+        for (var i = 0; i < result.Length; i++)
+        {
             result[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+        }
+
         return result;
     }
 
     /* the key-normalization used by the hasher (mirror of Hash3DS.NormalizeKeys) */
-/// <summary>the key-normalization used by the hasher (mirror of Hash3DS.NormalizeKeys)</summary>
-/// <param name="keyX">the key x parameter</param>
-/// <param name="keyY">the key y parameter</param>
-/// <returns>the result</returns>
+    /// <summary>the key-normalization used by the hasher (mirror of Hash3DS.NormalizeKeys)</summary>
+    /// <param name="keyX">the key x parameter</param>
+    /// <param name="keyY">the key y parameter</param>
+    /// <returns>the result</returns>
     public static byte[] NormalizeKeys(byte[] keyX, byte[] keyY)
     {
-        byte[] keyN = (byte[])keyX.Clone();
+        var keyN = (byte[])keyX.Clone();
         Rol(keyN, 2);
-        for (int i = 0; i < 16; i++) keyN[i] ^= keyY[i];
-        byte[] gen = { 0x1F, 0xF9, 0xE9, 0xAA, 0xC5, 0xFE, 0x04, 0x08, 0x02, 0x45, 0x91, 0xDC, 0x5D, 0x52, 0x76, 0x8A };
+        for (var i = 0; i < 16; i++)
+        {
+            keyN[i] ^= keyY[i];
+        }
+
+        byte[] gen = [0x1F, 0xF9, 0xE9, 0xAA, 0xC5, 0xFE, 0x04, 0x08, 0x02, 0x45, 0x91, 0xDC, 0x5D, 0x52, 0x76, 0x8A];
         ushort carry = 0;
-        for (int i = 15; i >= 0; i--)
+        for (var i = 15; i >= 0; i--)
         {
             carry += (ushort)(keyN[i] + gen[i]);
             keyN[i] = (byte)(carry & 0xFF);
             carry >>= 8;
         }
+
         Rol(keyN, 87);
         return keyN;
     }
 
     private static void Rol(byte[] key, int amount)
     {
-        byte[] copy = (byte[])key.Clone();
-        int offset = amount / 8;
-        int shift = amount % 8;
-        for (int i = 0; i < 16; i++)
+        var copy = (byte[])key.Clone();
+        var offset = amount / 8;
+        var shift = amount % 8;
+        for (var i = 0; i < 16; i++)
         {
             key[i] = (byte)(copy[offset] << shift);
             offset = (offset + 1) % 16;
@@ -107,22 +117,22 @@ internal static class TestDataGen3ds
             0x01 => HexToBytes(Slot25KeyX),
             0x0A => HexToBytes(Slot18KeyX),
             0x0B => HexToBytes(Slot1BKeyX),
-            _ => throw new ArgumentException("Unsupported crypto method", nameof(cryptoMethod)),
+            _ => throw new ArgumentException("Unsupported crypto method", nameof(cryptoMethod))
         };
     }
 
-/// <summary>generate ncch.</summary>
-/// <param name="encrypted">the encrypted parameter</param>
-/// <param name="fixedKey">the fixed key parameter</param>
-/// <param name="seedCrypto">the seed crypto parameter</param>
-/// <param name="cryptoMethod">the crypto method parameter</param>
-/// <param name="version">the version parameter</param>
-/// <param name="programId">the program id parameter</param>
-/// <param name="seed">the seed parameter</param>
-/// <param name="primaryKey">the primary key parameter</param>
-/// <param name="secondaryKey">the secondary key parameter</param>
-/// <param name="byte">the byte parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate ncch.</summary>
+    /// <param name="encrypted">the encrypted parameter</param>
+    /// <param name="fixedKey">the fixed key parameter</param>
+    /// <param name="seedCrypto">the seed crypto parameter</param>
+    /// <param name="cryptoMethod">the crypto method parameter</param>
+    /// <param name="version">the version parameter</param>
+    /// <param name="programId">the program id parameter</param>
+    /// <param name="seed">the seed parameter</param>
+    /// <param name="primaryKey">the primary key parameter</param>
+    /// <param name="secondaryKey">the secondary key parameter</param>
+    /// <param name="codeSize">the code size parameter</param>
+    /// <returns>the result</returns>
     public static byte[] GenerateNcch(
         bool encrypted, bool fixedKey, bool seedCrypto, byte cryptoMethod, ushort version,
         byte[]? programId, byte[]? seed, out byte[] primaryKey, out byte[] secondaryKey,
@@ -131,16 +141,19 @@ internal static class TestDataGen3ds
         const int exefsOffset = 0x400; /* 2 media units after the header */
         const int iconSize = 0x400;
 
-        byte[] header = new byte[0x200];
-        byte[] partitionId = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+        var header = new byte[0x200];
+        byte[] partitionId = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07];
 
         /* the first 16 bytes of the header are the "primary key Y"; they must
          * be non-zero (the C's key-presence checks use the first byte) */
-        byte[] signature = { 0xDE, 0xAD, 0xBE, 0xEF, 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98 };
+        byte[] signature = [0xDE, 0xAD, 0xBE, 0xEF, 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98];
         Array.Copy(signature, 0, header, 0, 16);
 
         /* "NCCH" */
-        header[0x100] = (byte)'N'; header[0x101] = (byte)'C'; header[0x102] = (byte)'C'; header[0x103] = (byte)'H';
+        header[0x100] = (byte)'N';
+        header[0x101] = (byte)'C';
+        header[0x102] = (byte)'C';
+        header[0x103] = (byte)'H';
 
         /* partition id */
         Array.Copy(partitionId, 0, header, 0x108, 8);
@@ -156,27 +169,35 @@ internal static class TestDataGen3ds
         /* crypto flags */
         header[0x188 + 3] = cryptoMethod;
         if (encrypted && fixedKey)
+        {
             header[0x188 + 7] |= 0x01;
+        }
+
         if (seedCrypto)
+        {
             header[0x188 + 7] |= 0x20;
+        }
+
         if (!encrypted)
+        {
             header[0x188 + 7] |= 0x04;
+        }
 
         /* exefs offset / size in media units */
         /* the ExeFS spans whole media units: the section padding is included */
-        uint exefsSize = 0x200 + (uint)iconSize + (uint)((codeSize + 0x1FF) & ~0x1FF);
-        header[0x1A0] = (byte)(exefsOffset / 0x200);
+        var exefsSize = 0x200 + (uint)iconSize + (uint)((codeSize + 0x1FF) & ~0x1FF);
+        header[0x1A0] = exefsOffset / 0x200;
         header[0x1A4] = (byte)(exefsSize / 0x200);
 
         /* build the ExeFS (section table + icon + .code); section offsets are
          * relative to the end of the section table (the engine adds 0x200) */
-        byte[] exefs = new byte[exefsSize];
+        var exefs = new byte[exefsSize];
         WriteSection(exefs, 0, "icon", 0x000, iconSize);
-        WriteSection(exefs, 1, ".code", (uint)iconSize, (uint)codeSize);
+        WriteSection(exefs, 1, ".code", iconSize, (uint)codeSize);
         Fill(exefs, 0x200, iconSize, 0x11);
         Fill(exefs, 0x200 + iconSize, codeSize, 0x22);
 
-        byte[] ncch = new byte[exefsOffset + exefsSize];
+        var ncch = new byte[exefsOffset + exefsSize];
         Array.Copy(header, 0, ncch, 0, 0x200);
         Array.Copy(exefs, 0, ncch, exefsOffset, exefsSize);
 
@@ -192,7 +213,7 @@ internal static class TestDataGen3ds
             else
             {
                 /* primary key y is the first 16 bytes of the NCCH header */
-                byte[] primaryKeyY = new byte[16];
+                var primaryKeyY = new byte[16];
                 Array.Copy(header, 0, primaryKeyY, 0, 16);
 
                 primaryKey = NormalizeKeys(HexToBytes(Slot2CKeyX), primaryKeyY);
@@ -200,7 +221,7 @@ internal static class TestDataGen3ds
                 byte[] secondaryKeyY;
                 if (seedCrypto)
                 {
-                    byte[] digest = System.Security.Cryptography.SHA256.HashData(Concat(primaryKeyY, seed!));
+                    var digest = SHA256.HashData(Concat(primaryKeyY, seed!));
                     secondaryKeyY = new byte[16];
                     Array.Copy(digest, 0, secondaryKeyY, 0, 16);
                 }
@@ -213,21 +234,27 @@ internal static class TestDataGen3ds
             }
 
             /* the CTR counter (continuous across the whole ExeFS) */
-            byte[] counter = new byte[16];
-            if (version == 0 || version == 2)
+            var counter = new byte[16];
+            if (version is 0 or 2)
             {
-                for (int i = 0; i < 8; i++)
+                for (var i = 0; i < 8; i++)
+                {
                     counter[7 - i] = header[0x108 + i];
+                }
+
                 counter[8] = 2;
             }
             else
             {
-                for (int i = 0; i < 8; i++)
+                for (var i = 0; i < 8; i++)
+                {
                     counter[i] = header[0x108 + i];
-                counter[12] = (byte)((exefsOffset >> 24) & 0xFF);
-                counter[13] = (byte)((exefsOffset >> 16) & 0xFF);
-                counter[14] = (byte)((exefsOffset >> 8) & 0xFF);
-                counter[15] = (byte)(exefsOffset & 0xFF);
+                }
+
+                counter[12] = (exefsOffset >> 24) & 0xFF;
+                counter[13] = (exefsOffset >> 16) & 0xFF;
+                counter[14] = (exefsOffset >> 8) & 0xFF;
+                counter[15] = exefsOffset & 0xFF;
             }
 
             /* section table (first 0x200 bytes) and icon use the primary key */
@@ -241,17 +268,21 @@ internal static class TestDataGen3ds
         return ncch;
     }
 
-/// <summary>generate3 dsx.</summary>
-/// <returns>the result</returns>
+    /// <summary>generate3 dsx.</summary>
+    /// <returns>the result</returns>
+    [SuppressMessage("ReSharper", "ConvertToConstant.Local")]
     public static byte[] Generate3Dsx()
     {
-        const uint headerSize = 0x80;
-        const uint relocHeaderSize = 0x20;
-        const uint codeSize = 0x2000;
-        uint codeOffset = headerSize + relocHeaderSize * 3;
+        uint headerSize = 0x80;
+        uint relocHeaderSize = 0x20;
+        uint codeSize = 0x2000;
+        var codeOffset = headerSize + relocHeaderSize * 3;
 
-        byte[] file = new byte[codeOffset + codeSize];
-        file[0] = (byte)'3'; file[1] = (byte)'D'; file[2] = (byte)'S'; file[3] = (byte)'X';
+        var file = new byte[codeOffset + codeSize];
+        file[0] = (byte)'3';
+        file[1] = (byte)'D';
+        file[2] = (byte)'S';
+        file[3] = (byte)'X';
         file[4] = (byte)(headerSize & 0xFF);
         file[5] = (byte)(headerSize >> 8);
         file[6] = (byte)(relocHeaderSize & 0xFF);
@@ -264,29 +295,33 @@ internal static class TestDataGen3ds
         return file;
     }
 
-/// <summary>generate cia.</summary>
-/// <param name="ncch">the ncch parameter</param>
-/// <param name="titleId">the title id parameter</param>
-/// <param name="commonKeyIndex">the common key index parameter</param>
-/// <param name="titleKey">the title key parameter</param>
-/// <param name="encryptContent">the encrypt content parameter</param>
-/// <returns>the result</returns>
+    /// <summary>generate cia.</summary>
+    /// <param name="ncch">the ncch parameter</param>
+    /// <param name="titleId">the title id parameter</param>
+    /// <param name="commonKeyIndex">the common key index parameter</param>
+    /// <param name="titleKey">the title key parameter</param>
+    /// <param name="encryptContent">the encrypt content parameter</param>
+    /// <returns>the result</returns>
+    [SuppressMessage("ReSharper", "ConvertToConstant.Local")]
     public static byte[] GenerateCia(byte[] ncch, byte[] titleId, byte commonKeyIndex, byte[] titleKey, bool encryptContent)
     {
-        const uint certSize = 0;
-        const uint tikSize = 0x400;
-        const uint tmdSize = 4 + 0x23C + 0x9C4 + 0x30;
+        uint certSize = 0;
+        uint tikSize = 0x400;
+        uint tmdSize = 4 + 0x23C + 0x9C4 + 0x30;
         const uint ciaHeaderSize = 0x2020;
         const uint alignMask = 63;
 
-        uint certOffset = (ciaHeaderSize + alignMask) & ~alignMask;
-        uint tikOffset = (certOffset + certSize + alignMask) & ~alignMask;
-        uint tmdOffset = (tikOffset + tikSize + alignMask) & ~alignMask;
-        uint contentOffset = (tmdOffset + tmdSize + alignMask) & ~alignMask;
+        const uint certOffset = (ciaHeaderSize + alignMask) & ~alignMask;
+        var tikOffset = (certOffset + certSize + alignMask) & ~alignMask;
+        var tmdOffset = (tikOffset + tikSize + alignMask) & ~alignMask;
+        var contentOffset = (tmdOffset + tmdSize + alignMask) & ~alignMask;
 
-        byte[] cia = new byte[contentOffset + (uint)ncch.Length];
+        var cia = new byte[contentOffset + (uint)ncch.Length];
         /* header */
-        cia[0] = 0x20; cia[1] = 0x20; cia[2] = 0x00; cia[3] = 0x00;
+        cia[0] = 0x20;
+        cia[1] = 0x20;
+        cia[2] = 0x00;
+        cia[3] = 0x00;
         cia[8] = (byte)(certSize & 0xFF);
         cia[9] = (byte)((certSize >> 8) & 0xFF);
         cia[10] = (byte)((certSize >> 16) & 0xFF);
@@ -301,15 +336,18 @@ internal static class TestDataGen3ds
         cia[19] = (byte)((tmdSize >> 24) & 0xFF);
 
         /* ticket: signature type 0x00010000 (RSA-2048, sig size 0x23C) */
-        int tik = (int)tikOffset;
-        cia[tik] = 0x00; cia[tik + 1] = 0x01; cia[tik + 2] = 0x00; cia[tik + 3] = 0x00;
+        var tik = (int)tikOffset;
+        cia[tik] = 0x00;
+        cia[tik + 1] = 0x01;
+        cia[tik + 2] = 0x00;
+        cia[tik + 3] = 0x00;
         /* the engine reads the ticket data after the 4-byte signature type */
-        int tikData = tik + 4 + 0x23C;
+        var tikData = tik + 4 + 0x23C;
 
         /* encrypted title key: CBC(common normal key, iv = title id padded to 16) */
-        byte[] commonKey = NormalizeKeys(HexToBytes(Slot3DKeyX), HexToBytes(Common0));
-        byte[] titleKeyCopy = (byte[])titleKey.Clone();
-        byte[] titleKeyIv = new byte[16];
+        var commonKey = NormalizeKeys(HexToBytes(Slot3DKeyX), HexToBytes(Common0));
+        var titleKeyCopy = (byte[])titleKey.Clone();
+        var titleKeyIv = new byte[16];
         Array.Copy(titleId, 0, titleKeyIv, 0, 8);
         AesHelper.AesCbcEncrypt(titleKeyCopy, 0, 16, commonKey, titleKeyIv);
         Array.Copy(titleKeyCopy, 0, cia, tikData + 0x7F, 16);
@@ -319,21 +357,26 @@ internal static class TestDataGen3ds
         /* TMD: signature type 0x00010000, content count 1, main content chunk.
          * the engine's offsets (0x9E / 0x9C4) are relative to the end of the
          * 4-byte signature type */
-        int tmd = (int)tmdOffset;
-        cia[tmd] = 0x00; cia[tmd + 1] = 0x01; cia[tmd + 2] = 0x00; cia[tmd + 3] = 0x00;
-        int tmdCount = tmd + 4 + 0x23C + 0x9E;
-        cia[tmdCount] = 0x00; cia[tmdCount + 1] = 0x01; /* content count = 1 */
-        int chunk = tmd + 4 + 0x23C + 0x9C4;
-        cia[chunk + 4] = 0x00; cia[chunk + 5] = 0x00; /* content index 0 */
+        var tmd = (int)tmdOffset;
+        cia[tmd] = 0x00;
+        cia[tmd + 1] = 0x01;
+        cia[tmd + 2] = 0x00;
+        cia[tmd + 3] = 0x00;
+        var tmdCount = tmd + 4 + 0x23C + 0x9E;
+        cia[tmdCount] = 0x00;
+        cia[tmdCount + 1] = 0x01; /* content count = 1 */
+        var chunk = tmd + 4 + 0x23C + 0x9C4;
+        cia[chunk + 4] = 0x00;
+        cia[chunk + 5] = 0x00; /* content index 0 */
         cia[chunk + 7] = (byte)(encryptContent ? 0x01 : 0x00); /* flags: encrypted */
-        uint contentSize = (uint)ncch.Length;
+        var contentSize = (uint)ncch.Length;
         cia[chunk + 0xC] = (byte)(contentSize & 0xFF);
         cia[chunk + 0xD] = (byte)((contentSize >> 8) & 0xFF);
         cia[chunk + 0xE] = (byte)((contentSize >> 16) & 0xFF);
         cia[chunk + 0xF] = (byte)((contentSize >> 24) & 0xFF);
 
         /* content */
-        byte[] content = (byte[])ncch.Clone();
+        var content = (byte[])ncch.Clone();
         if (encryptContent)
         {
             /* whole content is one CBC chain starting at the content offset with iv = 0
@@ -347,9 +390,12 @@ internal static class TestDataGen3ds
 
     private static void WriteSection(byte[] exefs, int index, string name, uint offset, uint size)
     {
-        int pos = index * 16;
-        for (int i = 0; i < name.Length && i < 8; i++)
+        var pos = index * 16;
+        for (var i = 0; i < name.Length && i < 8; i++)
+        {
             exefs[pos + i] = (byte)name[i];
+        }
+
         exefs[pos + 8] = (byte)(offset & 0xFF);
         exefs[pos + 9] = (byte)((offset >> 8) & 0xFF);
         exefs[pos + 10] = (byte)((offset >> 16) & 0xFF);
@@ -362,13 +408,15 @@ internal static class TestDataGen3ds
 
     private static void Fill(byte[] buffer, int offset, int length, byte value)
     {
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
+        {
             buffer[offset + i] = value;
+        }
     }
 
     private static byte[] Concat(byte[] a, byte[] b)
     {
-        byte[] result = new byte[a.Length + b.Length];
+        var result = new byte[a.Length + b.Length];
         Array.Copy(a, 0, result, 0, a.Length);
         Array.Copy(b, 0, result, a.Length, b.Length);
         return result;

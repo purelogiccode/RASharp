@@ -5,13 +5,13 @@
 // sector-16 format probe, and the per-track hunk cache. Tags are matched
 // through CHDSharp's string form of the binary tags (CHT2/CHT1/CHGD/DVD ).
 
+using System.Text;
 using CHDSharp;
 using CHDSharp.Models;
+using RASharp.Core.Models;
 
 namespace RASharp.Core;
 
-
-using RASharp.Core.Models;
 /// <summary>ChdCdReader — CD/GD-ROM reader over CHDSharp. Behavior parity with RALibretro RAHasher's HashCHD.cpp (GPL, used as reference only — this is a new implementation</summary>
 public static class ChdCdReader
 {
@@ -35,7 +35,7 @@ public static class ChdCdReader
     private sealed class ChdTrackHandle
     {
         public ChdFile File = null!;
-        public byte[] HunkMem = Array.Empty<byte>();
+        public byte[] HunkMem = [];
         public uint HunkNum = uint.MaxValue;
         public uint FramesPerHunk;
         public uint FirstSector;
@@ -46,19 +46,21 @@ public static class ChdCdReader
     }
 
     private static readonly byte[] SyncPattern =
-    {
+    [
         0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00
-    };
+    ];
 
     /* chd_error_string equivalent (libchdr names) */
     private static string ChdErrorString(ChdError err)
     {
-        string name = err.ToString();
+        var name = err.ToString();
         if (name.StartsWith("Chderr", StringComparison.Ordinal))
+        {
             name = name.Substring("Chderr".Length);
+        }
 
-        var sb = new System.Text.StringBuilder("CHDERR_");
-        foreach (char c in name)
+        var sb = new StringBuilder("CHDERR_");
+        foreach (var c in name)
         {
             if (char.IsUpper(c) && sb.Length > 7)
                 sb.Append('_');
@@ -70,7 +72,7 @@ public static class ChdCdReader
 
     private static bool Matches(byte[] buffer, int offset, string pattern, int length)
     {
-        for (int i = 0; i < length; ++i)
+        for (var i = 0; i < length; ++i)
         {
             if (buffer[offset + i] != (byte)pattern[i])
                 return false;
@@ -81,7 +83,7 @@ public static class ChdCdReader
 
     private static bool Matches(byte[] buffer, int offset, byte[] pattern, int length)
     {
-        for (int i = 0; i < length; ++i)
+        for (var i = 0; i < length; ++i)
         {
             if (buffer[offset + i] != pattern[i])
                 return false;
@@ -103,10 +105,13 @@ public static class ChdCdReader
             {
                 /* the C copies into a 256-byte buffer (incl. NUL); entries are
                  * NUL-terminated text */
-                int length = entry.Data.Length;
+                var length = entry.Data.Length;
                 if (length > 255)
+                {
                     length = 255;
-                return System.Text.Encoding.ASCII.GetString(entry.Data, 0, length);
+                }
+
+                return Encoding.ASCII.GetString(entry.Data, 0, length);
             }
 
             ++count;
@@ -120,7 +125,7 @@ public static class ChdCdReader
         if (pos + label.Length > text.Length)
             return false;
 
-        for (int i = 0; i < label.Length; ++i)
+        for (var i = 0; i < label.Length; ++i)
         {
             if (text[pos + i] != label[i])
                 return false;
@@ -133,14 +138,18 @@ public static class ChdCdReader
     private static uint ParseUnsignedAfter(string text, ref int pos, string label)
     {
         while (pos < text.Length && text[pos] == ' ')
+        {
             ++pos;
+        }
 
         if (!StartsWithAt(text, pos, label))
             return 0;
 
         pos += label.Length;
         while (pos < text.Length && char.IsWhiteSpace(text[pos]))
+        {
             ++pos;
+        }
 
         uint value = 0;
         while (pos < text.Length && text[pos] >= '0' && text[pos] <= '9')
@@ -156,15 +165,19 @@ public static class ChdCdReader
     private static string ParseStringAfter(string text, ref int pos, string label)
     {
         while (pos < text.Length && text[pos] == ' ')
+        {
             ++pos;
+        }
 
         if (!StartsWithAt(text, pos, label))
             return "";
 
         pos += label.Length;
-        int start = pos;
+        var start = pos;
         while (pos < text.Length && text[pos] != ' ')
+        {
             ++pos;
+        }
 
         return text.Substring(start, pos - start);
     }
@@ -175,7 +188,7 @@ public static class ChdCdReader
      * the same struct across entries) */
     private static void ParseTrackMetadata(string text, ChdTrackMetadata metadata)
     {
-        int pos = 0;
+        var pos = 0;
 
         metadata.Track = ParseUnsignedAfter(text, ref pos, "TRACK:");
         metadata.Type = ParseStringAfter(text, ref pos, "TYPE:");
@@ -183,13 +196,17 @@ public static class ChdCdReader
         metadata.Frames = ParseUnsignedAfter(text, ref pos, "FRAMES:");
 
         while (pos < text.Length && text[pos] == ' ')
+        {
             ++pos;
+        }
 
         if (StartsWithAt(text, pos, "PAD:"))
         {
             metadata.Pad = ParseUnsignedAfter(text, ref pos, "PAD:");
             while (pos < text.Length && text[pos] == ' ')
+            {
                 ++pos;
+            }
         }
 
         if (StartsWithAt(text, pos, "PREGAP:"))
@@ -205,7 +222,7 @@ public static class ChdCdReader
      * or a faked MODE1 track for DVD) */
     private static bool GetChdMetadata(ChdFile file, uint idx, ChdTrackMetadata metadata)
     {
-        string? meta = GetMetadataText(file, "CHT2", idx);
+        var meta = GetMetadataText(file, "CHT2", idx);
         if (meta != null)
         {
             ParseTrackMetadata(meta, metadata);
@@ -260,7 +277,6 @@ public static class ChdCdReader
         var metadata = new ChdTrackMetadata();
         uint sectorOffset = 0;
         uint frameOffset = 0;
-        uint paddingFrames;
 
         for (uint idx = 0; GetChdMetadata(file, idx, metadata); idx++)
         {
@@ -269,7 +285,7 @@ public static class ChdCdReader
 
             frameOffset += metadata.Pregap;
             metadata.FrameOffset = frameOffset;
-            paddingFrames = ((metadata.Frames + 3) & ~3u) - metadata.Frames;
+            var paddingFrames = ((metadata.Frames + 3) & ~3u) - metadata.Frames;
             frameOffset += metadata.Frames + paddingFrames;
 
             result.Add((metadata.Track, metadata.Type, metadata.Frames, metadata.Pregap, metadata.Postgap, metadata.SectorOffset, metadata.FrameOffset));
@@ -285,14 +301,15 @@ public static class ChdCdReader
         uint largestIdx = 0;
         uint sectorOffset = 0;
         uint frameOffset = 0;
-        uint paddingFrames = 0;
         uint idx;
 
         /* CHD doesn't keep track of sessions. Assume the first session is a single track and hope for the best */
-        if (track == ConsoleIds.RC_HASH_CDTRACK_FIRST_OF_SECOND_SESSION)
+        if (track == ConsoleIds.RcHashCdtrackFirstOfSecondSession)
+        {
             track = 2;
+        }
 
-        for (idx = 0; true; idx++)
+        for (idx = 0;; idx++)
         {
             if (!GetChdMetadata(file, idx, metadata))
                 break;
@@ -307,7 +324,7 @@ public static class ChdCdReader
              * multiple of 4 frames, regardless of the number of frames in a hunk. */
             frameOffset += metadata.Pregap;
             metadata.FrameOffset = frameOffset;
-            paddingFrames = ((metadata.Frames + 3) & ~3u) - metadata.Frames;
+            var paddingFrames = ((metadata.Frames + 3) & ~3u) - metadata.Frames;
             frameOffset += metadata.Frames + paddingFrames;
 
             if (metadata.Track == track)
@@ -316,7 +333,7 @@ public static class ChdCdReader
             if (string.Equals(metadata.Type, "AUDIO", StringComparison.Ordinal))
                 continue;
 
-            if (track == ConsoleIds.RC_HASH_CDTRACK_FIRST_DATA)
+            if (track == ConsoleIds.RcHashCdtrackFirstData)
                 return true;
 
             if (metadata.Frames > largestSize)
@@ -328,12 +345,13 @@ public static class ChdCdReader
 
         switch (track)
         {
-            case ConsoleIds.RC_HASH_CDTRACK_LAST:
+            case ConsoleIds.RcHashCdtrackLast:
                 return true;
 
-            case ConsoleIds.RC_HASH_CDTRACK_LARGEST:
+            case ConsoleIds.RcHashCdtrackLargest:
                 if (idx == largestIdx)
                     return true;
+
                 return GetChdMetadata(file, largestIdx, metadata);
 
             default:
@@ -349,20 +367,20 @@ public static class ChdCdReader
             return 0;
 
         ChdFile file = chdTrack.File;
-        uint hunk, offset, chdFrame;
-        int bytesRead = 0;
+        var bytesRead = 0;
 
         if (sector < chdTrack.FirstSector)
             return 0;
 
         /* convert the real sector to the chd frame and then use that to find the hunk that contains it */
-        chdFrame = sector - chdTrack.FirstSector;
+        var chdFrame = sector - chdTrack.FirstSector;
         if (chdFrame > chdTrack.FramesInTrack)
             return 0;
+
         chdFrame += chdTrack.FirstFrame;
 
-        hunk = chdFrame / chdTrack.FramesPerHunk;
-        offset = (chdFrame % chdTrack.FramesPerHunk) * file.UnitBytes + chdTrack.SectorHeaderSize;
+        var hunk = chdFrame / chdTrack.FramesPerHunk;
+        var offset = (chdFrame % chdTrack.FramesPerHunk) * file.UnitBytes + chdTrack.SectorHeaderSize;
 
         do
         {
@@ -403,8 +421,7 @@ public static class ChdCdReader
     /* rc_hash_handle_chd_open_track */
     private static object? OpenTrackIterator(string path, uint track, RcHashIterator iterator)
     {
-        ChdFile? file;
-        ChdError err = ChdFile.Open(path, out file);
+        ChdError err = ChdFile.Open(path, out var file);
         if (err != ChdError.Chderrnone)
         {
             HashEngine.IteratorErrorFormatted(iterator, "chd_open failed: {0}", ChdErrorString(err));
@@ -423,10 +440,10 @@ public static class ChdCdReader
             File = file!,
             HunkNum = uint.MaxValue,
             HunkMem = new byte[file!.HunkBytes],
-            FramesPerHunk = file!.HunkBytes / file!.UnitBytes,
+            FramesPerHunk = file.HunkBytes / file.UnitBytes,
             FirstSector = metadata.SectorOffset,
             FirstFrame = metadata.FrameOffset,
-            FramesInTrack = metadata.Frames,
+            FramesInTrack = metadata.Frames
         };
 
         /* https://github.com/libyal/libodraw/blob/main/documentation/Optical%20disc%20RAW%20format.asciidoc */
@@ -469,7 +486,7 @@ public static class ChdCdReader
         }
 
         /* read the first 32 bytes of sector 16 (TOC) so we can attempt to identify the disc format */
-        byte[] buffer = new byte[32];
+        var buffer = new byte[32];
         if (ReadSector(chdTrack, chdTrack.FirstSector + 16, buffer, buffer.Length) != buffer.Length)
         {
             CloseTrack(chdTrack);
@@ -525,7 +542,7 @@ public static class ChdCdReader
     private static uint FirstTrackSector(object? trackHandle)
     {
         var chdTrack = (ChdTrackHandle?)trackHandle;
-        return chdTrack != null ? chdTrack.FirstSector : 0;
+        return chdTrack?.FirstSector ?? 0;
     }
 
     /* rc_hash_handle_chd_close_track */
@@ -539,7 +556,7 @@ public static class ChdCdReader
     }
 
     /* rc_hash_init_chd_cdreader */
-/// <summary>rc_hash_init_chd_cdreader</summary>
+    /// <summary>rc_hash_init_chd_cdreader</summary>
     public static void InitChdCdreader()
     {
         var cdreader = new RcHashCdreader
@@ -547,7 +564,7 @@ public static class ChdCdReader
             OpenTrackIterator = OpenTrackIterator,
             ReadSector = ReadSector,
             CloseTrack = CloseTrack,
-            FirstTrackSector = FirstTrackSector,
+            FirstTrackSector = FirstTrackSector
         };
 
         HashEngine.InitCustomCdreader(cdreader);

@@ -3,54 +3,47 @@
 // 3DS key material supplied through the encryption callbacks (registered by
 // Hash3DS, mirroring RAHasher's Hash3DS.cpp).
 
-using System.Security.Cryptography;
+using System.Text;
+using RASharp.Core.Models;
 
 namespace RASharp.Core;
 
-
-using RASharp.Core.Models;
 /// <summary>HashEncrypted — port of rcheevos hash_encrypted.c (MIT). rc_hash_nintendo_3ds: NCSD/NCCH/CIA/3DSX/ELF detection + hashing, with the 3DS key material supplied th</summary>
 public static class HashEncrypted
 {
     /* rc_hash_nintendo_3ds_ncch */
     private static int RcHashNintendo3DsNcch(HashMd5 md5, object fileHandle, byte[] header, byte[]? ciaTitleKey, RcHashIterator iterator)
     {
-        const uint MaxBufferSize = 64 * 1024 * 1024; /* MAX_BUFFER_SIZE */
+        const uint maxBufferSize = 64 * 1024 * 1024; /* MAX_BUFFER_SIZE */
 
-        byte[] hashBuffer;
-        long exefsOffset, exefsRealSize;
-        uint exefsBufferSize;
-        byte[] primaryKey = new byte[AesHelper.KeyLen];
-        byte[] secondaryKey = new byte[AesHelper.KeyLen];
-        byte fixedKeyFlag, noCryptoFlag, seedCryptoFlag;
-        byte cryptoMethod, secondaryKeyXSlot;
-        ushort ncchVersion;
+        var primaryKey = new byte[AesHelper.KeyLen];
+        var secondaryKey = new byte[AesHelper.KeyLen];
         uint i;
-        byte[] primaryKeyY = new byte[AesHelper.KeyLen];
-        byte[] programId = new byte[8];
-        byte[] iv = new byte[AesHelper.BlockLen];
-        byte[] ciaIv = new byte[AesHelper.BlockLen];
-        byte[] exefsSectionName = new byte[8];
+        var primaryKeyY = new byte[AesHelper.KeyLen];
+        var programId = new byte[8];
+        var iv = new byte[AesHelper.BlockLen];
+        var ciaIv = new byte[AesHelper.BlockLen];
+        var exefsSectionName = new byte[8];
 
-        exefsOffset = ((uint)header[0x1A3] << 24) | (uint)(header[0x1A2] << 16) | (uint)(header[0x1A1] << 8) | header[0x1A0];
-        exefsRealSize = ((uint)header[0x1A7] << 24) | (uint)(header[0x1A6] << 16) | (uint)(header[0x1A5] << 8) | header[0x1A4];
+        long exefsOffset = ((uint)header[0x1A3] << 24) | (uint)(header[0x1A2] << 16) | (uint)(header[0x1A1] << 8) | header[0x1A0];
+        long exefsRealSize = ((uint)header[0x1A7] << 24) | (uint)(header[0x1A6] << 16) | (uint)(header[0x1A5] << 8) | header[0x1A4];
 
         /* Offset and size are in "media units" (1 media unit = 0x200 bytes) */
         exefsOffset *= 0x200;
         exefsRealSize *= 0x200;
 
-        exefsBufferSize = exefsRealSize > MaxBufferSize ? MaxBufferSize : (uint)exefsRealSize;
+        var exefsBufferSize = exefsRealSize > maxBufferSize ? maxBufferSize : (uint)exefsRealSize;
 
         /* This region is technically optional, but it should always be present for executable content (i.e. games) */
         if (exefsOffset == 0 || exefsRealSize == 0)
             return HashEngine.IteratorError(iterator, "ExeFS was not available");
 
         /* NCCH flag 7 is a bitfield of various crypto related flags */
-        fixedKeyFlag = (byte)(header[0x188 + 7] & 0x01);
-        noCryptoFlag = (byte)(header[0x188 + 7] & 0x04);
-        seedCryptoFlag = (byte)(header[0x188 + 7] & 0x20);
+        var fixedKeyFlag = (byte)(header[0x188 + 7] & 0x01);
+        var noCryptoFlag = (byte)(header[0x188 + 7] & 0x04);
+        var seedCryptoFlag = (byte)(header[0x188 + 7] & 0x20);
 
-        ncchVersion = (ushort)((header[0x113] << 8) | header[0x112]);
+        var ncchVersion = (ushort)((header[0x113] << 8) | header[0x112]);
 
         if (noCryptoFlag == 0)
         {
@@ -72,8 +65,9 @@ public static class HashEncrypted
                 Array.Copy(header, 0, primaryKeyY, 0, primaryKeyY.Length);
 
                 /* NCCH flag 3 indicates which secondary key x slot is used */
-                cryptoMethod = header[0x188 + 3];
+                var cryptoMethod = header[0x188 + 3];
 
+                byte secondaryKeyXSlot;
                 switch (cryptoMethod)
                 {
                     case 0x00:
@@ -168,7 +162,7 @@ public static class HashEncrypted
             HashEngine.FileSeek(iterator, fileHandle, exefsOffset, 1 /* SEEK_CUR */);
         }
 
-        hashBuffer = new byte[exefsBufferSize];
+        var hashBuffer = new byte[exefsBufferSize];
 
         /* Clear out crypto flags to ensure we get the same hash for decrypted and encrypted ROMs */
         Array.Clear(header, 0x114, 4);
@@ -194,19 +188,17 @@ public static class HashEncrypted
         {
             HashEngine.IteratorVerbose(iterator, "Performing NCCH decryption for ExeFS");
 
-            byte[] counter = new byte[AesHelper.BlockLen];
+            var counter = new byte[AesHelper.BlockLen];
             Array.Copy(iv, 0, counter, 0, AesHelper.BlockLen);
-            byte[] currentKey = primaryKey;
+            var currentKey = primaryKey;
 
             AesHelper.AesCtrXcrypt(hashBuffer, 0, 0x200, currentKey, counter);
 
             for (i = 0; i < 8; i++)
             {
-                ulong exefsSectionOffset, exefsSectionSize;
-
                 Array.Copy(hashBuffer, (int)(i * 16), exefsSectionName, 0, exefsSectionName.Length);
-                exefsSectionOffset = ((uint)hashBuffer[i * 16 + 11] << 24) | (uint)(hashBuffer[i * 16 + 10] << 16) | (uint)(hashBuffer[i * 16 + 9] << 8) | hashBuffer[i * 16 + 8];
-                exefsSectionSize = ((uint)hashBuffer[i * 16 + 15] << 24) | (uint)(hashBuffer[i * 16 + 14] << 16) | (uint)(hashBuffer[i * 16 + 13] << 8) | hashBuffer[i * 16 + 12];
+                ulong exefsSectionOffset = ((uint)hashBuffer[i * 16 + 11] << 24) | (uint)(hashBuffer[i * 16 + 10] << 16) | (uint)(hashBuffer[i * 16 + 9] << 8) | hashBuffer[i * 16 + 8];
+                ulong exefsSectionSize = ((uint)hashBuffer[i * 16 + 15] << 24) | (uint)(hashBuffer[i * 16 + 14] << 16) | (uint)(hashBuffer[i * 16 + 13] << 8) | hashBuffer[i * 16 + 12];
 
                 /* 0 size indicates an unused section */
                 if (exefsSectionSize == 0)
@@ -264,7 +256,7 @@ public static class HashEncrypted
                     if ((exefsSectionSize & 0xF) != 0)
                     {
                         /* We're a little evil here re-using the IV like this, but this seems to be the best way to deal with this... */
-                        byte[] savedCounter = new byte[AesHelper.BlockLen];
+                        var savedCounter = new byte[AesHelper.BlockLen];
                         Array.Copy(counter, 0, savedCounter, 0, AesHelper.BlockLen);
                         exefsSectionOffset &= ~(ulong)0xF;
 
@@ -293,7 +285,7 @@ public static class HashEncrypted
 
     private static bool StartsWith(byte[] buffer, string pattern, int length)
     {
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
             if (buffer[i] != (byte)pattern[i])
                 return false;
@@ -304,16 +296,19 @@ public static class HashEncrypted
 
     private static string GetNulTerminatedString(byte[] buffer)
     {
-        int length = 0;
+        var length = 0;
         while (length < buffer.Length && buffer[length] != 0)
+        {
             ++length;
-        return System.Text.Encoding.ASCII.GetString(buffer, 0, length);
+        }
+
+        return Encoding.ASCII.GetString(buffer, 0, length);
     }
 
     /* rc_hash_nintendo_3ds_cia_signature_size */
     private static uint RcHashNintendo3DsCiaSignatureSize(byte[] header, RcHashIterator iterator)
     {
-        uint signatureType = ((uint)header[0] << 24) | (uint)(header[1] << 16) | (uint)(header[2] << 8) | header[3];
+        var signatureType = ((uint)header[0] << 24) | (uint)(header[1] << 16) | (uint)(header[2] << 8) | header[3];
         switch (signatureType)
         {
             case 0x010000:
@@ -337,34 +332,29 @@ public static class HashEncrypted
     /* rc_hash_nintendo_3ds_cia */
     private static int RcHashNintendo3DsCia(HashMd5 md5, object fileHandle, byte[] header, RcHashIterator iterator)
     {
-        const uint CiaHeaderSize = 0x2020; /* Yes, this is larger than the header[0x200], but we only use the beginning of the header */
-        const long CiaAlignmentMask = 64 - 1; /* sizes are aligned by 64 bytes */
-        byte[] iv = new byte[AesHelper.BlockLen];
-        byte[] normalKey = new byte[AesHelper.KeyLen];
-        byte[] titleKey = new byte[AesHelper.KeyLen];
-        byte[] titleId = new byte[8];
-        uint certSize, tikSize, tmdSize;
-        long certOffset, tikOffset, tmdOffset, contentOffset;
-        uint signatureSize, i;
-        ushort contentCount;
-        byte commonKeyIndex;
+        const uint ciaHeaderSize = 0x2020; /* Yes, this is larger than the header[0x200], but we only use the beginning of the header */
+        const long ciaAlignmentMask = 64 - 1; /* sizes are aligned by 64 bytes */
+        var iv = new byte[AesHelper.BlockLen];
+        var normalKey = new byte[AesHelper.KeyLen];
+        var titleKey = new byte[AesHelper.KeyLen];
+        var titleId = new byte[8];
+        uint i;
 
-        certSize = ((uint)header[0x0B] << 24) | (uint)(header[0x0A] << 16) | (uint)(header[0x09] << 8) | header[0x08];
-        tikSize = ((uint)header[0x0F] << 24) | (uint)(header[0x0E] << 16) | (uint)(header[0x0D] << 8) | header[0x0C];
-        tmdSize = ((uint)header[0x13] << 24) | (uint)(header[0x12] << 16) | (uint)(header[0x11] << 8) | header[0x10];
+        var certSize = ((uint)header[0x0B] << 24) | (uint)(header[0x0A] << 16) | (uint)(header[0x09] << 8) | header[0x08];
+        var tikSize = ((uint)header[0x0F] << 24) | (uint)(header[0x0E] << 16) | (uint)(header[0x0D] << 8) | header[0x0C];
+        var tmdSize = ((uint)header[0x13] << 24) | (uint)(header[0x12] << 16) | (uint)(header[0x11] << 8) | header[0x10];
 
-        certOffset = (CiaHeaderSize + CiaAlignmentMask) & ~CiaAlignmentMask;
-        tikOffset = (certOffset + certSize + CiaAlignmentMask) & ~CiaAlignmentMask;
-        tmdOffset = (tikOffset + tikSize + CiaAlignmentMask) & ~CiaAlignmentMask;
-        contentOffset = (tmdOffset + tmdSize + CiaAlignmentMask) & ~CiaAlignmentMask;
+        const long certOffset = (ciaHeaderSize + ciaAlignmentMask) & ~ciaAlignmentMask;
+        var tikOffset = (certOffset + certSize + ciaAlignmentMask) & ~ciaAlignmentMask;
+        var tmdOffset = (tikOffset + tikSize + ciaAlignmentMask) & ~ciaAlignmentMask;
+        var contentOffset = (tmdOffset + tmdSize + ciaAlignmentMask) & ~ciaAlignmentMask;
 
         /* Check if this CIA is encrypted, if it isn't, we can hash it right away */
-
         HashEngine.FileSeek(iterator, fileHandle, tmdOffset, 0 /* SEEK_SET */);
         if (HashEngine.FileRead(iterator, fileHandle, header, 4) != 4)
             return HashEngine.IteratorError(iterator, "Could not read TMD signature type");
 
-        signatureSize = RcHashNintendo3DsCiaSignatureSize(header, iterator);
+        var signatureSize = RcHashNintendo3DsCiaSignatureSize(header, iterator);
         if (signatureSize == 0)
             return 0; /* RcHashNintendo3DsCiaSignatureSize will call IteratorError, so we don't need to do so here */
 
@@ -372,7 +362,7 @@ public static class HashEncrypted
         if (HashEngine.FileRead(iterator, fileHandle, header, 2) != 2)
             return HashEngine.IteratorError(iterator, "Could not read TMD content count");
 
-        contentCount = (ushort)((header[0] << 8) | header[1]);
+        var contentCount = (ushort)((header[0] << 8) | header[1]);
 
         HashEngine.FileSeek(iterator, fileHandle, 0x9C4 - 0x9E - 2, 1 /* SEEK_CUR */);
         for (i = 0; i < contentCount; i++)
@@ -397,10 +387,10 @@ public static class HashEncrypted
             if (HashEngine.FileRead(iterator, fileHandle, header, 0x200) != 0x200)
                 return HashEngine.IteratorError(iterator, "Could not read NCCH header");
 
-            if (StartsWith(header, "NCCH", 4, 0x100) == false)
+            if (!StartsWith(header, "NCCH", 4, 0x100))
                 return HashEngine.IteratorErrorFormatted(iterator, "NCCH header was not at {0:X8}{1:X8}", (uint)(contentOffset >> 32), (uint)contentOffset);
 
-            return RcHashNintendo3DsNcch(md5, fileHandle!, header, null, iterator);
+            return RcHashNintendo3DsNcch(md5, fileHandle, header, null, iterator);
         }
 
         if (iterator.Callbacks.Encryption.Get3DsCiaNormalKey == null)
@@ -423,7 +413,7 @@ public static class HashEncrypted
 
         Array.Copy(header, 0x7F, titleKey, 0, titleKey.Length);
         Array.Copy(header, 0x9C, titleId, 0, titleId.Length);
-        commonKeyIndex = header[0xB1];
+        var commonKeyIndex = header[0xB1];
 
         if (commonKeyIndex > 5)
             return HashEngine.IteratorErrorFormatted(iterator, "Invalid common key index {0:X2}", commonKeyIndex);
@@ -444,31 +434,30 @@ public static class HashEncrypted
         Array.Clear(iv, 0, iv.Length); /* Content index is iv (which is always 0 for main content) */
         AesHelper.AesCbcDecrypt(header, 0, 0x200, titleKey, iv);
 
-        if (StartsWith(header, "NCCH", 4, 0x100) == false)
+        if (!StartsWith(header, "NCCH", 4, 0x100))
             return HashEngine.IteratorErrorFormatted(iterator, "NCCH header was not at {0:X8}{1:X8}", (uint)(contentOffset >> 32), (uint)contentOffset);
 
-        return RcHashNintendo3DsNcch(md5, fileHandle!, header, titleKey, iterator);
+        return RcHashNintendo3DsNcch(md5, fileHandle, header, titleKey, iterator);
     }
 
     /* rc_hash_nintendo_3ds_3dsx */
     private static int RcHashNintendo3Ds3Dsx(HashMd5 md5, object fileHandle, byte[] header, RcHashIterator iterator)
     {
-        const uint MaxBufferSize = 64 * 1024 * 1024; /* MAX_BUFFER_SIZE */
-        byte[] hashBuffer;
-        uint headerSize, relocHeaderSize, codeSize;
-        long codeOffset;
+        const uint maxBufferSize = 64 * 1024 * 1024; /* MAX_BUFFER_SIZE */
 
-        headerSize = (uint)((header[5] << 8) | header[4]);
-        relocHeaderSize = (uint)((header[7] << 8) | header[6]);
-        codeSize = ((uint)header[0x13] << 24) | (uint)(header[0x12] << 16) | (uint)(header[0x11] << 8) | header[0x10];
+        var headerSize = (uint)((header[5] << 8) | header[4]);
+        var relocHeaderSize = (uint)((header[7] << 8) | header[6]);
+        var codeSize = ((uint)header[0x13] << 24) | (uint)(header[0x12] << 16) | (uint)(header[0x11] << 8) | header[0x10];
 
         /* 3 relocation headers are in-between the 3DSX header and code segment */
-        codeOffset = headerSize + relocHeaderSize * 3;
+        long codeOffset = headerSize + relocHeaderSize * 3;
 
-        if (codeSize > MaxBufferSize)
-            codeSize = MaxBufferSize;
+        if (codeSize > maxBufferSize)
+        {
+            codeSize = maxBufferSize;
+        }
 
-        hashBuffer = new byte[codeSize];
+        var hashBuffer = new byte[codeSize];
 
         HashEngine.FileSeek(iterator, fileHandle, codeOffset, 0 /* SEEK_SET */);
 
@@ -483,7 +472,7 @@ public static class HashEncrypted
 
     private static bool StartsWith(byte[] buffer, string pattern, int length, int offset)
     {
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
             if (buffer[offset + i] != (byte)pattern[i])
                 return false;
@@ -493,19 +482,17 @@ public static class HashEncrypted
     }
 
     /* rc_hash_nintendo_3ds */
-/// <summary>rc_hash_nintendo_3ds</summary>
-/// <param name="hash">the generated 32-char hash</param>
-/// <param name="iterator">the hash iterator</param>
-/// <returns>the result</returns>
+    /// <summary>rc_hash_nintendo_3ds</summary>
+    /// <param name="hash">the generated 32-char hash</param>
+    /// <param name="iterator">the hash iterator</param>
+    /// <returns>the result</returns>
     public static int RcHashNintendo3Ds(out string hash, RcHashIterator iterator)
     {
         hash = "";
         var md5 = new HashMd5();
-        object? fileHandle;
-        byte[] header = new byte[0x200]; /* NCCH and NCSD headers are both 0x200 bytes */
-        long headerOffset;
+        var header = new byte[0x200]; /* NCCH and NCSD headers are both 0x200 bytes */
 
-        fileHandle = HashEngine.FileOpen(iterator, iterator.Path!);
+        var fileHandle = HashEngine.FileOpen(iterator, iterator.Path!);
         if (fileHandle == null)
             return HashEngine.IteratorError(iterator, "Could not open file");
 
@@ -522,7 +509,7 @@ public static class HashEncrypted
         {
             /* A NCSD container contains 1-8 NCCH partitions */
             /* The first partition (index 0) is reserved for executable content */
-            headerOffset = ((uint)header[0x123] << 24) | (uint)(header[0x122] << 16) | (uint)(header[0x121] << 8) | header[0x120];
+            long headerOffset = ((uint)header[0x123] << 24) | (uint)(header[0x122] << 16) | (uint)(header[0x121] << 8) | header[0x120];
             /* Offset is in "media units" (1 media unit = 0x200 bytes) */
             headerOffset *= 0x200;
 
@@ -543,7 +530,7 @@ public static class HashEncrypted
                 return HashEngine.IteratorError(iterator, "Could not read 3DS NCCH header");
             }
 
-            if (StartsWith(header, "NCCH", 4, 0x100) == false)
+            if (!StartsWith(header, "NCCH", 4, 0x100))
             {
                 HashEngine.FileClose(iterator, fileHandle);
                 return HashEngine.IteratorErrorFormatted(iterator, "3DS NCCH header was not at {0:X8}{1:X8}", (uint)(headerOffset >> 32), (uint)headerOffset);
@@ -552,7 +539,7 @@ public static class HashEncrypted
 
         if (StartsWith(header, "NCCH", 4, 0x100))
         {
-            if (RcHashNintendo3DsNcch(md5, fileHandle!, header, null, iterator) != 0)
+            if (RcHashNintendo3DsNcch(md5, fileHandle, header, null, iterator) != 0)
             {
                 HashEngine.FileClose(iterator, fileHandle);
                 return HashEngine.Finalize(iterator, md5, out hash);
@@ -569,7 +556,7 @@ public static class HashEncrypted
         {
             HashEngine.IteratorVerbose(iterator, "Detected CIA, attempting to find executable NCCH");
 
-            if (RcHashNintendo3DsCia(md5, fileHandle!, header, iterator) != 0)
+            if (RcHashNintendo3DsCia(md5, fileHandle, header, iterator) != 0)
             {
                 HashEngine.FileClose(iterator, fileHandle);
                 return HashEngine.Finalize(iterator, md5, out hash);
@@ -584,7 +571,7 @@ public static class HashEncrypted
         {
             HashEngine.IteratorVerbose(iterator, "Detected 3DSX");
 
-            if (RcHashNintendo3Ds3Dsx(md5, fileHandle!, header, iterator) != 0)
+            if (RcHashNintendo3Ds3Dsx(md5, fileHandle, header, iterator) != 0)
             {
                 HashEngine.FileClose(iterator, fileHandle);
                 return HashEngine.Finalize(iterator, md5, out hash);
@@ -595,7 +582,7 @@ public static class HashEncrypted
         }
 
         /* Raw ELF marker (AXF/ELF files) */
-        if (StartsWith(header, "\x7fELF", 4, 0))
+        if (StartsWith(header, "\x7fE" + "LF", 4, 0))
         {
             HashEngine.IteratorVerbose(iterator, "Detected AXF/ELF file, hashing entire file");
 

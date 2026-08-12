@@ -19,5 +19,6 @@ public delegate void RcHashMessageCallbackDeprecated(string message);
 /* 3DS key functions (used from Phase 6 on) */
 /// <summary>3DS key functions (used from Phase 6 on)</summary>
 public delegate int RcHash3DsGetCiaNormalKeyFunc(byte commonKeyIndex, byte[] outNormalKey);
+
 /// <summary>Ported from rcheevos (MIT) — include/rc_hash.h Callback delegates. The rc_hash_callbacks_t / rc_hash_filereader_t / rc_hash_cdreader_t structs live in Models/. </summary>
 public delegate int RcHash3DsGetNcchNormalKeysFunc(byte[] primaryKeyY, byte secondaryKeyXSlot, byte[]? optionalProgramId, byte[] outPrimaryKey, byte[] outSecondaryKey);

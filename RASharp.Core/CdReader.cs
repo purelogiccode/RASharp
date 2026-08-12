@@ -18,33 +18,33 @@ public static class CdReader
      *   block address zero shall be assigned to the block at MSF address 00/02/00 */
     private static int GetSector(byte[] header)
     {
-        int minutes = (header[12] >> 4) * 10 + (header[12] & 0x0F);
-        int seconds = (header[13] >> 4) * 10 + (header[13] & 0x0F);
-        int frames = (header[14] >> 4) * 10 + (header[14] & 0x0F);
+        var minutes = (header[12] >> 4) * 10 + (header[12] & 0x0F);
+        var seconds = (header[13] >> 4) * 10 + (header[13] & 0x0F);
+        var frames = (header[14] >> 4) * 10 + (header[14] & 0x0F);
 
         return ((minutes * 60) + seconds) * 75 + frames - 150;
     }
 
     private static readonly byte[] SyncPattern =
-    {
+    [
         0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00
-    };
+    ];
 
     /* cdreader_determine_sector_size - Attempt to determine the sector and header sizes.
      * The CUE file may be lying. Look for the sync pattern using each of the supported
      * sector sizes. Then check for the presence of "CD001", which is guaranteed to be in
      * either the boot record or primary volume descriptor, one of which is always at sector 16. */
-    private static void DetermineSectorSize(CdromTrack cdrom, RcHashIterator iterator)
+    private static void DetermineSectorSize(CdromTrack cdrom)
     {
-        byte[] header = new byte[32];
-        int tocSector = 16 + cdrom.TrackPregapSectors;
+        var header = new byte[32];
+        var tocSector = 16 + cdrom.TrackPregapSectors;
         RcHashFilereader fileReader = cdrom.FileReader!;
 
         cdrom.SectorSize = 0;
         cdrom.SectorHeaderSize = 0;
         cdrom.RawDataSize = 2048;
 
-        fileReader.Seek!(cdrom.FileHandle!, tocSector * 2352 + cdrom.FileTrackOffset, HashEngine.SEEK_SET);
+        fileReader.Seek!(cdrom.FileHandle!, tocSector * 2352 + cdrom.FileTrackOffset, HashEngine.SeekSet);
         if (fileReader.Read!(cdrom.FileHandle!, header, header.Length) < header.Length)
             return;
 
@@ -53,15 +53,19 @@ public static class CdReader
             cdrom.SectorSize = 2352;
 
             if (Matches(header, 25, "CD001", 5))
+            {
                 cdrom.SectorHeaderSize = 24;
+            }
             else
+            {
                 cdrom.SectorHeaderSize = 16;
+            }
 
             cdrom.TrackFirstSector = GetSector(header) - tocSector;
         }
         else
         {
-            fileReader.Seek!(cdrom.FileHandle!, tocSector * 2336 + cdrom.FileTrackOffset, HashEngine.SEEK_SET);
+            fileReader.Seek!(cdrom.FileHandle!, tocSector * 2336 + cdrom.FileTrackOffset, HashEngine.SeekSet);
             fileReader.Read!(cdrom.FileHandle!, header, header.Length);
 
             if (Matches(header, 0, SyncPattern, 12))
@@ -69,15 +73,19 @@ public static class CdReader
                 cdrom.SectorSize = 2336;
 
                 if (Matches(header, 25, "CD001", 5))
+                {
                     cdrom.SectorHeaderSize = 24;
+                }
                 else
+                {
                     cdrom.SectorHeaderSize = 16;
+                }
 
                 cdrom.TrackFirstSector = GetSector(header) - tocSector;
             }
             else
             {
-                fileReader.Seek!(cdrom.FileHandle!, tocSector * 2048 + cdrom.FileTrackOffset, HashEngine.SEEK_SET);
+                fileReader.Seek!(cdrom.FileHandle!, tocSector * 2048 + cdrom.FileTrackOffset, HashEngine.SeekSet);
                 fileReader.Read!(cdrom.FileHandle!, header, header.Length);
 
                 if (Matches(header, 1, "CD001", 5))
@@ -92,32 +100,28 @@ public static class CdReader
     /* cdreader_open_bin_track - raw .bin file (no cue sheet) */
     private static CdromTrack? OpenBinTrack(string path, uint track, RcHashIterator iterator)
     {
-        object? fileHandle;
-
         if (track > 1)
         {
             HashEngine.IteratorVerbose(iterator, "Cannot locate secondary tracks without a cue sheet");
             return null;
         }
 
-        fileHandle = iterator.Callbacks.Filereader.Open!(path);
+        var fileHandle = iterator.Callbacks.Filereader.Open!(path);
         if (fileHandle == null)
             return null;
 
         var cdrom = new CdromTrack
         {
             FileReader = iterator.Callbacks.Filereader,
-            FileHandle = fileHandle,
+            FileHandle = fileHandle
         };
 
-        DetermineSectorSize(cdrom, iterator);
+        DetermineSectorSize(cdrom);
 
         if (cdrom.SectorSize == 0)
         {
-            long size;
-
-            iterator.Callbacks.Filereader.Seek!(fileHandle, 0, HashEngine.SEEK_END);
-            size = iterator.Callbacks.Filereader.Tell!(fileHandle);
+            iterator.Callbacks.Filereader.Seek!(fileHandle, 0, HashEngine.SeekEnd);
+            var size = iterator.Callbacks.Filereader.Tell!(fileHandle);
 
             if ((size % 2352) == 0)
             {
@@ -152,14 +156,14 @@ public static class CdReader
     }
 
     /* cdreader_open_bin - open the bin file for a track (from a cue sheet) */
-    private static bool OpenBin(CdromTrack cdrom, string path, string mode, RcHashIterator iterator)
+    private static bool OpenBin(CdromTrack cdrom, string path, string mode)
     {
         cdrom.FileHandle = cdrom.FileReader!.Open!(path);
         if (cdrom.FileHandle == null)
             return false;
 
         /* determine sector size */
-        DetermineSectorSize(cdrom, iterator);
+        DetermineSectorSize(cdrom);
 
         /* could not determine, which means we'll probably have more issues later
          * but use the CUE provided information anyway */
@@ -212,19 +216,19 @@ public static class CdReader
     /* cdreader_get_bin_path - cue_dir + bin_name */
     private static string GetBinPath(string cuePath, string binName)
     {
-        string filename = HashEngine.PathGetFilename(cuePath);
-        int cuePathLen = cuePath.Length - filename.Length;
+        var filename = HashEngine.PathGetFilename(cuePath);
+        var cuePathLen = cuePath.Length - filename.Length;
         return cuePath.Substring(0, cuePathLen) + binName;
     }
 
     private static long GetBinSize(string cuePath, string binName, RcHashIterator iterator)
     {
         long size = 0;
-        string binFilename = GetBinPath(cuePath, binName);
-        object? handle = iterator.Callbacks.Filereader.Open!(binFilename);
+        var binFilename = GetBinPath(cuePath, binName);
+        var handle = iterator.Callbacks.Filereader.Open!(binFilename);
         if (handle != null)
         {
-            iterator.Callbacks.Filereader.Seek!(handle, 0, HashEngine.SEEK_END);
+            iterator.Callbacks.Filereader.Seek!(handle, 0, HashEngine.SeekEnd);
             size = iterator.Callbacks.Filereader.Tell!(handle);
 
             if (iterator.Callbacks.Filereader.Close != null)
@@ -234,9 +238,9 @@ public static class CdReader
         return size;
     }
 
-/// <summary>is space.</summary>
-/// <param name="b">the b parameter</param>
-/// <returns>true on success; otherwise false</returns>
+    /// <summary>is space.</summary>
+    /// <param name="b">the b parameter</param>
+    /// <returns>true on success; otherwise false</returns>
     internal static bool IsSpace(byte b)
     {
         return b == ' ' || b == '\t' || b == '\n' || b == '\v' || b == '\f' || b == '\r';
@@ -250,19 +254,24 @@ public static class CdReader
     /* C atoi: skip leading whitespace, parse an optional sign, then digits */
     private static int Atoi(byte[] buffer, ref int pos)
     {
-        int len = buffer.Length;
+        var len = buffer.Length;
         while (pos < len && IsSpace(buffer[pos]))
-            ++pos;
-
-        int sign = 1;
-        if (pos < len && (buffer[pos] == (byte)'-' || buffer[pos] == (byte)'+'))
         {
-            if (buffer[pos] == (byte)'-')
-                sign = -1;
             ++pos;
         }
 
-        int result = 0;
+        var sign = 1;
+        if (pos < len && (buffer[pos] == (byte)'-' || buffer[pos] == (byte)'+'))
+        {
+            if (buffer[pos] == (byte)'-')
+            {
+                sign = -1;
+            }
+
+            ++pos;
+        }
+
+        var result = 0;
         while (pos < len && IsDigit(buffer[pos]))
         {
             result = result * 10 + (buffer[pos] - '0');
@@ -273,25 +282,30 @@ public static class CdReader
     }
 
     /* strncasecmp(ptr, str, len) — case-insensitive ASCII compare of len bytes */
-/// <summary>strncasecmp(ptr, str, len) — case-insensitive ASCII compare of len bytes</summary>
-/// <param name="buffer">the buffer holding the data</param>
-/// <param name="pos">the pos parameter</param>
-/// <param name="len">the len parameter</param>
-/// <param name="str">the str parameter</param>
-/// <returns>true on success; otherwise false</returns>
+    /// <summary>strncasecmp(ptr, str, len) — case-insensitive ASCII compare of len bytes</summary>
+    /// <param name="buffer">the buffer holding the data</param>
+    /// <param name="pos">the pos parameter</param>
+    /// <param name="len">the len parameter</param>
+    /// <param name="str">the str parameter</param>
+    /// <returns>true on success; otherwise false</returns>
     internal static bool StartsWithIgnoreCase(byte[] buffer, int pos, int len, string str)
     {
         if (pos + str.Length > len)
             return false;
 
-        for (int i = 0; i < str.Length; ++i)
+        for (var i = 0; i < str.Length; ++i)
         {
-            byte b = buffer[pos + i];
+            var b = buffer[pos + i];
             if (b >= 'A' && b <= 'Z')
+            {
                 b = (byte)(b + ('a' - 'A'));
-            char c = str[i];
-            if (c >= 'A' && c <= 'Z')
+            }
+
+            var c = str[i];
+            if (c is >= 'A' and <= 'Z')
+            {
                 c = (char)(c + ('a' - 'A'));
+            }
 
             if (b != (byte)c)
                 return false;
@@ -301,16 +315,16 @@ public static class CdReader
     }
 
     /* memcmp(ptr, str, strlen(str)) */
-/// <summary>memcmp(ptr, str, strlen(str))</summary>
-/// <param name="text">the text parameter</param>
-/// <param name="prefix">the prefix parameter</param>
-/// <returns>true on success; otherwise false</returns>
+    /// <summary>memcmp(ptr, str, strlen(str))</summary>
+    /// <param name="text">the text parameter</param>
+    /// <param name="prefix">the prefix parameter</param>
+    /// <returns>true on success; otherwise false</returns>
     internal static bool StartsWith(string text, string prefix)
     {
         if (prefix.Length > text.Length)
             return false;
 
-        for (int i = 0; i < prefix.Length; ++i)
+        for (var i = 0; i < prefix.Length; ++i)
         {
             if (text[i] != prefix[i])
                 return false;
@@ -320,17 +334,17 @@ public static class CdReader
     }
 
     /* memcmp(ptr, str, strlen(str)) */
-/// <summary>memcmp(ptr, str, strlen(str))</summary>
-/// <param name="buffer">the buffer holding the data</param>
-/// <param name="pos">the pos parameter</param>
-/// <param name="str">the str parameter</param>
-/// <returns>true on success; otherwise false</returns>
+    /// <summary>memcmp(ptr, str, strlen(str))</summary>
+    /// <param name="buffer">the buffer holding the data</param>
+    /// <param name="pos">the pos parameter</param>
+    /// <param name="str">the str parameter</param>
+    /// <returns>true on success; otherwise false</returns>
     internal static bool StartsWith(byte[] buffer, int pos, string str)
     {
         if (pos + str.Length > buffer.Length)
             return false;
 
-        for (int i = 0; i < str.Length; ++i)
+        for (var i = 0; i < str.Length; ++i)
         {
             if (buffer[pos + i] != (byte)str[i])
                 return false;
@@ -339,15 +353,15 @@ public static class CdReader
         return true;
     }
 
-/// <summary>Compares a buffer region with a pattern byte-for-byte.</summary>
-/// <param name="buffer">the buffer holding the data</param>
-/// <param name="offset">the byte offset</param>
-/// <param name="pattern">the wildcard pattern</param>
-/// <param name="length">the length parameter</param>
-/// <returns>true on success; otherwise false</returns>
+    /// <summary>Compares a buffer region with a pattern byte-for-byte.</summary>
+    /// <param name="buffer">the buffer holding the data</param>
+    /// <param name="offset">the byte offset</param>
+    /// <param name="pattern">the wildcard pattern</param>
+    /// <param name="length">the length parameter</param>
+    /// <returns>true on success; otherwise false</returns>
     internal static bool Matches(byte[] buffer, int offset, byte[] pattern, int length)
     {
-        for (int i = 0; i < length; ++i)
+        for (var i = 0; i < length; ++i)
         {
             if (buffer[offset + i] != pattern[i])
                 return false;
@@ -356,15 +370,15 @@ public static class CdReader
         return true;
     }
 
-/// <summary>Compares a buffer region with a pattern byte-for-byte.</summary>
-/// <param name="buffer">the buffer holding the data</param>
-/// <param name="offset">the byte offset</param>
-/// <param name="pattern">the wildcard pattern</param>
-/// <param name="length">the length parameter</param>
-/// <returns>true on success; otherwise false</returns>
+    /// <summary>Compares a buffer region with a pattern byte-for-byte.</summary>
+    /// <param name="buffer">the buffer holding the data</param>
+    /// <param name="offset">the byte offset</param>
+    /// <param name="pattern">the wildcard pattern</param>
+    /// <param name="length">the length parameter</param>
+    /// <returns>true on success; otherwise false</returns>
     internal static bool Matches(byte[] buffer, int offset, string pattern, int length)
     {
-        for (int i = 0; i < length; ++i)
+        for (var i = 0; i < length; ++i)
         {
             if (buffer[offset + i] != (byte)pattern[i])
                 return false;
@@ -374,22 +388,27 @@ public static class CdReader
     }
 
     /* strncasecmp(ptr, str, length) with the length given explicitly */
-/// <summary>strncasecmp(ptr, str, length) with the length given explicitly</summary>
-/// <param name="buffer">the buffer holding the data</param>
-/// <param name="pos">the pos parameter</param>
-/// <param name="str">the str parameter</param>
-/// <param name="length">the length parameter</param>
-/// <returns>true on success; otherwise false</returns>
+    /// <summary>strncasecmp(ptr, str, length) with the length given explicitly</summary>
+    /// <param name="buffer">the buffer holding the data</param>
+    /// <param name="pos">the pos parameter</param>
+    /// <param name="str">the str parameter</param>
+    /// <param name="length">the length parameter</param>
+    /// <returns>true on success; otherwise false</returns>
     internal static bool CompareIgnoreCase(byte[] buffer, int pos, string str, int length)
     {
-        for (int i = 0; i < length; ++i)
+        for (var i = 0; i < length; ++i)
         {
-            byte b = buffer[pos + i];
+            var b = buffer[pos + i];
             if (b >= 'A' && b <= 'Z')
+            {
                 b = (byte)(b + ('a' - 'A'));
-            char c = str[i];
-            if (c >= 'A' && c <= 'Z')
+            }
+
+            var c = str[i];
+            if (c is >= 'A' and <= 'Z')
+            {
                 c = (char)(c + ('a' - 'A'));
+            }
 
             if (b != (byte)c)
                 return false;
@@ -399,18 +418,20 @@ public static class CdReader
     }
 
     /* decode a NUL-terminated ASCII string from the buffer (strcmp-style reads) */
-/// <summary>decode a NUL-terminated ASCII string from the buffer (strcmp-style reads)</summary>
-/// <param name="buffer">the buffer holding the data</param>
-/// <param name="offset">the byte offset</param>
-/// <param name="MaxValue">the max value parameter</param>
-/// <returns>the generated value</returns>
+    /// <summary>decode a NUL-terminated ASCII string from the buffer (strcmp-style reads)</summary>
+    /// <param name="buffer">the buffer holding the data</param>
+    /// <param name="offset">the byte offset</param>
+    /// <param name="maxLength">the maximum number of bytes to read</param>
+    /// <returns>the generated value</returns>
     internal static string GetNulTerminatedString(byte[] buffer, int offset, int maxLength = int.MaxValue)
     {
-        int end = offset;
-        int boundedMax = Math.Min(maxLength, buffer.Length);
-        int limit = Math.Min(buffer.Length, offset + boundedMax);
+        var end = offset;
+        var boundedMax = Math.Min(maxLength, buffer.Length);
+        var limit = Math.Min(buffer.Length, offset + boundedMax);
         while (end < limit && buffer[end] != 0)
+        {
             ++end;
+        }
 
         return Encoding.ASCII.GetString(buffer, offset, end - offset);
     }
@@ -429,8 +450,8 @@ public static class CdReader
         public string Mode = "";
         public string Filename = "";
 
-/// <summary>copy from.</summary>
-/// <param name="other">the other parameter</param>
+        /// <summary>copy from.</summary>
+        /// <param name="other">the other parameter</param>
         public void CopyFrom(CueTrack other)
         {
             Id = other.Id;
@@ -445,7 +466,7 @@ public static class CdReader
             Filename = other.Filename;
         }
 
-/// <summary>reset.</summary>
+        /// <summary>reset.</summary>
         public void Reset()
         {
             Id = 0;
@@ -463,17 +484,15 @@ public static class CdReader
 
     private static CdromTrack? OpenCueTrack(string path, uint track, RcHashIterator iterator)
     {
-        object? cueHandle;
         RcHashFilereader filereader = iterator.Callbacks.Filereader;
         CueTrack currentTrack = new();
         CueTrack previousTrack = new();
         CueTrack largestTrack = new();
-        int session = 1;
-        bool done = false;
-        string? binFilename = null;
+        var session = 1;
+        var done = false;
         CdromTrack? cdrom = null;
 
-        cueHandle = filereader.Open!(path);
+        var cueHandle = filereader.Open!(path);
         if (cueHandle == null)
             return null;
 
@@ -481,7 +500,7 @@ public static class CdReader
          * to the start of each unprocessed line; scanning the whole file line by
          * line yields identical tokenization for every line) */
         var allBytes = new List<byte>();
-        byte[] chunk = new byte[1024];
+        var chunk = new byte[1024];
         int numRead;
         do
         {
@@ -489,21 +508,23 @@ public static class CdReader
             if (numRead == 0)
                 break;
 
-            for (int i = 0; i < numRead; ++i)
+            for (var i = 0; i < numRead; ++i)
                 allBytes.Add(chunk[i]);
         } while (numRead == chunk.Length - 1);
 
         if (filereader.Close != null)
             filereader.Close(cueHandle);
 
-        byte[] buffer = allBytes.ToArray();
-        int len = buffer.Length;
-        int pos = 0;
+        byte[] buffer = [.. allBytes];
+        var len = buffer.Length;
+        var pos = 0;
 
         while (pos < len)
         {
             while (pos < len && buffer[pos] == (byte)' ')
+            {
                 ++pos;
+            }
 
             if (pos >= len)
                 break;
@@ -511,20 +532,23 @@ public static class CdReader
             if (StartsWithIgnoreCase(buffer, pos, len, "INDEX "))
             {
                 int m = 0, s = 0, f = 0;
-                int index;
-                int sectorOffset;
 
                 pos += 6;
-                index = Atoi(buffer, ref pos);
+                var index = Atoi(buffer, ref pos);
 
                 while (pos < len && buffer[pos] != (byte)' ' && buffer[pos] != (byte)'\n')
+                {
                     ++pos;
+                }
+
                 while (pos < len && buffer[pos] == (byte)' ')
+                {
                     ++pos;
+                }
 
                 /* convert mm:ss:ff to sector count */
                 ParseMsf(buffer, ref pos, len, ref m, ref s, ref f);
-                sectorOffset = ((m * 60) + s) * 75 + f;
+                var sectorOffset = ((m * 60) + s) * 75 + f;
 
                 if (currentTrack.FirstSector == -1)
                 {
@@ -536,7 +560,7 @@ public static class CdReader
                     }
 
                     /* if looking for the largest data track, determine previous track size */
-                    if (track == ConsoleIds.RC_HASH_CDTRACK_LARGEST && previousTrack.SectorCount > largestTrack.SectorCount &&
+                    if (track == ConsoleIds.RcHashCdtrackLargest && previousTrack.SectorCount > largestTrack.SectorCount &&
                         previousTrack.IsData != 0)
                     {
                         largestTrack.CopyFrom(previousTrack);
@@ -557,14 +581,7 @@ public static class CdReader
                         break;
                     }
 
-                    if (track == ConsoleIds.RC_HASH_CDTRACK_FIRST_DATA && currentTrack.IsData != 0)
-                    {
-                        track = currentTrack.Id;
-                        done = true;
-                        break;
-                    }
-
-                    if (track == ConsoleIds.RC_HASH_CDTRACK_FIRST_OF_SECOND_SESSION && session == 2)
+                    if ((track == ConsoleIds.RcHashCdtrackFirstData && currentTrack.IsData != 0) || (track == ConsoleIds.RcHashCdtrackFirstOfSecondSession && session == 2))
                     {
                         track = currentTrack.Id;
                         done = true;
@@ -584,23 +601,30 @@ public static class CdReader
                 currentTrack.FirstSector = -1;
 
                 while (pos < len && buffer[pos] != (byte)' ')
+                {
                     ++pos;
+                }
+
                 while (pos < len && buffer[pos] == (byte)' ')
+                {
                     ++pos;
+                }
 
                 /* mode is truncated at the first whitespace (the C truncates it when
                  * reporting the track, and only ever compares the leading token) */
-                int modeStart = pos;
+                var modeStart = pos;
                 while (pos < len && !IsSpace(buffer[pos]))
+                {
                     ++pos;
+                }
 
-                string mode = Encoding.ASCII.GetString(buffer, modeStart, pos - modeStart);
+                var mode = Encoding.ASCII.GetString(buffer, modeStart, pos - modeStart);
                 currentTrack.Mode = mode;
                 currentTrack.IsData = StartsWith(mode, "MODE") ? 1 : 0;
 
                 if (currentTrack.IsData != 0)
                 {
-                    int sizePos = modeStart + 6;
+                    var sizePos = modeStart + 6;
                     currentTrack.SectorSize = Atoi(buffer, ref sizePos);
                 }
                 else
@@ -617,13 +641,13 @@ public static class CdReader
 
                     if (previousTrack.SectorCount == 0)
                     {
-                        long binSize = GetBinSize(path, previousTrack.Filename, iterator);
-                        uint fileSectorCount = (uint)(binSize / previousTrack.SectorSize);
+                        var binSize = GetBinSize(path, previousTrack.Filename, iterator);
+                        var fileSectorCount = (uint)(binSize / previousTrack.SectorSize);
                         previousTrack.SectorCount = (int)fileSectorCount - previousTrack.FirstSector;
                     }
 
                     /* if looking for the largest data track, check to see if this one is larger */
-                    if (track == ConsoleIds.RC_HASH_CDTRACK_LARGEST && previousTrack.IsData != 0 &&
+                    if (track == ConsoleIds.RcHashCdtrackLargest && previousTrack.IsData != 0 &&
                         previousTrack.SectorCount > largestTrack.SectorCount)
                     {
                         largestTrack.CopyFrom(previousTrack);
@@ -633,22 +657,28 @@ public static class CdReader
                 currentTrack.Reset();
 
                 currentTrack.FileFirstSector = previousTrack.FileFirstSector +
-                    previousTrack.FirstSector + previousTrack.SectorCount;
+                                               previousTrack.FirstSector + previousTrack.SectorCount;
 
                 pos += 5;
                 if (pos < len && buffer[pos] == (byte)'"')
                 {
                     ++pos;
-                    int fileStart = pos;
+                    var fileStart = pos;
                     while (pos < len && buffer[pos] != (byte)'\n' && buffer[pos] != (byte)'"')
+                    {
                         ++pos;
+                    }
+
                     currentTrack.Filename = Encoding.ASCII.GetString(buffer, fileStart, pos - fileStart);
                 }
                 else
                 {
-                    int fileStart = pos;
+                    var fileStart = pos;
                     while (pos < len && buffer[pos] != (byte)'\n' && buffer[pos] != (byte)' ')
+                    {
                         ++pos;
+                    }
+
                     currentTrack.Filename = Encoding.ASCII.GetString(buffer, fileStart, pos - fileStart);
                 }
             }
@@ -656,44 +686,57 @@ public static class CdReader
             {
                 pos += 4;
                 while (pos < len && buffer[pos] == (byte)' ')
+                {
                     ++pos;
+                }
 
                 if (StartsWithIgnoreCase(buffer, pos, len, "SESSION "))
                 {
                     pos += 8;
                     while (pos < len && buffer[pos] == (byte)' ')
+                    {
                         ++pos;
+                    }
+
                     session = Atoi(buffer, ref pos);
                 }
             }
 
             while (pos < len && buffer[pos] != (byte)'\n')
+            {
                 ++pos;
+            }
+
             if (pos < len)
+            {
                 ++pos;
+            }
         }
 
-        if (track == ConsoleIds.RC_HASH_CDTRACK_LARGEST)
+        switch (track)
         {
-            if (currentTrack.SectorSize != 0 && currentTrack.IsData != 0)
+            case ConsoleIds.RcHashCdtrackLargest:
             {
-                long binSize = GetBinSize(path, currentTrack.Filename, iterator);
-                uint fileSectorCount = (uint)(binSize / currentTrack.SectorSize);
-                currentTrack.SectorCount = (int)fileSectorCount - currentTrack.FirstSector;
+                if (currentTrack.SectorSize != 0 && currentTrack.IsData != 0)
+                {
+                    var binSize = GetBinSize(path, currentTrack.Filename, iterator);
+                    var fileSectorCount = (uint)(binSize / currentTrack.SectorSize);
+                    currentTrack.SectorCount = (int)fileSectorCount - currentTrack.FirstSector;
 
-                if (largestTrack.SectorCount > currentTrack.SectorCount)
+                    if (largestTrack.SectorCount > currentTrack.SectorCount)
+                        currentTrack.CopyFrom(largestTrack);
+                }
+                else
+                {
                     currentTrack.CopyFrom(largestTrack);
-            }
-            else
-            {
-                currentTrack.CopyFrom(largestTrack);
-            }
+                }
 
-            track = currentTrack.Id;
-        }
-        else if (track == ConsoleIds.RC_HASH_CDTRACK_LAST && !done)
-        {
-            track = currentTrack.Id;
+                track = currentTrack.Id;
+                break;
+            }
+            case ConsoleIds.RcHashCdtrackLast when !done:
+                track = currentTrack.Id;
+                break;
         }
 
         if (currentTrack.Id == track)
@@ -703,12 +746,12 @@ public static class CdReader
                 FileReader = filereader,
                 FileTrackOffset = currentTrack.FileTrackOffset,
                 TrackPregapSectors = currentTrack.PregapSectors,
-                TrackFirstSector = (int)(currentTrack.FileFirstSector + currentTrack.FirstSector),
+                TrackFirstSector = (int)(currentTrack.FileFirstSector + currentTrack.FirstSector)
             };
 
             /* verify existance of bin file */
-            binFilename = GetBinPath(path, currentTrack.Filename);
-            if (OpenBin(cdrom, binFilename, currentTrack.Mode, iterator))
+            var binFilename = GetBinPath(path, currentTrack.Filename);
+            if (OpenBin(cdrom, binFilename, currentTrack.Mode))
             {
                 if (cdrom.TrackPregapSectors != 0)
                     HashEngine.IteratorVerboseFormatted(iterator, "Opened track {0} (sector size {1}, {2} pregap sectors)",
@@ -738,31 +781,24 @@ public static class CdReader
     private static CdromTrack? OpenGdiTrack(string path, uint track, RcHashIterator iterator)
     {
         RcHashFilereader filereader = iterator.Callbacks.Filereader;
-        object? fileHandle;
-        string mode = "MODE1/";
-        string sectorSize = "";
-        string file = "";
-        long trackSize;
-        int trackType;
-        string? binPath;
+        var sectorSize = "";
+        var file = "";
         uint currentTrack = 0;
-        int lba = 0;
+        var lba = 0;
 
         uint largestTrack = 0;
         long largestTrackSize = 0;
-        string largestTrackFile = "";
-        string largestTrackSectorSize = "";
-        int largestTrackLba = 0;
+        var largestTrackFile = "";
+        var largestTrackSectorSize = "";
+        var largestTrackLba = 0;
 
-        CdromTrack? cdrom;
-
-        fileHandle = filereader.Open!(path);
+        var fileHandle = filereader.Open!(path);
         if (fileHandle == null)
             return null;
 
         /* read the entire gdi file (same chunk/line reasoning as the cue parser) */
         var allBytes = new List<byte>();
-        byte[] chunk = new byte[1024];
+        var chunk = new byte[1024];
         int numRead;
         do
         {
@@ -770,78 +806,108 @@ public static class CdReader
             if (numRead == 0)
                 break;
 
-            for (int i = 0; i < numRead; ++i)
+            for (var i = 0; i < numRead; ++i)
                 allBytes.Add(chunk[i]);
         } while (numRead == chunk.Length - 1);
 
         if (filereader.Close != null)
             filereader.Close(fileHandle);
 
-        byte[] buffer = allBytes.ToArray();
-        int len = buffer.Length;
-        int pos = 0;
+        byte[] buffer = [.. allBytes];
+        var len = buffer.Length;
+        var pos = 0;
 
         /* the first line contains the number of tracks, so we can get the last track index from it */
-        if (track == ConsoleIds.RC_HASH_CDTRACK_LAST)
+        if (track == ConsoleIds.RcHashCdtrackLast)
+        {
             track = (uint)Atoi(buffer, ref pos);
+        }
 
         /* first line contains the number of tracks and will be skipped */
         while (pos < len)
         {
             /* skip until next newline */
             while (pos < len && buffer[pos] != (byte)'\n')
+            {
                 ++pos;
+            }
 
             /* skip newlines */
             while (pos < len && (buffer[pos] == (byte)'\n' || buffer[pos] == (byte)'\r'))
+            {
                 ++pos;
+            }
 
             /* line format: [trackid] [lba] [type] [sectorsize] [file] [?] */
             while (pos < len && IsSpace(buffer[pos]))
+            {
                 ++pos;
+            }
 
             currentTrack = (uint)Atoi(buffer, ref pos);
-            if (track != 0 && currentTrack != track && track != ConsoleIds.RC_HASH_CDTRACK_FIRST_DATA)
+            if (track != 0 && currentTrack != track && track != ConsoleIds.RcHashCdtrackFirstData)
                 continue;
 
             while (pos < len && IsDigit(buffer[pos]))
+            {
                 ++pos;
+            }
+
             ++pos;
 
             while (pos < len && IsSpace(buffer[pos]))
+            {
                 ++pos;
+            }
 
             lba = Atoi(buffer, ref pos);
             while (pos < len && IsDigit(buffer[pos]))
+            {
                 ++pos;
+            }
+
             ++pos;
 
             while (pos < len && IsSpace(buffer[pos]))
+            {
                 ++pos;
+            }
 
-            trackType = Atoi(buffer, ref pos);
+            var trackType = Atoi(buffer, ref pos);
             while (pos < len && IsDigit(buffer[pos]))
+            {
                 ++pos;
+            }
+
             ++pos;
 
             while (pos < len && IsSpace(buffer[pos]))
+            {
                 ++pos;
+            }
 
-            int sizeStart = pos;
+            var sizeStart = pos;
             while (pos < len && IsDigit(buffer[pos]))
+            {
                 ++pos;
+            }
+
             sectorSize = Encoding.ASCII.GetString(buffer, sizeStart, pos - sizeStart);
             ++pos;
 
             while (pos < len && IsSpace(buffer[pos]))
+            {
                 ++pos;
+            }
 
             if (pos < len && buffer[pos] == (byte)'"')
             {
                 ++pos;
-                int fileStart = pos;
+                var fileStart = pos;
                 while (pos < len && buffer[pos] != (byte)'"')
+                {
                     ++pos;
+                }
 
                 if (pos >= len)
                 {
@@ -854,9 +920,12 @@ public static class CdReader
             }
             else
             {
-                int fileStart = pos;
+                var fileStart = pos;
                 while (pos < len && buffer[pos] != (byte)' ' && buffer[pos] != (byte)'\n')
+                {
                     ++pos;
+                }
+
                 file = Encoding.ASCII.GetString(buffer, fileStart, pos - fileStart);
             }
 
@@ -870,14 +939,14 @@ public static class CdReader
             {
                 break;
             }
-            else if (track == ConsoleIds.RC_HASH_CDTRACK_FIRST_DATA && trackType == 4)
+            else if (track == ConsoleIds.RcHashCdtrackFirstData && trackType == 4)
             {
                 track = currentTrack;
                 break;
             }
-            else if (track == ConsoleIds.RC_HASH_CDTRACK_LARGEST && trackType == 4)
+            else if (track == ConsoleIds.RcHashCdtrackLargest && trackType == 4)
             {
-                trackSize = GetBinSize(path, file, iterator);
+                var trackSize = GetBinSize(path, file, iterator);
                 if (trackSize > largestTrackSize)
                 {
                     largestTrackSize = trackSize;
@@ -889,9 +958,9 @@ public static class CdReader
             }
         }
 
-        cdrom = new CdromTrack
+        var cdrom = new CdromTrack
         {
-            FileReader = filereader,
+            FileReader = filereader
         };
 
         /* if we were tracking the largest track, make it the current track.
@@ -905,10 +974,10 @@ public static class CdReader
         }
 
         /* open the bin file for the track - construct mode parameter from sector_size */
-        mode = "MODE1/" + sectorSize.TrimEnd('"');
+        var mode = "MODE1/" + sectorSize.TrimEnd('"');
 
-        binPath = GetBinPath(path, file);
-        if (OpenBin(cdrom, binPath, mode, iterator))
+        var binPath = GetBinPath(path, file);
+        if (OpenBin(cdrom, binPath, mode))
         {
             cdrom.TrackPregapSectors = 0;
             cdrom.TrackFirstSector = lba;
@@ -946,7 +1015,9 @@ public static class CdReader
     {
         /* backwards compatibility - 0 used to mean largest */
         if (track == 0)
-            track = ConsoleIds.RC_HASH_CDTRACK_LARGEST;
+        {
+            track = ConsoleIds.RcHashCdtrackLargest;
+        }
 
         if (HashEngine.PathCompareExtension(path, "cue") != 0)
             return OpenCueTrack(path, track, iterator);
@@ -959,10 +1030,9 @@ public static class CdReader
     /* cdreader_read_sector */
     private static int ReadSector(object? trackHandle, uint sector, byte[] buffer, int requestedBytes)
     {
-        long sectorStart;
         int numRead;
-        int totalRead = 0;
-        int bufferPtr = 0;
+        var totalRead = 0;
+        var bufferPtr = 0;
 
         var cdrom = (CdromTrack?)trackHandle;
         if (cdrom == null)
@@ -971,17 +1041,17 @@ public static class CdReader
         if (sector < (uint)cdrom.TrackFirstSector)
             return 0;
 
-        sectorStart = (long)(sector - cdrom.TrackFirstSector) * cdrom.SectorSize +
-            cdrom.SectorHeaderSize + cdrom.FileTrackOffset;
+        var sectorStart = (sector - cdrom.TrackFirstSector) * cdrom.SectorSize +
+                          cdrom.SectorHeaderSize + cdrom.FileTrackOffset;
 
         /* the filereader interface writes at the start of the destination buffer,
          * so read into a scratch buffer and copy to the requested offset (the C
          * writes directly at buffer_ptr) */
-        byte[] temp = new byte[cdrom.RawDataSize];
+        var temp = new byte[cdrom.RawDataSize];
 
         while (requestedBytes > cdrom.RawDataSize)
         {
-            cdrom.FileReader!.Seek!(cdrom.FileHandle!, sectorStart, HashEngine.SEEK_SET);
+            cdrom.FileReader!.Seek!(cdrom.FileHandle!, sectorStart, HashEngine.SeekSet);
             numRead = cdrom.FileReader.Read!(cdrom.FileHandle!, temp, cdrom.RawDataSize);
             Array.Copy(temp, 0, buffer, bufferPtr, numRead);
             totalRead += numRead;
@@ -994,7 +1064,7 @@ public static class CdReader
             requestedBytes -= cdrom.RawDataSize;
         }
 
-        cdrom.FileReader!.Seek!(cdrom.FileHandle!, sectorStart, HashEngine.SEEK_SET);
+        cdrom.FileReader!.Seek!(cdrom.FileHandle!, sectorStart, HashEngine.SeekSet);
         numRead = cdrom.FileReader.Read!(cdrom.FileHandle!, temp, requestedBytes);
         Array.Copy(temp, 0, buffer, bufferPtr, numRead);
         totalRead += numRead;
@@ -1024,8 +1094,8 @@ public static class CdReader
     }
 
     /* rc_hash_get_default_cdreader */
-/// <summary>rc_hash_get_default_cdreader</summary>
-/// <param name="cdreader">the cdreader parameter</param>
+    /// <summary>rc_hash_get_default_cdreader</summary>
+    /// <param name="cdreader">the cdreader parameter</param>
     public static void GetDefaultCdreader(RcHashCdreader cdreader)
     {
         cdreader.OpenTrack = null;

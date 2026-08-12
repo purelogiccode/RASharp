@@ -36,11 +36,11 @@ public sealed class FileSystemResolver : IDisposable
 
     /* resolve a path to the first extent of the file, like
      * rc_cd_find_file_sector's (sector, size) out params */
-/// <summary>resolve a path to the first extent of the file, like rc_cd_find_file_sector's (sector, size) out params</summary>
-/// <param name="path">the file path</param>
-/// <param name="lba">the lba parameter</param>
-/// <param name="size">the size</param>
-/// <returns>true on success; otherwise false</returns>
+    /// <summary>resolve a path to the first extent of the file, like rc_cd_find_file_sector's (sector, size) out params</summary>
+    /// <param name="path">the file path</param>
+    /// <param name="lba">the lba parameter</param>
+    /// <param name="size">the size</param>
+    /// <returns>true on success; otherwise false</returns>
     public bool TryResolve(string path, out uint lba, out ulong size)
     {
         lba = 0;
@@ -55,19 +55,21 @@ public sealed class FileSystemResolver : IDisposable
         return true;
     }
 
-/// <summary>find.</summary>
-/// <param name="path">the file path</param>
-/// <returns>the result</returns>
+    /// <summary>find.</summary>
+    /// <param name="path">the file path</param>
+    /// <returns>the result</returns>
     public FileEntry? Find(string path)
     {
-        string normalized = path.Replace('/', '\\');
+        var normalized = path.Replace('/', '\\');
         if (normalized.Length == 0 || normalized[0] != '\\')
+        {
             normalized = "\\" + normalized;
+        }
 
         return _container.FindFile(normalized);
     }
 
-/// <summary>Releases the mounted filesystem.</summary>
+    /// <summary>Releases the mounted filesystem.</summary>
     public void Dispose()
     {
         _container.Dispose();

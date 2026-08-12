@@ -4,15 +4,16 @@
 // (keyX/keyY slots), key normalization (ROL/XOR/ADD with the generator
 // constant), seeddb.bin lookups, and SHA-256 seed mixing.
 
+using System.Globalization;
 using System.Security.Cryptography;
 using Serilog;
 
 namespace RASharp.Core;
 
 /// <summary>Hash3DS — 3DS key retrieval for the encryption callbacks. Behavior parity with RALibretro RAHasher's Hash3DS.cpp (GPL, used as reference only — this is a new im</summary>
-public static class Hash3DS
+public static class Hash3Ds
 {
-    private static string g_systemDir = ".";
+    private static string _gSystemDir = ".";
 
     /* the "have" flags in Hash3DS.cpp are the first byte of each key */
     private static bool KeyIsPresent(byte[] key)
@@ -25,23 +26,25 @@ public static class Hash3DS
     private static void Read128BitHex(string hex, byte[] key)
     {
         if (hex.Length < 32)
-            hex = hex + new string('0', 32 - hex.Length);
-
-        for (int index = 0; index < 16; ++index)
         {
-            string pair = hex.Substring(index * 2, 2);
-            key[index] = (byte)(int.TryParse(pair, System.Globalization.NumberStyles.HexNumber, null, out int value) ? value : 0);
+            hex += new string('0', 32 - hex.Length);
+        }
+
+        for (var index = 0; index < 16; ++index)
+        {
+            var pair = hex.Substring(index * 2, 2);
+            key[index] = (byte)(int.TryParse(pair, NumberStyles.HexNumber, null, out var value) ? value : 0);
         }
     }
 
     /* rhash_rol_128bit */
     private static void Rol128Bit(byte[] key, int amount)
     {
-        byte[] copy = (byte[])key.Clone();
-        int offset = amount / 8;
-        int shift = amount % 8;
+        var copy = (byte[])key.Clone();
+        var offset = amount / 8;
+        var shift = amount % 8;
 
-        for (int index = 0; index < 16; ++index)
+        for (var index = 0; index < 16; ++index)
         {
             key[index] = (byte)(copy[offset] << shift);
             offset = (offset + 1) % 16;
@@ -52,15 +55,17 @@ public static class Hash3DS
     /* rhash_xor_128bit */
     private static void Xor128Bit(byte[] key, byte[] value)
     {
-        for (int index = 0; index < 16; ++index)
+        for (var index = 0; index < 16; ++index)
+        {
             key[index] ^= value[index];
+        }
     }
 
     /* rhash_add_128bit */
     private static void Add128Bit(byte[] key, byte[] value)
     {
         ushort carry = 0;
-        for (int index = 15; index >= 0; --index)
+        for (var index = 15; index >= 0; --index)
         {
             carry += (ushort)(key[index] + value[index]);
             key[index] = (byte)(carry & 0xFF);
@@ -74,10 +79,10 @@ public static class Hash3DS
         if (KeyIsPresent(keyX) && KeyIsPresent(keyY))
         {
             byte[] generatorConstant =
-            {
+            [
                 0x1F, 0xF9, 0xE9, 0xAA, 0xC5, 0xFE, 0x04, 0x08,
                 0x02, 0x45, 0x91, 0xDC, 0x5D, 0x52, 0x76, 0x8A
-            };
+            ];
 
             Array.Copy(keyX, 0, keyN, 0, 16);
             Rol128Bit(keyN, 2);
@@ -94,22 +99,22 @@ public static class Hash3DS
     private static int LookupCiaNormalKey(byte index, byte[] key)
     {
         string[] lines;
-        string scan = "common" + index + "=";
-        byte[] keyX = new byte[16];
-        byte[] keyY = new byte[16];
+        var scan = "common" + index + "=";
+        var keyX = new byte[16];
+        var keyY = new byte[16];
 
         try
         {
-            lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(g_systemDir, "aes_keys.txt"));
+            lines = File.ReadAllLines(Path.Combine(_gSystemDir, "aes_keys.txt"));
         }
         catch (Exception ex)
         {
-            Log.Debug(ex, "Could not open aes_keys.txt in {SystemDir}", g_systemDir);
+            Log.Debug(ex, "Could not open aes_keys.txt in {SystemDir}", _gSystemDir);
             CallError("Could not open aes_keys.txt");
             return 0;
         }
 
-        foreach (string line in lines)
+        foreach (var line in lines)
         {
             if (line.StartsWith(scan, StringComparison.Ordinal))
             {
@@ -132,23 +137,23 @@ public static class Hash3DS
     private static int LookupNcchNormalKey(byte[] primaryKeyY, byte secondaryKeyXSlot, byte[]? programId, byte[] primaryKeyOut, byte[] secondaryKeyOut)
     {
         string[] lines;
-        string scan = string.Format("slot0x{0:X2}KeyX=", secondaryKeyXSlot);
-        byte[] primaryKeyX = new byte[16];
-        byte[] secondaryKeyX = new byte[16];
-        byte[] secondaryKeyY = new byte[16];
+        var scan = $"slot0x{secondaryKeyXSlot:X2}KeyX=";
+        var primaryKeyX = new byte[16];
+        var secondaryKeyX = new byte[16];
+        var secondaryKeyY = new byte[16];
 
         try
         {
-            lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(g_systemDir, "aes_keys.txt"));
+            lines = File.ReadAllLines(Path.Combine(_gSystemDir, "aes_keys.txt"));
         }
         catch (Exception ex)
         {
-            Log.Debug(ex, "Could not open aes_keys.txt in {SystemDir}", g_systemDir);
+            Log.Debug(ex, "Could not open aes_keys.txt in {SystemDir}", _gSystemDir);
             CallError("Could not open aes_keys.txt");
             return 0;
         }
 
-        foreach (string line in lines)
+        foreach (var line in lines)
         {
             if (line.StartsWith("slot0x2CKeyX=", StringComparison.Ordinal))
             {
@@ -179,18 +184,17 @@ public static class Hash3DS
         }
         else
         {
-            uint count;
-            byte[] buffer = new byte[8];
+            var buffer = new byte[8];
 
             /* find the seed for the programId */
             byte[]? seeddb;
             try
             {
-                seeddb = System.IO.File.ReadAllBytes(System.IO.Path.Combine(g_systemDir, "seeddb.bin"));
+                seeddb = File.ReadAllBytes(Path.Combine(_gSystemDir, "seeddb.bin"));
             }
             catch (Exception ex)
             {
-                Log.Debug(ex, "Could not open seeddb.bin in {SystemDir}", g_systemDir);
+                Log.Debug(ex, "Could not open seeddb.bin in {SystemDir}", _gSystemDir);
                 CallError("Could not open seeddb.bin");
                 return 0;
             }
@@ -198,11 +202,11 @@ public static class Hash3DS
             /* seeddb.bin's layout is simply the first 4 bytes indicate the amount of seeds in the
              * file, followed by 12 bytes of padding. Then a collection of seeds in the format of
              * 8 bytes for the program id, then 16 bytes for the seed, then 8 bytes of padding */
-            bool found = false;
+            var found = false;
             if (seeddb.Length >= 4 + 12)
             {
-                count = (uint)(seeddb[0] | (seeddb[1] << 8) | (seeddb[2] << 16) | (seeddb[3] << 24));
-                int pos = 4 + 12;
+                var count = (uint)(seeddb[0] | (seeddb[1] << 8) | (seeddb[2] << 16) | (seeddb[3] << 24));
+                var pos = 4 + 12;
 
                 for (; count > 0 && !found; count--)
                 {
@@ -226,7 +230,7 @@ public static class Hash3DS
 
             /* the actual secondaryKeyY used to generate the normalized key is the first 16 bytes
              * of the SHA256 of the primaryKeyY and the seed pulled from seeddb.bin */
-            byte[] digest = SHA256.HashData(Concat(primaryKeyY, secondaryKeyY));
+            var digest = SHA256.HashData(Concat(primaryKeyY, secondaryKeyY));
             Array.Copy(digest, 0, secondaryKeyY, 0, secondaryKeyY.Length);
         }
 
@@ -238,7 +242,7 @@ public static class Hash3DS
 
     private static byte[] Concat(byte[] a, byte[] b)
     {
-        byte[] result = new byte[a.Length + b.Length];
+        var result = new byte[a.Length + b.Length];
         Array.Copy(a, 0, result, 0, a.Length);
         Array.Copy(b, 0, result, a.Length, b.Length);
         return result;
@@ -246,7 +250,7 @@ public static class Hash3DS
 
     private static bool MemEquals(byte[] a, byte[] b, int length)
     {
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
             if (a[i] != b[i])
                 return false;
@@ -262,11 +266,11 @@ public static class Hash3DS
     }
 
     /* initHash3DS */
-/// <summary>initHash3DS</summary>
-/// <param name="systemDir">the system dir parameter</param>
-    public static void InitHash3DS(string systemDir)
+    /// <summary>initHash3DS</summary>
+    /// <param name="systemDir">the system dir parameter</param>
+    public static void InitHash3Ds(string systemDir)
     {
-        g_systemDir = systemDir;
+        _gSystemDir = systemDir;
 
         HashEngine.HashInit3DsGetCiaNormalKeyFunc(LookupCiaNormalKey);
         HashEngine.HashInit3DsGetNcchNormalKeysFunc(LookupNcchNormalKey);

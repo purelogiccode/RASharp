@@ -23,7 +23,7 @@ internal static class Constants
 
     private static string Decode(string value)
     {
-        string once = Encoding.UTF8.GetString(Convert.FromBase64String(value));
+        var once = Encoding.UTF8.GetString(Convert.FromBase64String(value));
         return Encoding.UTF8.GetString(Convert.FromBase64String(once));
     }
 }

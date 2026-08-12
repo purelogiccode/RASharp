@@ -5,10 +5,11 @@
 // record hashing in byte-sorted order. Also rc_hash_arduboyfx and
 // rc_hash_ms_dos (DOSZ/DOSC/parent).
 
+using System.Text;
+using RASharp.Core.Models;
+
 namespace RASharp.Core;
 
-
-using RASharp.Core.Models;
 /// <summary>HashZip — port of rcheevos hash_zip.c (MIT). Byte-level ZIP parsing (no System.IO.Compression) to reproduce the exact hash semantics: EOCD scan, Zip64 handling,</summary>
 public static class HashZip
 {
@@ -33,7 +34,7 @@ public static class HashZip
 
     private static ulong ReadLe64(byte[] p, int o)
     {
-        return (ulong)ReadLe32(p, o) | ((ulong)ReadLe32(p, o + 4) << 32);
+        return ReadLe32(p, o) | ((ulong)ReadLe32(p, o + 4) << 32);
     }
 
     private static void WriteLe32(byte[] p, int o, uint v)
@@ -53,8 +54,8 @@ public static class HashZip
     /* rc_hash_zip_idx_sort — memcmp over the shorter record */
     private static int ZipIdxCompare(ZipIdx a, ZipIdx b)
     {
-        int len = Math.Min(a.Data.Length, b.Data.Length);
-        for (int i = 0; i < len; i++)
+        var len = Math.Min(a.Data.Length, b.Data.Length);
+        for (var i = 0; i < len; i++)
         {
             if (a.Data[i] != b.Data[i])
                 return a.Data[i] < b.Data[i] ? -1 : 1;
@@ -66,31 +67,34 @@ public static class HashZip
     /* rc_hash_zip_file */
     private static int ZipFileHash(HashMd5 md5, object fileHandle, RcHashIterator iterator, ZipFilterFunc? filterFunc, object? filterUserdata)
     {
-        byte[] buf = new byte[2048];
-        byte[] allocBuf;
-        long archiveSize, ecdhOfs;
-        long totalFiles, cdirSize, cdirOfs;
-        int eocdirhdrSize = 22; /* the 'end of central directory header' is 22 bytes */
-        int cdirhdrSize = 46; /* the 'central directory header' is 46 bytes */
+        var buf = new byte[2048];
+        long ecdhOfs;
+        const int eocdirhdrSize = 22; /* the 'end of central directory header' is 22 bytes */
+        const int cdirhdrSize = 46; /* the 'central directory header' is 46 bytes */
         var hashindices = new List<ZipIdx>();
 
-        HashEngine.FileSeek(iterator, fileHandle, 0, HashEngine.SEEK_END);
-        archiveSize = HashEngine.FileTell(iterator, fileHandle);
+        HashEngine.FileSeek(iterator, fileHandle, 0, HashEngine.SeekEnd);
+        var archiveSize = HashEngine.FileTell(iterator, fileHandle);
 
         /* Basic sanity checks - reject files which are too small */
         if (archiveSize < eocdirhdrSize)
             return HashEngine.IteratorError(iterator, "ZIP is too small");
 
         /* Find the end of central directory record by scanning the file from the end towards the beginning */
-        for (ecdhOfs = archiveSize - buf.Length; ; ecdhOfs -= (buf.Length - 3))
+        for (ecdhOfs = archiveSize - buf.Length;; ecdhOfs -= (buf.Length - 3))
         {
             int i, n = buf.Length;
             if (ecdhOfs < 0)
+            {
                 ecdhOfs = 0;
-            if (n > archiveSize)
-                n = (int)archiveSize;
+            }
 
-            HashEngine.FileSeek(iterator, fileHandle, ecdhOfs, HashEngine.SEEK_SET);
+            if (n > archiveSize)
+            {
+                n = (int)archiveSize;
+            }
+
+            HashEngine.FileSeek(iterator, fileHandle, ecdhOfs, HashEngine.SeekSet);
             if (HashEngine.FileRead(iterator, fileHandle, buf, n) != n)
                 return HashEngine.IteratorError(iterator, "ZIP read error");
 
@@ -111,14 +115,14 @@ public static class HashZip
         }
 
         /* Read and verify the end of central directory record. */
-        HashEngine.FileSeek(iterator, fileHandle, ecdhOfs, HashEngine.SEEK_SET);
+        HashEngine.FileSeek(iterator, fileHandle, ecdhOfs, HashEngine.SeekSet);
         if (HashEngine.FileRead(iterator, fileHandle, buf, eocdirhdrSize) != eocdirhdrSize)
             return HashEngine.IteratorError(iterator, "Failed to read ZIP central directory");
 
         /* Read central dir information from end of central directory header */
-        totalFiles = ReadLe16(buf, 0x0A);
-        cdirSize = ReadLe32(buf, 0x0C);
-        cdirOfs = ReadLe32(buf, 0x10);
+        long totalFiles = ReadLe16(buf, 0x0A);
+        long cdirSize = ReadLe32(buf, 0x0C);
+        long cdirOfs = ReadLe32(buf, 0x10);
 
         /* Check if this is a Zip64 file. In the block of code below:
          * - 20 is the size of the ZIP64 end of central directory locator
@@ -127,14 +131,14 @@ public static class HashZip
         if ((cdirOfs == 0xFFFFFFFF || cdirSize == 0xFFFFFFFF || totalFiles == 0xFFFF) && ecdhOfs >= (20 + 56))
         {
             /* Read the ZIP64 end of central directory locator if it actually exists */
-            HashEngine.FileSeek(iterator, fileHandle, ecdhOfs - 20, HashEngine.SEEK_SET);
+            HashEngine.FileSeek(iterator, fileHandle, ecdhOfs - 20, HashEngine.SeekSet);
             if (HashEngine.FileRead(iterator, fileHandle, buf, 20) == 20 && ReadLe32(buf, 0) == 0x07064b50) /* locator signature */
             {
                 /* Found the locator, now read the actual ZIP64 end of central directory header */
-                long ecdh64Ofs = (long)ReadLe64(buf, 0x08);
+                var ecdh64Ofs = (long)ReadLe64(buf, 0x08);
                 if (ecdh64Ofs <= (archiveSize - 56))
                 {
-                    HashEngine.FileSeek(iterator, fileHandle, ecdh64Ofs, HashEngine.SEEK_SET);
+                    HashEngine.FileSeek(iterator, fileHandle, ecdh64Ofs, HashEngine.SeekSet);
                     if (HashEngine.FileRead(iterator, fileHandle, buf, 56) == 56 && ReadLe32(buf, 0) == 0x06064b50) /* header signature */
                     {
                         totalFiles = (long)ReadLe64(buf, 0x20);
@@ -150,22 +154,22 @@ public static class HashZip
             return HashEngine.IteratorError(iterator, "Central directory of ZIP file is invalid");
 
         /* Read entire central directory to a buffer */
-        allocBuf = new byte[(int)cdirSize];
+        var allocBuf = new byte[(int)cdirSize];
 
-        HashEngine.FileSeek(iterator, fileHandle, cdirOfs, HashEngine.SEEK_SET);
+        HashEngine.FileSeek(iterator, fileHandle, cdirOfs, HashEngine.SeekSet);
         if (HashEngine.FileRead(iterator, fileHandle, allocBuf, (int)cdirSize) != cdirSize)
             return HashEngine.IteratorError(iterator, "Failed to read central directory of ZIP file");
 
-        int cdirMax = (int)(cdirSize - cdirhdrSize);
-        int cdir = 0;
-        int cdirEntryLen = 0;
+        var cdirMax = (int)(cdirSize - cdirhdrSize);
+        var cdir = 0;
+        int cdirEntryLen;
 
         /* Now process the central directory file records */
         for (long iFile = 0; cdir >= 0 && cdir <= cdirMax && iFile < totalFiles; iFile++, cdir += cdirEntryLen)
         {
-            uint signature = ReadLe32(allocBuf, cdir + 0x00);
+            var signature = ReadLe32(allocBuf, cdir + 0x00);
             uint method = ReadLe16(allocBuf, cdir + 0x0A);
-            uint crc32 = ReadLe32(allocBuf, cdir + 0x10);
+            var crc32 = ReadLe32(allocBuf, cdir + 0x10);
             ulong compSize = ReadLe32(allocBuf, cdir + 0x14);
             ulong decompSize = ReadLe32(allocBuf, cdir + 0x18);
             uint filenameLen = ReadLe16(allocBuf, cdir + 0x1C);
@@ -179,7 +183,7 @@ public static class HashZip
                 break;
 
             /* Ignore records describing a directory (we only hash file records) */
-            byte[] name = new byte[filenameLen];
+            var name = new byte[filenameLen];
             Array.Copy(allocBuf, cdir + cdirhdrSize, name, 0, filenameLen);
             if (filenameLen == 0 || name[filenameLen - 1] == (byte)'/' || name[filenameLen - 1] == (byte)'\\' || (externalAttr & 0x10) != 0)
                 continue;
@@ -187,13 +191,13 @@ public static class HashZip
             /* Handle Zip64 fields */
             if (decompSize == 0xFFFFFFFF || compSize == 0xFFFFFFFF || localHdrOfs == 0xFFFFFFFF)
             {
-                bool invalid = false;
-                int x = cdir + cdirhdrSize + (int)filenameLen;
-                int xEnd = x + extraLen;
+                var invalid = false;
+                var x = cdir + cdirhdrSize + (int)filenameLen;
+                var xEnd = x + extraLen;
                 while ((x + 4) < xEnd)
                 {
-                    int field = x + 4;
-                    int fieldEnd = field + ReadLe16(allocBuf, x + 2);
+                    var field = x + 4;
+                    var fieldEnd = field + ReadLe16(allocBuf, x + 2);
                     if (ReadLe16(allocBuf, x) != 0x0001 || fieldEnd > xEnd)
                     {
                         x = fieldEnd;
@@ -233,7 +237,6 @@ public static class HashZip
                         }
 
                         localHdrOfs = ReadLe64(allocBuf, field);
-                        field += 8;
                     }
 
                     break;
@@ -251,7 +254,7 @@ public static class HashZip
 
             if (filterFunc != null)
             {
-                int filtered = filterFunc(name, (int)filenameLen, decompSize, filterUserdata);
+                var filtered = filterFunc(name, (int)filenameLen, decompSize, filterUserdata);
                 if (filtered < 0)
                     return 0;
 
@@ -264,17 +267,20 @@ public static class HashZip
             hashindices.Add(hashindex);
 
             HashEngine.IteratorVerboseFormatted(iterator, "File in ZIP: {0} ({1} bytes, CRC32 = {2:X8})",
-                System.Text.Encoding.ASCII.GetString(name, 0, (int)filenameLen), decompSize, crc32);
+                Encoding.ASCII.GetString(name, 0, (int)filenameLen), decompSize, crc32);
 
             /* Convert and store the file name in the hash data buffer */
-            int hashdata = 0;
-            for (int i = 0; i < filenameLen; i++)
+            var hashdata = 0;
+            for (var i = 0; i < filenameLen; i++)
             {
-                byte ch = name[i];
+                var ch = name[i];
                 hashindex.Data[hashdata++] =
-                    (ch == (byte)'\\' ? (byte)'/' : /* convert back-slashes to regular slashes */
-                        (ch >= (byte)'A' && ch <= (byte)'Z') ? (byte)(ch | 0x20) : /* convert upper case letters to lower case */
-                        ch); /* else use the byte as-is */
+                    (ch switch
+                    {
+                        (byte)'\\' => (byte)'/',
+                        >= (byte)'A' and <= (byte)'Z' => (byte)(ch | 0x20),
+                        _ => ch
+                    }); /* else use the byte as-is */
             }
 
             /* Add zero terminator, CRC32 and decompressed size to the hash data buffer */
@@ -282,7 +288,6 @@ public static class HashZip
             WriteLe32(hashindex.Data, hashdata, crc32);
             hashdata += 4;
             WriteLe64(hashindex.Data, hashdata, decompSize);
-            hashdata += 8;
         }
 
         HashEngine.IteratorVerboseFormatted(iterator, "Hashing {0} files in ZIP archive", hashindices.Count);
@@ -315,20 +320,20 @@ public static class HashZip
     }
 
     /* rc_hash_arduboyfx */
-/// <summary>rc_hash_arduboyfx</summary>
-/// <param name="hash">the generated 32-char hash</param>
-/// <param name="iterator">the hash iterator</param>
-/// <returns>the result</returns>
+    /// <summary>rc_hash_arduboyfx</summary>
+    /// <param name="hash">the generated 32-char hash</param>
+    /// <param name="iterator">the hash iterator</param>
+    /// <returns>the result</returns>
     public static int RcHashArduboyFx(out string hash, RcHashIterator iterator)
     {
         hash = "";
         var md5 = new HashMd5();
 
-        object? fileHandle = HashEngine.FileOpen(iterator, iterator.Path!);
+        var fileHandle = HashEngine.FileOpen(iterator, iterator.Path!);
         if (fileHandle == null)
             return HashEngine.IteratorError(iterator, "Could not open file");
 
-        int res = ZipFileHash(md5, fileHandle, iterator, ArduboyFxFilter, null);
+        var res = ZipFileHash(md5, fileHandle, iterator, ArduboyFxFilter, null);
         HashEngine.FileClose(iterator, fileHandle);
 
         if (res == 0)
@@ -350,11 +355,11 @@ public static class HashZip
 
     private static int MsDosParent(MsDosDoszState child, byte[] parentname, int parentnameLen)
     {
-        int lastfslash = child.Path.LastIndexOf('/');
-        int lastbslash = child.Path.LastIndexOf('\\');
-        int lastslash = Math.Max(lastfslash, lastbslash);
-        int dirLen = (lastslash >= 0 ? lastslash + 1 : 0);
-        string parentPath = child.Path.Substring(0, dirLen) + System.Text.Encoding.ASCII.GetString(parentname, 0, parentnameLen);
+        var lastfslash = child.Path.LastIndexOf('/');
+        var lastbslash = child.Path.LastIndexOf('\\');
+        var lastslash = Math.Max(lastfslash, lastbslash);
+        var dirLen = (lastslash >= 0 ? lastslash + 1 : 0);
+        var parentPath = child.Path.Substring(0, dirLen) + Encoding.ASCII.GetString(parentname, 0, parentnameLen);
 
         /* Make sure there is no recursion where a parent DOSZ is an already seen child DOSZ */
         for (MsDosDoszState? check = child.Child; check != null; check = check.Child)
@@ -364,7 +369,7 @@ public static class HashZip
         }
 
         /* Try to open the parent DOSZ file */
-        object? parentHandle = HashEngine.FileOpen(child.Iterator!, parentPath);
+        var parentHandle = HashEngine.FileOpen(child.Iterator!, parentPath);
         if (parentHandle == null)
         {
             HashEngine.IteratorErrorFormatted(child.Iterator!, "DOSZ parent file '{0}' does not exist", parentPath);
@@ -379,28 +384,28 @@ public static class HashZip
             Md5 = child.Md5,
             Iterator = child.Iterator,
             FileHandle = parentHandle,
-            NParents = child.NParents,
+            NParents = child.NParents
         };
-        int parentRes = RcHashDosz(parent);
+        var parentRes = RcHashDosz(parent);
         HashEngine.FileClose(child.Iterator!, parentHandle);
         return parentRes;
     }
 
     private static int MsDosDosc(MsDosDoszState dosz)
     {
-        int pathLen = dosz.Path.Length;
+        var pathLen = dosz.Path.Length;
         if (dosz.Path[pathLen - 1] == 'z' || dosz.Path[pathLen - 1] == 'Z')
         {
             /* Swap the z to c and use the same capitalization, hash the file if it exists */
-            char[] doscPathChars = dosz.Path.ToCharArray();
+            var doscPathChars = dosz.Path.ToCharArray();
             doscPathChars[pathLen - 1] = (dosz.Path[pathLen - 1] == 'z' ? 'c' : 'C');
-            string doscPath = new string(doscPathChars);
+            var doscPath = new string(doscPathChars);
 
-            object? fileHandle = HashEngine.FileOpen(dosz.Iterator!, doscPath);
+            var fileHandle = HashEngine.FileOpen(dosz.Iterator!, doscPath);
             if (fileHandle != null)
             {
                 /* Hash the entire contents of the DOSC file */
-                int res = ZipFileHash(dosz.Md5!, fileHandle, dosz.Iterator!, null, null);
+                var res = ZipFileHash(dosz.Md5!, fileHandle, dosz.Iterator!, null, null);
                 HashEngine.FileClose(dosz.Iterator!, fileHandle);
                 if (res == 0)
                     return 0;
@@ -429,7 +434,7 @@ public static class HashZip
                 return -1;
 
             /* process the parent. if it fails, stop */
-            byte[] parentname = new byte[filenameLen - 7];
+            var parentname = new byte[filenameLen - 7];
             Array.Copy(filename, 0, parentname, 0, filenameLen - 7);
             if (MsDosParent(dosz, parentname, filenameLen - 7) == 0)
                 return -1;
@@ -443,7 +448,7 @@ public static class HashZip
 
     private static bool ContainsChar(byte[] buffer, int length, byte ch)
     {
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
             if (buffer[i] == ch)
                 return true;
@@ -470,16 +475,16 @@ public static class HashZip
     }
 
     /* rc_hash_ms_dos */
-/// <summary>rc_hash_ms_dos</summary>
-/// <param name="hash">the generated 32-char hash</param>
-/// <param name="iterator">the hash iterator</param>
-/// <returns>the result</returns>
+    /// <summary>rc_hash_ms_dos</summary>
+    /// <param name="hash">the generated 32-char hash</param>
+    /// <param name="iterator">the hash iterator</param>
+    /// <returns>the result</returns>
     public static int RcHashMsDos(out string hash, RcHashIterator iterator)
     {
         hash = "";
         var md5 = new HashMd5();
 
-        object? fileHandle = HashEngine.FileOpen(iterator, iterator.Path!);
+        var fileHandle = HashEngine.FileOpen(iterator, iterator.Path!);
         if (fileHandle == null)
             return HashEngine.IteratorError(iterator, "Could not open file");
 
@@ -488,10 +493,10 @@ public static class HashZip
             Path = iterator.Path!,
             FileHandle = fileHandle,
             Iterator = iterator,
-            Md5 = md5,
+            Md5 = md5
         };
 
-        int res = RcHashDosz(dosz);
+        var res = RcHashDosz(dosz);
         HashEngine.FileClose(iterator, fileHandle);
 
         if (res == 0)

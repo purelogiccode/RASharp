@@ -5,18 +5,17 @@
 // helper behaviors) are preserved.
 
 using System.IO.Compression;
+using Serilog;
 
 namespace RASharp.Core;
-
-using Serilog;
 
 /// <summary>New implementation, behavior parity with RALibretro RAHasher (GPL-3.0, used as reference only) — the used subset of src/Util.cpp. C# provides unicode-safe file </summary>
 public static class FileUtil
 {
     /* util::fullPath — absolute path (_wfullpath semantics) */
-/// <summary>util::fullPath — absolute path (_wfullpath semantics)</summary>
-/// <param name="path">the file path</param>
-/// <returns>the generated value</returns>
+    /// <summary>util::fullPath — absolute path (_wfullpath semantics)</summary>
+    /// <param name="path">the file path</param>
+    /// <returns>the generated value</returns>
     public static string FullPath(string path)
     {
         try
@@ -31,59 +30,63 @@ public static class FileUtil
     }
 
     /* util::fileNameWithExtension — text after the last '/' or '\' */
-/// <summary>util::fileNameWithExtension — text after the last '/' or '\'</summary>
-/// <param name="path">the file path</param>
-/// <returns>the generated value</returns>
+    /// <summary>util::fileNameWithExtension — text after the last '/' or '\'</summary>
+    /// <param name="path">the file path</param>
+    /// <returns>the generated value</returns>
     public static string FileNameWithExtension(string path)
     {
-        int name = path.LastIndexOf('/');
-        int bs = path.LastIndexOf('\\');
+        var name = path.LastIndexOf('/');
+        var bs = path.LastIndexOf('\\');
         if (bs > name)
+        {
             name = bs;
+        }
 
         return path.Substring(name + 1);
     }
 
     /* util::fileName — fileNameWithExtension without the last extension */
-/// <summary>util::fileName — fileNameWithExtension without the last extension</summary>
-/// <param name="path">the file path</param>
-/// <returns>the generated value</returns>
+    /// <summary>util::fileName — fileNameWithExtension without the last extension</summary>
+    /// <param name="path">the file path</param>
+    /// <returns>the generated value</returns>
     public static string FileName(string path)
     {
-        string filename = FileNameWithExtension(path);
-        int ndx = filename.LastIndexOf('.');
+        var filename = FileNameWithExtension(path);
+        var ndx = filename.LastIndexOf('.');
         if (ndx >= 0)
+        {
             filename = filename.Substring(0, ndx);
+        }
 
         return filename;
     }
 
     /* util::extension — text from the last '.' to the end, e.g. ".zip"; "" if none */
-/// <summary>util::extension — text from the last '.' to the end, e.g. ".zip"; "" if none</summary>
-/// <param name="path">the file path</param>
-/// <returns>the generated value</returns>
+    /// <summary>util::extension — text from the last '.' to the end, e.g. ".zip"; "" if none</summary>
+    /// <param name="path">the file path</param>
+    /// <returns>the generated value</returns>
     public static string Extension(string path)
     {
-        int dot = path.LastIndexOf('.');
+        var dot = path.LastIndexOf('.');
         return dot < 0 ? "" : path.Substring(dot);
     }
 
     /* util::directory — Windows: strip everything from the last '\' (inclusive);
      * if there is no '\', return the input unchanged */
-/// <summary>util::directory — Windows: strip everything from the last '\' (inclusive); if there is no '\', return the input unchanged</summary>
-/// <param name="path">the file path</param>
-/// <returns>the generated value</returns>
+    /// <summary>util::directory — Windows: strip everything from the last '\' (inclusive); if there is no '\', return the input unchanged</summary>
+    /// <param name="path">the file path</param>
+    /// <returns>the generated value</returns>
     public static string Directory(string path)
     {
-        int ndx = path.LastIndexOf('\\');
+        var ndx = path.LastIndexOf('\\');
         return ndx < 0 ? path : path.Substring(0, ndx);
     }
 
     /* util::openFile — unicode-safe binary read open; FileStream handles UTF-8
      * paths. SH_DENYNO equivalent: allow shared read/write/delete. */
-/// <summary>util::openFile — unicode-safe binary read open; FileStream handles UTF-8 paths. SH_DENYNO equivalent: allow shared read/write/delete.</summary>
-/// <param name="path">the file path</param>
-/// <returns>the handle, or null on failure</returns>
+    /// <summary>util::openFile — unicode-safe binary read open; FileStream handles UTF-8 paths. SH_DENYNO equivalent: allow shared read/write/delete.</summary>
+    /// <param name="path">the file path</param>
+    /// <returns>the handle, or null on failure</returns>
     public static FileStream? OpenFile(string path)
     {
         try
@@ -98,9 +101,9 @@ public static class FileUtil
     }
 
     /* util::loadFile — read the entire file into memory */
-/// <summary>util::loadFile — read the entire file into memory</summary>
-/// <param name="path">the file path</param>
-/// <returns>the result</returns>
+    /// <summary>util::loadFile — read the entire file into memory</summary>
+    /// <param name="path">the file path</param>
+    /// <returns>the result</returns>
     public static byte[]? LoadFile(string path)
     {
         using var file = OpenFile(path);
@@ -111,7 +114,7 @@ public static class FileUtil
         long pos = 0;
         while (pos < data.Length)
         {
-            int numRead = file.Read(data, (int)pos, (int)(data.Length - pos));
+            var numRead = file.Read(data, (int)pos, (int)(data.Length - pos));
             if (numRead <= 0)
                 return null;
 
@@ -126,10 +129,10 @@ public static class FileUtil
      * - more than one entry -> error note, hash the entire zip file
      * - single directory entry -> error, NULL
      * - otherwise extract the first entry */
-/// <summary>util::loadZippedFile — miniz semantics on ZipArchive: - empty zip -&gt; error, NULL - more than one entry -&gt; error note, hash the entire zip file - single director</summary>
-/// <param name="path">the file path</param>
-/// <param name="unzippedFileName">the unzipped file name parameter</param>
-/// <returns>the result</returns>
+    /// <summary>util::loadZippedFile — miniz semantics on ZipArchive: - empty zip -&gt; error, NULL - more than one entry -&gt; error note, hash the entire zip file - single director</summary>
+    /// <param name="path">the file path</param>
+    /// <param name="unzippedFileName">the unzipped file name parameter</param>
+    /// <returns>the result</returns>
     public static byte[]? LoadZippedFile(string path, out string unzippedFileName)
     {
         unzippedFileName = "";
@@ -137,16 +140,14 @@ public static class FileUtil
         {
             using var archive = ZipFile.OpenRead(path);
             var entries = archive.Entries;
-            if (entries.Count == 0)
+            switch (entries.Count)
             {
-                Console.Error.WriteLine("Empty zip file \"{0}\"", path);
-                return null;
-            }
-
-            if (entries.Count > 1)
-            {
-                Console.Error.WriteLine("Zip file \"{0}\" contains {1} files, determining which to open is not supported - returning entire zip file", path, entries.Count);
-                return LoadFile(path);
+                case 0:
+                    Console.Error.WriteLine("Empty zip file \"{0}\"", path);
+                    return null;
+                case > 1:
+                    Console.Error.WriteLine("Zip file \"{0}\" contains {1} files, determining which to open is not supported - returning entire zip file", path, entries.Count);
+                    return LoadFile(path);
             }
 
             var entry = entries[0];
@@ -161,7 +162,7 @@ public static class FileUtil
             long pos = 0;
             while (pos < data.Length)
             {
-                int numRead = stream.Read(data, (int)pos, (int)(data.Length - pos));
+                var numRead = stream.Read(data, (int)pos, (int)(data.Length - pos));
                 if (numRead <= 0)
                     return null;
 

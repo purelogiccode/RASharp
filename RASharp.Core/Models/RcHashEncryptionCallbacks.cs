@@ -2,8 +2,6 @@
 // struct rc_hash_encryption_callbacks (nested in rc_hash_callbacks_t) —
 // the 3DS key functions.
 
-using RASharp.Core;
-
 namespace RASharp.Core.Models;
 
 /* struct rc_hash_encryption_callbacks (nested in rc_hash_callbacks_t) */

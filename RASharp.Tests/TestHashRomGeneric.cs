@@ -3,12 +3,10 @@
 // cartridge algorithms land in Phase 2).
 
 using RASharp.Core;
-using Xunit;
+using RASharp.Core.Models;
 
 namespace RASharp.Tests;
 
-
-using RASharp.Core.Models;
 /// <summary>Ported from rcheevos (MIT) — test/rhash/test_hash_rom.c (Phase 1 subset) Generic whole-file console vectors (test_hash_full_file entries only; cartridge algorit</summary>
 public class TestHashRomGeneric
 {
@@ -17,41 +15,41 @@ public class TestHashRomGeneric
         MockFilereader.InitMockFilereader();
     }
 
-    private void TestHashFullFile(uint consoleId, string filename, int size, string expectedMd5)
+    private static void TestHashFullFile(uint consoleId, string filename, int size, string expectedMd5)
     {
-        byte[] image = TestDataGen.GenerateGenericFile(size);
+        var image = TestDataGen.GenerateGenericFile(size);
 
         MockFilereader.MockFile(0, filename, image, size);
 
         /* test full buffer hash */
-        Assert.True(RcHash.GenerateFromBuffer(out string hashBuffer, consoleId, image, size));
+        Assert.True(RcHash.GenerateFromBuffer(out var hashBuffer, consoleId, image, size));
         Assert.Equal(expectedMd5, hashBuffer);
 
         /* test full file hash */
-        Assert.True(RcHash.GenerateFromFile(out string hashFile, consoleId, filename));
+        Assert.True(RcHash.GenerateFromFile(out var hashFile, consoleId, filename));
         Assert.Equal(expectedMd5, hashFile);
 
         /* test file identification from iterator */
         var iterator = new RcHashIterator();
         HashIterator.InitializeIterator(iterator, filename, null, 0);
-        Assert.True(HashIterator.Iterate(out string hashIterator, iterator) != 0);
+        Assert.True(HashIterator.Iterate(out var hashIterator, iterator) != 0);
         Assert.Equal(expectedMd5, hashIterator);
         HashIterator.DestroyIterator(iterator);
     }
 
-    private void TestHashM3u(uint consoleId, string filename, int size, string expectedMd5)
+    private static void TestHashM3U(uint consoleId, string filename, int size, string expectedMd5)
     {
-        byte[] image = TestDataGen.GenerateGenericFile(size);
+        var image = TestDataGen.GenerateGenericFile(size);
 
         MockFilereader.MockFile(0, filename, image, size);
         MockFilereader.MockFileText(1, "test.m3u", filename);
 
-        Assert.True(RcHash.GenerateFromFile(out string hashFile, consoleId, "test.m3u"));
+        Assert.True(RcHash.GenerateFromFile(out var hashFile, consoleId, "test.m3u"));
         Assert.Equal(expectedMd5, hashFile);
 
         var iterator = new RcHashIterator();
         HashIterator.InitializeIterator(iterator, "test.m3u", null, 0);
-        Assert.True(HashIterator.Iterate(out string hashIterator, iterator) != 0);
+        Assert.True(HashIterator.Iterate(out var hashIterator, iterator) != 0);
         Assert.Equal(expectedMd5, hashIterator);
         HashIterator.DestroyIterator(iterator);
     }
@@ -81,11 +79,6 @@ public class TestHashRomGeneric
     [InlineData((uint)10, "test.bin", 3145728, "07d733f252896ec41b4fd521fe610e2c")] /* Sega 32X */
     [InlineData((uint)33, "test.sg", 32768, "6a2305a2b6675a97ff792709be1ca857")] /* SG-1000 */
     /* SUPER_CASSETTEVISION (55, "test.bin") vectors return in Phase 2 with rc_hash_scv */
-/// <summary>SUPER_CASSETTEVISION (55, "test.bin") vectors return in Phase 2 with rc_hash_scv</summary>
-/// <param name="consoleId">the console identifier</param>
-/// <param name="filename">the filename parameter</param>
-/// <param name="size">the size</param>
-/// <param name="expectedMd5">the expected md5 parameter</param>
     [InlineData((uint)79, "test.83g", 1695, "bfb6048395a425c69743900785987c42")] /* TI-83 */
     [InlineData((uint)79, "test.83p", 2500, "6e81d530ee9a79d4f4f505729ad74bb5")]
     [InlineData((uint)65, "test.tic", 67682, "79b96f4ffcedb3ce8210a83b22cd2c69")] /* TIC-80 */
@@ -101,10 +94,10 @@ public class TestHashRomGeneric
         TestHashFullFile(consoleId, filename, size, expectedMd5);
     }
 
-/// <summary>Tests hash mega drive m3u.</summary>
+    /// <summary>Tests hash mega drive m3u.</summary>
     [Fact]
-    public void TestHashMegaDriveM3u()
+    public void TestHashMegaDriveM3U()
     {
-        TestHashM3u(ConsoleIds.RC_CONSOLE_MEGA_DRIVE, "test.md", 1048576, "da9461b3b0f74becc3ccf6c2a094c516");
+        TestHashM3U(ConsoleIds.RcConsoleMegaDrive, "test.md", 1048576, "da9461b3b0f74becc3ccf6c2a094c516");
     }
 }

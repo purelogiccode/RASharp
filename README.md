@@ -75,6 +75,119 @@ DOSZ), `.m3u` playlists, `.cue/.bin/.iso/.gdi` discs, `.chd` discs, 3DS
 > numeric id — e.g. `RASharp 62 game.cia`. (The C's `find_console_id` falls
 > back to `atoi`, so the key `3DS` would silently resolve to console 3!)
 
+### RASharp extensions: `scan`
+
+`RASharp scan` (not present in RAHasher 1.8.3 — the legacy positional
+interface above is unchanged) hashes a whole ROM library with per-file
+console auto-detection and emits one manifest row per file:
+
+```
+RASharp scan [options] <path>...
+  -f, --format <text|csv|json>  output format (default: text)
+  -s <systempath>               supplementary files directory (3DS keys)
+      --match <db.json>         RetroAchievements database snapshot
+                                (RetroAchievements.json); rows whose hash
+                                belongs to a game are annotated with it
+      --move <dir>              move matched files into <dir>/<console-key>/
+                                <filename> (requires --match); existing
+                                files are renamed with a (1), (2) suffix
+      --dry-run                 preview --move without moving anything
+                                (requires --move)
+      --no-recursive            do not descend into subdirectories
+  -h, --help                    show help
+```
+
+Each file is auto-detected the same way the `?` system key works for a
+single file. Text rows look like `<hash> <console-key> <path>`; with
+`--match`, matched rows append `=> <Title> (ID <id>)` (csv gains
+`game_id,game_title` columns, json gains a `games` array). A file that
+fails every candidate console gets the `????` marker and a `?` console.
+Hidden, system, and reparse-point files are skipped; hidden
+subdirectories are skipped too. The manifest goes to stdout, the summary
+(`Scanned N file(s): X hashed, Y failed`) to stderr; exit code `0` when
+every file hashed, `1` when any failed. Examples:
+
+```
+RASharp scan C:\ROMs
+RASharp scan --format json C:\ROMs > manifest.json
+RASharp scan --format csv --no-recursive "C:\ROMs\NES" > nes.csv
+RASharp scan --match RetroAchievements.json C:\ROMs > matched.txt
+RASharp scan --match RetroAchievements.json --move "C:\ROMs\Compatible Games" C:\ROMs
+RASharp scan --match RetroAchievements.json --move "C:\ROMs\Compatible Games" --dry-run C:\ROMs
+```
+
+`--match` accepts the `RetroAchievements.json` snapshot produced by the
+`RetroAchievements.DataFetcher` tool (a JSON array of games with a
+`Hashes[]` list each). `--move` relocates only the matched files, grouped
+by detected console key (`Compatible Games\NES\...`, `GB\...`, `PS1\...`),
+never overwriting — colliding names get a `(1)`, `(2)` suffix. `--dry-run`
+prints the exact move plan (collision suffixes included) to stderr without
+touching any file. Note: `.zip`
+files hash by filename (Arcade) during auto-detection, so they rarely
+match the database — extract them first.
+
+### RASharp extensions: `consoles`
+
+`RASharp consoles` dumps the console metadata table (id, key, group, name)
+that the usage banner shows, in a machine-readable form for scripts:
+
+```
+RASharp consoles [--format text|csv|json]
+```
+
+```
+RASharp consoles                      # the familiar table
+RASharp consoles --format csv > consoles.csv
+RASharp consoles -f json              # [{"id": 7, "key": "NES", "group": "Nintendo", "name": "NES/Famicom"}, ...]
+```
+
+NULL-group consoles (`3DS`, `Oric`, `DOS`, ...) keep a blank `group` in
+text/csv and `null` in json, matching how the usage banner marks consoles
+"not supported by RA". Exit code `0` on success, `1` on usage errors.
+
+### RASharp extensions: `checkkeys`, `identify`, `fetch-db`
+
+**`RASharp checkkeys [-s <systempath>]`** — validates the 3DS key files in a
+system directory (`aes_keys.txt` must carry `slot0x2CKeyX`, `slot0x3DKeyX`,
+and at least one `common<slot>=` key; `seeddb.bin` is optional and only
+warned about when missing). Uses the same "key present" semantics as the
+3DS engine. Exit `0` when the keys are usable, `1` otherwise.
+
+**`RASharp identify <system> <file> [options]`** — hashes a single file
+with an explicit console (the same flow as the legacy CLI, including zip
+content hashing and 3DS keys — `?` auto-detects) and resolves the hash to
+a game with achievements:
+
+```
+RASharp identify NES game.nes --db RetroAchievements.json
+RASharp identify GB game.zip --db RetroAchievements.json   # zip content hash
+RASharp identify ? unknown.bin --db RetroAchievements.json
+RASharp identify PS1 disc.cue --user myname --api-key <key>   # live API lookup
+```
+
+Without credentials the hash is looked up in a local
+`RetroAchievements.json` snapshot (`--db`, default file in the current
+directory). With `--user`/`--api-key` (or `RASHARP_RA_USER` /
+`RASHARP_RA_API_KEY`) it fetches `API_GetGameList` for the file's console
+from retroachievements.org and looks the hash up live — the public API has
+no hash-to-game endpoint, so the live path downloads the same game list
+the DataFetcher snapshot contains. `-f json` emits machine-readable rows.
+Exit `0` when at least one hash resolves to a game, `1` otherwise.
+
+**`RASharp fetch-db <url-or-path> [--out <file>]`** — downloads (or copies)
+a RetroAchievements database snapshot, validates it with the same parser
+`scan --match` uses, and saves it atomically (temp file + rename, so a
+failed download never clobbers a good snapshot). Default output
+`RetroAchievements.json` in the current directory:
+
+```
+RASharp fetch-db "https://example.com/RetroAchievements.json"
+RASharp fetch-db "C:\Downloads\RetroAchievements.json" --out RetroAchievements.json
+```
+
+The snapshot must contain at least one game with hashes; a malformed or
+empty result is refused. Exit `0` on success, `1` on failure.
+
 ## Testing
 
 ```

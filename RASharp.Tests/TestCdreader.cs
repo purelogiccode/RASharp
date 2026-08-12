@@ -2,106 +2,27 @@
 // Cue/gdi track-open semantics, sector-size determination, and read_sector.
 
 using RASharp.Core;
-using Xunit;
+using RASharp.Core.Models;
 
 namespace RASharp.Tests;
 
-
-using RASharp.Core.Models;
 /// <summary>Ported from rcheevos (MIT) — test/rhash/test_cdreader.c Cue/gdi track-open semantics, sector-size determination, and read_sector.</summary>
 public class TestCdreader
 {
     private static readonly byte[] SyncPattern =
-    {
+    [
         0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00
-    };
+    ];
 
-    private static readonly string CueSingleTrack =
-        "FILE \"game.bin\" BINARY\n" +
-        "  TRACK 01 MODE2/2352\n" +
-        "    INDEX 01 00:00:00\n";
+    private const string CueSingleTrack = "FILE \"game.bin\" BINARY\n" + "  TRACK 01 MODE2/2352\n" + "    INDEX 01 00:00:00\n";
 
-    private static readonly string CueSingleBinMultipleData =
-        "FILE \"game.bin\" BINARY\n" +
-        "  TRACK 01 AUDIO\n" +
-        "    INDEX 01 00:00:00\n" +
-        "  TRACK 02 MODE1/2352\n" +
-        "    PREGAP 00:03:00\n" +
-        "    INDEX 01 00:55:45\n" +
-        "  TRACK 03 MODE1/2352\n" +
-        "    INDEX 01 11:30:74\n" +
-        "  TRACK 04 MODE1/2352\n" +
-        "    INDEX 01 13:31:51\n" +
-        "  TRACK 05 MODE1/2352\n" +
-        "    INDEX 01 13:48:56\n" +
-        "  TRACK 06 MODE1/2352\n" +
-        "    INDEX 01 34:48:19\n" +
-        "  TRACK 07 MODE1/2352\n" +
-        "    INDEX 01 50:42:74\n" +
-        "  TRACK 08 MODE1/2352\n" +
-        "    INDEX 01 55:20:74\n" +
-        "  TRACK 09 MODE1/2352\n" +
-        "    INDEX 01 56:25:67\n" +
-        "  TRACK 10 MODE1/2352\n" +
-        "    INDEX 01 59:04:08\n" +
-        "  TRACK 11 MODE1/2352\n" +
-        "    INDEX 01 61:17:18\n" +
-        "  TRACK 12 MODE1/2352\n" +
-        "    INDEX 01 62:44:33\n" +
-        "  TRACK 13 AUDIO\n" +
-        "    PREGAP 00:02:00\n" +
-        "    INDEX 01 66:24:37\n";
+    private const string CueSingleBinMultipleData = "FILE \"game.bin\" BINARY\n" + "  TRACK 01 AUDIO\n" + "    INDEX 01 00:00:00\n" + "  TRACK 02 MODE1/2352\n" + "    PREGAP 00:03:00\n" + "    INDEX 01 00:55:45\n" + "  TRACK 03 MODE1/2352\n" + "    INDEX 01 11:30:74\n" + "  TRACK 04 MODE1/2352\n" + "    INDEX 01 13:31:51\n" + "  TRACK 05 MODE1/2352\n" + "    INDEX 01 13:48:56\n" + "  TRACK 06 MODE1/2352\n" + "    INDEX 01 34:48:19\n" + "  TRACK 07 MODE1/2352\n" + "    INDEX 01 50:42:74\n" + "  TRACK 08 MODE1/2352\n" + "    INDEX 01 55:20:74\n" + "  TRACK 09 MODE1/2352\n" + "    INDEX 01 56:25:67\n" + "  TRACK 10 MODE1/2352\n" + "    INDEX 01 59:04:08\n" + "  TRACK 11 MODE1/2352\n" + "    INDEX 01 61:17:18\n" + "  TRACK 12 MODE1/2352\n" + "    INDEX 01 62:44:33\n" + "  TRACK 13 AUDIO\n" + "    PREGAP 00:02:00\n" + "    INDEX 01 66:24:37\n";
 
-    private static readonly string CueMultipleBinMultipleData =
-        "FILE \"track1.bin\" BINARY\n" +
-        "  TRACK 01 AUDIO\n" +
-        "    INDEX 01 00:00:00\n" +
-        "FILE \"track2.bin\" BINARY\n" +
-        "  TRACK 02 MODE1/2352\n" +
-        "    INDEX 00 00:00:00\n" +
-        "    INDEX 01 00:03:00\n" +
-        "FILE \"track3.bin\" BINARY\n" +
-        "  TRACK 03 MODE1/2352\n" +
-        "    INDEX 00 00:00:00\n" +
-        "    INDEX 01 00:02:00\n" +
-        "FILE \"track4.bin\" BINARY\n" +
-        "  TRACK 04 AUDIO\n" +
-        "    INDEX 00 00:00:00\n";
+    private const string CueMultipleBinMultipleData = "FILE \"track1.bin\" BINARY\n" + "  TRACK 01 AUDIO\n" + "    INDEX 01 00:00:00\n" + "FILE \"track2.bin\" BINARY\n" + "  TRACK 02 MODE1/2352\n" + "    INDEX 00 00:00:00\n" + "    INDEX 01 00:03:00\n" + "FILE \"track3.bin\" BINARY\n" + "  TRACK 03 MODE1/2352\n" + "    INDEX 00 00:00:00\n" + "    INDEX 01 00:02:00\n" + "FILE \"track4.bin\" BINARY\n" + "  TRACK 04 AUDIO\n" + "    INDEX 00 00:00:00\n";
 
-    private static readonly string GdiThreeTracks =
-        "3\n" +
-        "1 0 4 2352 track01.bin 0\n" +
-        "2 600 0 2352 track02.raw 0\n" +
-        "3 45000 4 2352 track03.bin 0";
+    private const string GdiThreeTracks = "3\n" + "1 0 4 2352 track01.bin 0\n" + "2 600 0 2352 track02.raw 0\n" + "3 45000 4 2352 track03.bin 0";
 
-    private static readonly string GdiManyTracks =
-        "26\n" +
-        "1 0 4 2352 track01.bin 0\n" +
-        "2 450 0 2352 track02.raw 0\n" +
-        "3 45000 4 2352 track03.bin 0\n" +
-        "4 370673 0 2352 track04.raw 0\n" +
-        "5 371347 0 2352 track05.raw 0\n" +
-        "6 372014 0 2352 track06.raw 0\n" +
-        "7 372915 0 2352 track07.raw 0\n" +
-        "8 373626 0 2352 track08.raw 0\n" +
-        "9 379011 0 2352 track09.raw 0\n" +
-        "10 384738 0 2352 track10.raw 0\n" +
-        "11 390481 0 2352 track11.raw 0\n" +
-        "12 395473 0 2352 track12.raw 0\n" +
-        "13 398926 0 2352 track13.raw 0\n" +
-        "14 404448 0 2352 track14.raw 0\n" +
-        "15 425246 0 2352 track15.raw 0\n" +
-        "16 445520 0 2352 track16.raw 0\n" +
-        "17 466032 0 2352 track17.raw 0\n" +
-        "18 474231 0 2352 track18.raw 0\n" +
-        "19 485598 0 2352 track19.raw 0\n" +
-        "20 486386 0 2352 track20.raw 0\n" +
-        "21 487098 0 2352 track21.raw 0\n" +
-        "22 487822 0 2352 track22.raw 0\n" +
-        "23 498356 0 2352 track23.raw 0\n" +
-        "24 508297 0 2352 track24.raw 0\n" +
-        "25 527383 0 2352 track25.raw 0\n" +
-        "26 548106 4 2352 track26.bin 0\n";
+    private const string GdiManyTracks = "26\n" + "1 0 4 2352 track01.bin 0\n" + "2 450 0 2352 track02.raw 0\n" + "3 45000 4 2352 track03.bin 0\n" + "4 370673 0 2352 track04.raw 0\n" + "5 371347 0 2352 track05.raw 0\n" + "6 372014 0 2352 track06.raw 0\n" + "7 372915 0 2352 track07.raw 0\n" + "8 373626 0 2352 track08.raw 0\n" + "9 379011 0 2352 track09.raw 0\n" + "10 384738 0 2352 track10.raw 0\n" + "11 390481 0 2352 track11.raw 0\n" + "12 395473 0 2352 track12.raw 0\n" + "13 398926 0 2352 track13.raw 0\n" + "14 404448 0 2352 track14.raw 0\n" + "15 425246 0 2352 track15.raw 0\n" + "16 445520 0 2352 track16.raw 0\n" + "17 466032 0 2352 track17.raw 0\n" + "18 474231 0 2352 track18.raw 0\n" + "19 485598 0 2352 track19.raw 0\n" + "20 486386 0 2352 track20.raw 0\n" + "21 487098 0 2352 track21.raw 0\n" + "22 487822 0 2352 track22.raw 0\n" + "23 498356 0 2352 track23.raw 0\n" + "24 508297 0 2352 track24.raw 0\n" + "25 527383 0 2352 track25.raw 0\n" + "26 548106 4 2352 track26.bin 0\n";
 
     public TestCdreader()
     {
@@ -130,13 +51,13 @@ public class TestCdreader
     private static void AssertTrackCommon(CdromTrack? track, string binFilename, long fileTrackOffset, int sectorSize)
     {
         Assert.NotNull(track);
-        Assert.NotNull(track!.FileHandle);
+        Assert.NotNull(track.FileHandle);
         Assert.Equal(binFilename, MockFilereader.GetMockFilename(track.FileHandle));
         Assert.Equal(fileTrackOffset, track.FileTrackOffset);
         Assert.Equal(sectorSize, track.SectorSize);
     }
 
-/// <summary>Tests open cue track2.</summary>
+    /// <summary>Tests open cue track2.</summary>
     [Fact]
     public void TestOpenCueTrack2()
     {
@@ -148,13 +69,13 @@ public class TestCdreader
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 2);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 9807840, 2352); /* track 2: 0x95A7E0 */
-        Assert.Equal(16, trackHandle!.SectorHeaderSize);
+        Assert.Equal(16, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open cue track12.</summary>
+    /// <summary>Tests open cue track12.</summary>
     [Fact]
     public void TestOpenCueTrack12()
     {
@@ -166,13 +87,13 @@ public class TestCdreader
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 12);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 664047216, 2352); /* track 12: 0x27948E70 */
-        Assert.Equal(16, trackHandle!.SectorHeaderSize);
+        Assert.Equal(16, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open cue track14.</summary>
+    /// <summary>Tests open cue track14.</summary>
     [Fact]
     public void TestOpenCueTrack14()
     {
@@ -186,7 +107,7 @@ public class TestCdreader
         Assert.Null(trackHandle);
     }
 
-/// <summary>Tests open cue track missing bin.</summary>
+    /// <summary>Tests open cue track missing bin.</summary>
     [Fact]
     public void TestOpenCueTrackMissingBin()
     {
@@ -198,7 +119,7 @@ public class TestCdreader
         Assert.Null(trackHandle);
     }
 
-/// <summary>Tests open gdi track3.</summary>
+    /// <summary>Tests open gdi track3.</summary>
     [Fact]
     public void TestOpenGdiTrack3()
     {
@@ -210,7 +131,7 @@ public class TestCdreader
         CdromTrack? trackHandle = OpenTrack(iterator, "game.gdi", 3);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "track03.bin", 0, 2352);
-        Assert.Equal(0, trackHandle!.TrackPregapSectors);
+        Assert.Equal(0, trackHandle.TrackPregapSectors);
         Assert.Equal(45000, trackHandle.TrackFirstSector);
         Assert.Equal(16, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
@@ -218,7 +139,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open gdi track3 quoted.</summary>
+    /// <summary>Tests open gdi track3 quoted.</summary>
     [Fact]
     public void TestOpenGdiTrack3Quoted()
     {
@@ -236,7 +157,7 @@ public class TestCdreader
         CdromTrack? trackHandle = OpenTrack(iterator, "game.gdi", 3);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "track 03.bin", 0, 2352);
-        Assert.Equal(0, trackHandle!.TrackPregapSectors);
+        Assert.Equal(0, trackHandle.TrackPregapSectors);
         Assert.Equal(45000, trackHandle.TrackFirstSector);
         Assert.Equal(16, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
@@ -244,7 +165,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open gdi track3 extra whitespace.</summary>
+    /// <summary>Tests open gdi track3 extra whitespace.</summary>
     [Fact]
     public void TestOpenGdiTrack3ExtraWhitespace()
     {
@@ -262,14 +183,14 @@ public class TestCdreader
         CdromTrack? trackHandle = OpenTrack(iterator, "game.gdi", 3);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "track 03.bin", 0, 2352);
-        Assert.Equal(0, trackHandle!.TrackPregapSectors);
+        Assert.Equal(0, trackHandle.TrackPregapSectors);
         Assert.Equal(45000, trackHandle.TrackFirstSector);
         Assert.Equal(16, trackHandle.SectorHeaderSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open gdi track last.</summary>
+    /// <summary>Tests open gdi track last.</summary>
     [Fact]
     public void TestOpenGdiTrackLast()
     {
@@ -278,17 +199,17 @@ public class TestCdreader
         MockFilereader.MockFileText(0, "game.gdi", GdiManyTracks);
         MockFilereader.MockEmptyFile(1, "track26.bin", 2457600);
 
-        CdromTrack? trackHandle = OpenTrack(iterator, "game.gdi", ConsoleIds.RC_HASH_CDTRACK_LAST);
+        CdromTrack? trackHandle = OpenTrack(iterator, "game.gdi", ConsoleIds.RcHashCdtrackLast);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "track26.bin", 0, 2352);
-        Assert.Equal(0, trackHandle!.TrackPregapSectors);
+        Assert.Equal(0, trackHandle.TrackPregapSectors);
         Assert.Equal(548106, trackHandle.TrackFirstSector);
         Assert.Equal(16, trackHandle.SectorHeaderSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open cue track largest data.</summary>
+    /// <summary>Tests open cue track largest data.</summary>
     [Fact]
     public void TestOpenCueTrackLargestData()
     {
@@ -297,16 +218,16 @@ public class TestCdreader
         MockFilereader.MockFileText(0, "game.cue", CueSingleBinMultipleData);
         MockFilereader.MockEmptyFile(1, "game.bin", 718310208);
 
-        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RC_HASH_CDTRACK_LARGEST);
+        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RcHashCdtrackLargest);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 146190912, 2352); /* track 5: 0x8B6B240 */
-        Assert.Equal(16, trackHandle!.SectorHeaderSize);
+        Assert.Equal(16, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open cue track largest data multiple bin.</summary>
+    /// <summary>Tests open cue track largest data multiple bin.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataMultipleBin()
     {
@@ -316,17 +237,17 @@ public class TestCdreader
         MockFilereader.MockEmptyFile(1, "track2.bin", 406423248);
         MockFilereader.MockEmptyFile(2, "track3.bin", 11553024);
 
-        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RC_HASH_CDTRACK_LARGEST);
+        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RcHashCdtrackLargest);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "track2.bin", 0, 2352);
-        Assert.Equal(225, trackHandle!.TrackPregapSectors); /* INDEX 01 00:03:00 */
+        Assert.Equal(225, trackHandle.TrackPregapSectors); /* INDEX 01 00:03:00 */
         Assert.Equal(16, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open cue track largest data backwards compatibility.</summary>
+    /// <summary>Tests open cue track largest data backwards compatibility.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataBackwardsCompatibility()
     {
@@ -339,13 +260,13 @@ public class TestCdreader
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 0);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 146190912, 2352); /* track 5: 0x8B6B240 */
-        Assert.Equal(16, trackHandle!.SectorHeaderSize);
+        Assert.Equal(16, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open cue track largest data last track.</summary>
+    /// <summary>Tests open cue track largest data last track.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataLastTrack()
     {
@@ -368,17 +289,17 @@ public class TestCdreader
         MockFilereader.MockFileText(0, "game.cue", cue);
         MockFilereader.MockEmptyFile(1, "game.bin", 718310208);
 
-        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RC_HASH_CDTRACK_LARGEST);
+        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RcHashCdtrackLargest);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 146190912, 2352); /* track 5: 0x8B6B240 (13:48:56) */
-        Assert.Equal(16, trackHandle!.SectorHeaderSize);
+        Assert.Equal(16, trackHandle.SectorHeaderSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open cue track largest data index0s.</summary>
+    /// <summary>Tests open cue track largest data index0s.</summary>
     [Fact]
-    public void TestOpenCueTrackLargestDataIndex0s()
+    public void TestOpenCueTrackLargestDataIndex0S()
     {
         const string cue =
             "FILE \"game.bin\" BINARY\n" +
@@ -396,16 +317,16 @@ public class TestCdreader
         MockFilereader.MockFileText(0, "game.cue", cue);
         MockFilereader.MockEmptyFile(1, "game.bin", 718310208);
 
-        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RC_HASH_CDTRACK_LARGEST);
+        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RcHashCdtrackLargest);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 7914480, 2352); /* track 2: 0x78C3F0 (00:44:65) */
-        Assert.Equal(225, trackHandle!.TrackPregapSectors);
+        Assert.Equal(225, trackHandle.TrackPregapSectors);
         Assert.Equal(16, trackHandle.SectorHeaderSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open cue track largest data index2.</summary>
+    /// <summary>Tests open cue track largest data index2.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataIndex2()
     {
@@ -423,16 +344,16 @@ public class TestCdreader
         MockFilereader.MockFileText(0, "game.cue", cue);
         MockFilereader.MockEmptyFile(1, "game.bin", 718310208);
 
-        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RC_HASH_CDTRACK_LARGEST);
+        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RcHashCdtrackLargest);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 0, 2352);
-        Assert.Equal(150, trackHandle!.TrackPregapSectors); /* 00:02:00 = 150 frames in */
+        Assert.Equal(150, trackHandle.TrackPregapSectors); /* 00:02:00 = 150 frames in */
         Assert.Equal(16, trackHandle.SectorHeaderSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open cue track largest data multiple bins.</summary>
+    /// <summary>Tests open cue track largest data multiple bins.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataMultipleBins()
     {
@@ -447,13 +368,13 @@ public class TestCdreader
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 0);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "track3.bin", 0, 2352);
-        Assert.Equal(150, trackHandle!.TrackPregapSectors); /* 00:02:00 = 150 frames in */
+        Assert.Equal(150, trackHandle.TrackPregapSectors); /* 00:02:00 = 150 frames in */
         Assert.Equal(16, trackHandle.SectorHeaderSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests open cue track largest data only audio.</summary>
+    /// <summary>Tests open cue track largest data only audio.</summary>
     [Fact]
     public void TestOpenCueTrackLargestDataOnlyAudio()
     {
@@ -485,7 +406,7 @@ public class TestCdreader
         Assert.Null(trackHandle);
     }
 
-/// <summary>Tests open cue track first data.</summary>
+    /// <summary>Tests open cue track first data.</summary>
     [Fact]
     public void TestOpenCueTrackFirstData()
     {
@@ -494,10 +415,10 @@ public class TestCdreader
         MockFilereader.MockFileText(0, "game.cue", CueSingleBinMultipleData);
         MockFilereader.MockEmptyFile(1, "game.bin", 718310208);
 
-        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RC_HASH_CDTRACK_FIRST_DATA);
+        CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", ConsoleIds.RcHashCdtrackFirstData);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 9807840, 2352); /* track 2: 0x0095a7e0 (00:55:45) */
-        Assert.Equal(0, trackHandle!.TrackPregapSectors);
+        Assert.Equal(0, trackHandle.TrackPregapSectors);
         Assert.Equal(16, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
@@ -507,8 +428,8 @@ public class TestCdreader
     private static void TestDetermineSectorSizeSync(int sectorSize)
     {
         var iterator = InitializeIterator();
-        int imageSize = sectorSize * 32;
-        byte[] image = new byte[imageSize];
+        var imageSize = sectorSize * 32;
+        var image = new byte[imageSize];
 
         MockFilereader.MockFileText(0, "game.cue", CueSingleTrack);
         MockFilereader.MockFile(1, "game.bin", image, imageSize);
@@ -519,7 +440,7 @@ public class TestCdreader
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 1);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 0, sectorSize);
-        Assert.Equal(16, trackHandle!.SectorHeaderSize);
+        Assert.Equal(16, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
@@ -528,20 +449,20 @@ public class TestCdreader
     private static void TestDetermineSectorSizeSyncPrimaryVolumeDescriptor(int sectorSize)
     {
         var iterator = InitializeIterator();
-        int imageSize = sectorSize * 32;
-        byte[] image = new byte[imageSize];
+        var imageSize = sectorSize * 32;
+        var image = new byte[imageSize];
 
         MockFilereader.MockFileText(0, "game.cue", CueSingleTrack);
         MockFilereader.MockFile(1, "game.bin", image, imageSize);
 
         Array.Clear(image, 0, imageSize);
         Array.Copy(SyncPattern, 0, image, sectorSize * 16, SyncPattern.Length);
-        Array.Copy(System.Text.Encoding.ASCII.GetBytes("CD001"), 0, image, sectorSize * 16 + 25, 5);
+        Array.Copy("CD001"u8.ToArray(), 0, image, sectorSize * 16 + 25, 5);
 
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 1);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 0, sectorSize);
-        Assert.Equal(24, trackHandle!.SectorHeaderSize);
+        Assert.Equal(24, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
@@ -549,15 +470,15 @@ public class TestCdreader
 
     private static void TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex0(int sectorSize)
     {
-        string cue =
+        var cue =
             "FILE \"game.bin\" BINARY\n" +
             "  TRACK 01 MODE2/2352\n" +
             "    INDEX 00 00:00:00\n" +
             "    INDEX 01 00:02:00\n";
 
         var iterator = InitializeIterator();
-        int imageSize = sectorSize * 200;
-        byte[] image = new byte[imageSize];
+        var imageSize = sectorSize * 200;
+        var image = new byte[imageSize];
 
         /* the C modifies the cue in place (the mock holds a pointer to it) */
         cue = cue.Replace("MODE2/2352", "MODE2/" + sectorSize);
@@ -567,68 +488,68 @@ public class TestCdreader
 
         Array.Clear(image, 0, imageSize);
         Array.Copy(SyncPattern, 0, image, sectorSize * (150 + 16), SyncPattern.Length);
-        Array.Copy(System.Text.Encoding.ASCII.GetBytes("CD001"), 0, image, sectorSize * (150 + 16) + 25, 5);
+        Array.Copy("CD001"u8.ToArray(), 0, image, sectorSize * (150 + 16) + 25, 5);
 
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 1);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 0, sectorSize);
-        Assert.Equal(150, trackHandle!.TrackPregapSectors);
+        Assert.Equal(150, trackHandle.TrackPregapSectors);
         Assert.Equal(24, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests determine sector size sync2352.</summary>
+    /// <summary>Tests determine sector size sync2352.</summary>
     [Fact]
     public void TestDetermineSectorSizeSync2352()
     {
         TestDetermineSectorSizeSync(2352);
     }
 
-/// <summary>Tests determine sector size sync primary volume descriptor2352.</summary>
+    /// <summary>Tests determine sector size sync primary volume descriptor2352.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptor2352()
     {
         TestDetermineSectorSizeSyncPrimaryVolumeDescriptor(2352);
     }
 
-/// <summary>Tests determine sector size sync primary volume descriptor index02352.</summary>
+    /// <summary>Tests determine sector size sync primary volume descriptor index02352.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex02352()
     {
         TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex0(2352);
     }
 
-/// <summary>Tests determine sector size sync2336.</summary>
+    /// <summary>Tests determine sector size sync2336.</summary>
     [Fact]
     public void TestDetermineSectorSizeSync2336()
     {
         TestDetermineSectorSizeSync(2336);
     }
 
-/// <summary>Tests determine sector size sync primary volume descriptor2336.</summary>
+    /// <summary>Tests determine sector size sync primary volume descriptor2336.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptor2336()
     {
         TestDetermineSectorSizeSyncPrimaryVolumeDescriptor(2336);
     }
 
-/// <summary>Tests determine sector size sync primary volume descriptor index02336.</summary>
+    /// <summary>Tests determine sector size sync primary volume descriptor index02336.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex02336()
     {
         TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex0(2336);
     }
 
-/// <summary>Tests determine sector size sync2048.</summary>
+    /// <summary>Tests determine sector size sync2048.</summary>
     [Fact]
     public void TestDetermineSectorSizeSync2048()
     {
         var iterator = InitializeIterator();
         const int sectorSize = 2048;
-        int imageSize = sectorSize * 32;
-        byte[] image = new byte[imageSize];
+        const int imageSize = sectorSize * 32;
+        var image = new byte[imageSize];
 
         MockFilereader.MockFileText(0, "game.cue", CueSingleTrack);
         MockFilereader.MockFile(1, "game.bin", image, imageSize);
@@ -639,41 +560,41 @@ public class TestCdreader
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 1);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 0, 2352);
-        Assert.Equal(24, trackHandle!.SectorHeaderSize);
+        Assert.Equal(24, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests determine sector size sync primary volume descriptor2048.</summary>
+    /// <summary>Tests determine sector size sync primary volume descriptor2048.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptor2048()
     {
         var iterator = InitializeIterator();
         const int sectorSize = 2048;
-        int imageSize = sectorSize * 32;
-        byte[] image = new byte[imageSize];
+        const int imageSize = sectorSize * 32;
+        var image = new byte[imageSize];
 
         MockFilereader.MockFileText(0, "game.cue", CueSingleTrack);
         MockFilereader.MockFile(1, "game.bin", image, imageSize);
 
         Array.Clear(image, 0, imageSize);
-        Array.Copy(System.Text.Encoding.ASCII.GetBytes("CD001"), 0, image, sectorSize * 16 + 1, 5);
+        Array.Copy("CD001"u8.ToArray(), 0, image, sectorSize * 16 + 1, 5);
 
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 1);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 0, sectorSize);
-        Assert.Equal(0, trackHandle!.SectorHeaderSize);
+        Assert.Equal(0, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests determine sector size sync primary volume descriptor index02048.</summary>
+    /// <summary>Tests determine sector size sync primary volume descriptor index02048.</summary>
     [Fact]
     public void TestDetermineSectorSizeSyncPrimaryVolumeDescriptorIndex02048()
     {
-        string cue =
+        var cue =
             "FILE \"game.bin\" BINARY\n" +
             "  TRACK 01 MODE1/2048\n" +
             "    INDEX 00 00:00:00\n" +
@@ -681,8 +602,8 @@ public class TestCdreader
 
         var iterator = InitializeIterator();
         const int sectorSize = 2048;
-        int imageSize = sectorSize * 200;
-        byte[] image = new byte[imageSize];
+        const int imageSize = sectorSize * 200;
+        var image = new byte[imageSize];
 
         /* the C modifies the cue in place (the mock holds a pointer to it) */
         cue = cue.Replace("MODE1/2048", "MODE1/" + sectorSize);
@@ -691,35 +612,35 @@ public class TestCdreader
         MockFilereader.MockFile(1, "game.bin", image, imageSize);
 
         Array.Clear(image, 0, imageSize);
-        Array.Copy(System.Text.Encoding.ASCII.GetBytes("CD001"), 0, image, sectorSize * (150 + 16) + 1, 5);
+        Array.Copy("CD001"u8.ToArray(), 0, image, sectorSize * (150 + 16) + 1, 5);
 
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 1);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 0, sectorSize);
-        Assert.Equal(150, trackHandle!.TrackPregapSectors);
+        Assert.Equal(150, trackHandle.TrackPregapSectors);
         Assert.Equal(0, trackHandle.SectorHeaderSize);
         Assert.Equal(2048, trackHandle.RawDataSize);
 
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests absolute sector to track sector cue pregap.</summary>
+    /// <summary>Tests absolute sector to track sector cue pregap.</summary>
     [Fact]
     public void TestAbsoluteSectorToTrackSectorCuePregap()
     {
         const string cue =
             "FILE \"game1.bin\" BINARY\n" + /* file contains 500 sectors of data [1176000 bytes] */
             "  TRACK 01 MODE2/2352\n" +
-            "    INDEX 00 00:00:00\n" +    /* 150 pre-gap sectors */
-            "    INDEX 01 00:02:00\n" +    /* 350 sectors of data */
+            "    INDEX 00 00:00:00\n" + /* 150 pre-gap sectors */
+            "    INDEX 01 00:02:00\n" + /* 350 sectors of data */
             "FILE \"game2.bin\" BINARY\n" +
             "  TRACK 02 MODE2/2352\n" +
-            "    INDEX 00 00:00:00\n" +    /* 150 pre-gap sectors */
+            "    INDEX 00 00:00:00\n" + /* 150 pre-gap sectors */
             "    INDEX 01 00:02:00\n";
 
         var iterator = InitializeIterator();
-        int imageSize = 60 * 200;
-        byte[] image = new byte[imageSize];
+        const int imageSize = 60 * 200;
+        var image = new byte[imageSize];
 
         MockFilereader.MockFileText(0, "game.cue", cue);
         MockFilereader.MockEmptyFile(1, "game1.bin", 500 * 2352);
@@ -727,7 +648,7 @@ public class TestCdreader
 
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 2);
         Assert.NotNull(trackHandle);
-        Assert.NotNull(trackHandle!.FileHandle);
+        Assert.NotNull(trackHandle.FileHandle);
         Assert.Equal("game2.bin", MockFilereader.GetMockFilename(trackHandle.FileHandle));
 
         /* pregap of second track starts at sector 500 */
@@ -740,7 +661,7 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests absolute sector to track sector gdi.</summary>
+    /// <summary>Tests absolute sector to track sector gdi.</summary>
     [Fact]
     public void TestAbsoluteSectorToTrackSectorGdi()
     {
@@ -751,7 +672,7 @@ public class TestCdreader
 
         CdromTrack? trackHandle = OpenTrack(iterator, "game.gdi", 26);
         Assert.NotNull(trackHandle);
-        Assert.NotNull(trackHandle!.FileHandle);
+        Assert.NotNull(trackHandle.FileHandle);
         Assert.Equal("track26.bin", MockFilereader.GetMockFilename(trackHandle.FileHandle));
         Assert.Equal(548106, trackHandle.TrackFirstSector);
 
@@ -760,15 +681,15 @@ public class TestCdreader
         CloseTrack(iterator, trackHandle);
     }
 
-/// <summary>Tests read sector.</summary>
+    /// <summary>Tests read sector.</summary>
     [Fact]
     public void TestReadSector()
     {
-        byte[] buffer = new byte[4096];
+        var buffer = new byte[4096];
         var iterator = InitializeIterator();
-        int imageSize = 2352 * 32;
-        byte[] image = new byte[imageSize];
-        int offset, i;
+        const int imageSize = 2352 * 32;
+        var image = new byte[imageSize];
+        int i;
 
         MockFilereader.MockFileText(0, "game.cue", CueSingleTrack);
         MockFilereader.MockFile(1, "game.bin", image, imageSize);
@@ -780,21 +701,26 @@ public class TestCdreader
         image[2352 * 16 + 14] = 0x16;
         image[2352 * 16 + 15] = 2;
 
-        offset = 2352 * 1 + 16;
+        var offset = 2352 * 1 + 16;
         for (i = 0; i < 26; i++)
         {
-            for (int j = 0; j < 256; ++j)
+            for (var j = 0; j < 256; ++j)
+            {
                 image[offset + j] = (byte)(i + 'A');
+            }
+
             offset += 256;
 
             if ((i % 8) == 7)
+            {
                 offset += (2352 - 2048);
+            }
         }
 
         CdromTrack? trackHandle = OpenTrack(iterator, "game.cue", 1);
         Assert.NotNull(trackHandle);
         AssertTrackCommon(trackHandle, "game.bin", 0, 2352);
-        Assert.Equal(0, trackHandle!.TrackPregapSectors);
+        Assert.Equal(0, trackHandle.TrackPregapSectors);
         Assert.Equal(16, trackHandle.SectorHeaderSize);
 
         /* read across multiple sectors */

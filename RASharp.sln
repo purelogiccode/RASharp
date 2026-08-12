@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RASharp.Cli", "RASharp.Cli\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RASharp.Tests", "RASharp.Tests\RASharp.Tests.csproj", "{7A568635-B1DA-4599-92F2-E77EB365D497}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RetroAchievements.DataFetcher", "..\CSharp_SimpleLauncher\Tools\RetroAchievements.DataFetcher\RetroAchievements.DataFetcher.csproj", "{3166AC49-D72A-4C22-A935-55F34777FD2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,18 @@ Global
 		{7A568635-B1DA-4599-92F2-E77EB365D497}.Release|x64.Build.0 = Release|Any CPU
 		{7A568635-B1DA-4599-92F2-E77EB365D497}.Release|x86.ActiveCfg = Release|Any CPU
 		{7A568635-B1DA-4599-92F2-E77EB365D497}.Release|x86.Build.0 = Release|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Debug|x64.Build.0 = Debug|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Debug|x86.Build.0 = Debug|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Release|x64.ActiveCfg = Release|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Release|x64.Build.0 = Release|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Release|x86.ActiveCfg = Release|Any CPU
+		{3166AC49-D72A-4C22-A935-55F34777FD2C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -65,5 +79,6 @@ Global
 		{529574C6-4129-4AFA-A436-10E4C24801AC} = {C08287F2-09DE-3BD4-6090-544C90990688}
 		{FE6169AC-0352-48A5-ADF6-77FB4283C5C0} = {C08287F2-09DE-3BD4-6090-544C90990688}
 		{7A568635-B1DA-4599-92F2-E77EB365D497} = {C08287F2-09DE-3BD4-6090-544C90990688}
+		{3166AC49-D72A-4C22-A935-55F34777FD2C} = {C08287F2-09DE-3BD4-6090-544C90990688}
 	EndGlobalSection
 EndGlobal

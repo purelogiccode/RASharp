@@ -16,7 +16,6 @@
 //    harness sets it so test runs never report).
 //  * Flush() gives a pending report up to 2 seconds to complete at exit.
 
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 
@@ -27,49 +26,51 @@ internal static class ApplicationStatsReporter
 {
     internal const string DefaultUrl = "https://www.purelogiccode.com/ApplicationStats/stats";
 
-    private static readonly HttpClient s_http = new() { Timeout = TimeSpan.FromSeconds(10) };
-    private static readonly Lock s_pendingLock = new();
-    private static readonly List<Task> s_pending = new();
-    private static bool s_enabled = true;
+    private static readonly HttpClient SHttp = new() { Timeout = TimeSpan.FromSeconds(10) };
+    private static readonly Lock SPendingLock = new();
+    private static readonly List<Task> SPending = new();
+    private static bool _sEnabled = true;
 
     /* called once at application launch; never blocks the main flow */
-/// <summary>called once at application launch; never blocks the main flow</summary>
+    /// <summary>called once at application launch; never blocks the main flow</summary>
     public static void ReportUsage()
     {
-        if (!s_enabled)
+        if (!_sEnabled)
             return;
 
         if (string.Equals(Environment.GetEnvironmentVariable("RASHARP_STATS_DISABLE"), "1", StringComparison.Ordinal))
         {
-            s_enabled = false;
+            _sEnabled = false;
             return;
         }
 
-        string url = Environment.GetEnvironmentVariable("RASHARP_STATS_URL") ?? DefaultUrl;
-        string? apiKey = Environment.GetEnvironmentVariable("RASHARP_STATS_API_KEY");
+        var url = Environment.GetEnvironmentVariable("RASHARP_STATS_URL") ?? DefaultUrl;
+        var apiKey = Environment.GetEnvironmentVariable("RASHARP_STATS_API_KEY");
         if (string.IsNullOrEmpty(apiKey))
+        {
             apiKey = Constants.BugReportApiKey;
+        }
 
-        string json = JsonSerializer.Serialize(new Dictionary<string, string?>(StringComparer.Ordinal)
+        var json = JsonSerializer.Serialize(new Dictionary<string, string?>(StringComparer.Ordinal)
         {
             ["applicationId"] = "RASharp",
-            ["version"] = Program.Version,
+            ["version"] = Program.Version
         });
 
-        lock (s_pendingLock)
+        lock (SPendingLock)
         {
-            s_pending.Add(Task.Run(() => PostAsync(url, apiKey, json)));
+            SPending.Add(Task.Run(() => PostAsync(url, apiKey, json)));
         }
     }
 
     /* give a pending report up to 2 seconds to finish before process exit */
-/// <summary>give a pending report up to 2 seconds to finish before process exit</summary>
+    /// <summary>give a pending report up to 2 seconds to finish before process exit</summary>
     public static void Flush()
     {
         Task[] pending;
-        lock (s_pendingLock)
+        lock (SPendingLock)
         {
-            pending = s_pending.ToArray();
+            pending = SPending.ToArray();
         }
 
         if (pending.Length == 0)
@@ -93,7 +94,7 @@ internal static class ApplicationStatsReporter
             request.Headers.Add("Authorization", "Bearer " + apiKey);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            using var response = await s_http.SendAsync(request).ConfigureAwait(false);
+            using var response = await SHttp.SendAsync(request).ConfigureAwait(false);
         }
         catch
         {
