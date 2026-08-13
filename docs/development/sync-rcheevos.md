@@ -4,6 +4,18 @@ rcheevos is the single source of truth. When a new rcheevos release lands,
 the port is synced mechanically in ~2–3 days using this procedure (Part II,
 phase E6 of the conversion plan).
 
+## Scope — no net-new hashing algorithms
+
+RASharp only implements what rcheevos defines. Formats or consoles that
+rcheevos does not support — e.g. RVZ (Wii/GameCube), WUX/WUD (Wii U, id 20
+has no hasher) — are out of scope by policy, even when users request them:
+a custom algorithm would have no upstream reference and no oracle to
+validate against. Extensions to the CLI and test suite (such as the
+real-ROM parity tests) are welcome as long as they only exercise
+rcheevos-defined hashing. See
+[Known quirks](../reference/known-quirks.md) for the exact fallback
+behavior on unsupported formats.
+
 ## Step 1 — Get the new tree
 
 Download the release source (or `git clone --depth 1 --branch vX.Y.Z`) into

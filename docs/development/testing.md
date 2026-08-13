@@ -6,8 +6,9 @@ The test suite is three-tiered. Run everything with:
 dotnet test RASharp.sln -c Release
 ```
 
-**Current state: 326/326 green (Debug and Release), parity 90/90 vs the
-rcheevos 12.4.0-built oracle.**
+**Current state: 559/559 green (Debug and Release), parity 90/90 vs the
+rcheevos 12.4.0-built oracle, plus 61/61 real-ROM cases vs the pinned
+1.8.3 binary (user libraries, see [Parity evidence](../reference/parity-evidence.md)).**
 
 ## Tier 1 — ported rcheevos vectors (offline, deterministic)
 
@@ -41,6 +42,17 @@ dotnet test --filter FullyQualifiedName~Parity
 ```
 
 On non-Windows hosts (or without an oracle binary) these skip with a note.
+
+### Real-ROM parity (user libraries)
+
+`TestRealRomParity` (same `FullyQualifiedName~Parity` filter) hashes the
+the first files of each configured user library — 60 paths across 53
+console ids (3DS needs the user keys at the repo root and uses 25 files), including cartridge, zip, MAME romsets, disk images, and CD formats
+(predominantly CHD) — against the pinned `References\RAHasher-1.8.3\RAHasher.exe`
+binary, requiring byte-identical stdout/stderr and exit codes. Cases skip
+with a note when the library path or the oracle is absent, so the suite
+stays green on machines without the ROM libraries. Full coverage table:
+[Parity evidence](../reference/parity-evidence.md).
 
 ## Tier 3 — real-world spot checks
 

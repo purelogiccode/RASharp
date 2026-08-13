@@ -50,6 +50,34 @@ The 12.2.1 C assigned `error_message` into `verbose_message`; the port
 inherited the bug and **fixed it in Part II** with 12.4.0 (the C# bug was
 found by re-auditing, and the fix is covered by the sync).
 
+### 9. Zip entries >= 2 GiB (fixed in the port)
+The C extracts a zip entry into a `malloc`'d buffer and can hold multi-GiB
+dumps; a C# `byte[]` is capped below 2 GiB, so the original port failed on
+2 GiB+ 3DS dumps (`new byte[entry.Length]` throws). Fixed with a disk-backed
+fallback (`LoadZippedFileToTemp` + `GenerateHashes`) that hashes the
+extracted temp file — same bytes, same hash. Verified against real 2 GiB
+3DS dumps in the real-ROM suite.
+
+### 10. Unsupported formats: RVZ, WUX/WUD — no fallback hashing
+rcheevos defines no reader for Dolphin's RVZ (compressed Wii/GameCube) or
+Cemu's WUX/WUD (Wii U), so RASharp has none either (by project policy, no
+net-new algorithms beyond rcheevos). What the binaries actually do:
+
+- **Explicit console**: the format is never parsed. `RASharp 19 game.rvz`
+  reads the file as a raw Wii disc and fails the magic check
+  (`Not a supported Wii file`); `RASharp 20 game.wux` hits the console with
+  **no hasher at all** — id 20 (Wii U) exists in the console table but has
+  no `FromFile` case (`Unsupported console for file hash: 20`).
+- **`?` auto-detect**: an unknown extension falls through to the generic
+  whole-file MD5 fallback with a warning
+  (`No console mapping specified for rvz file extension - trying full file
+  hash`). The result is the hash of the compressed container bytes, **not**
+  a game hash — do not use it for identification.
+
+Both behaviors are byte-identical to the 1.8.3 oracle (verified). The
+practical route for such files is conversion (RVZ → ISO via Dolphin,
+WUX → raw image), then the existing `iso` handler applies.
+
 ## Intentional differences (documented, not bugs)
 
 | Difference | Why |

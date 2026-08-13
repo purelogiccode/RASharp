@@ -252,4 +252,101 @@ public class TestFileUtil : IDisposable
         Assert.Null(FileUtil.LoadZippedFile(Path.Combine(_root, "missing.zip"), out var name));
         Assert.Equal("", name);
     }
+
+    /* ========================================================================= */
+    /* loadZippedFileToTemp — the disk-backed variant for >= 2 GiB entries       */
+
+    /// <summary>Tests that the temp variant extracts a single entry to disk.</summary>
+    [Fact]
+    public void LoadZippedFileToTempExtractsSingleEntry()
+    {
+        var content = "rom contents"u8.ToArray();
+        var path = WriteFile("rom.zip", MakeZip(archive =>
+        {
+            var entry = archive.CreateEntry("rom.bin");
+            using var stream = entry.Open();
+            stream.Write(content);
+        }));
+
+        var tempPath = FileUtil.LoadZippedFileToTemp(path, out var name);
+        try
+        {
+            Assert.NotNull(tempPath);
+            Assert.Equal("rom.bin", name);
+            Assert.Equal(content, File.ReadAllBytes(tempPath));
+        }
+        finally
+        {
+            if (tempPath != null)
+            {
+                File.Delete(tempPath);
+            }
+        }
+    }
+
+    /// <summary>Tests that the temp variant rejects an empty zip.</summary>
+    [Fact]
+    public void LoadZippedFileToTempRejectsEmptyZip()
+    {
+        var path = WriteFile("empty.zip", MakeZip(_ => { }));
+
+        var stderr = CaptureStderr(() =>
+        {
+            var tempPath = FileUtil.LoadZippedFileToTemp(path, out var name);
+            Assert.Null(tempPath);
+            Assert.Equal("", name);
+        });
+
+        Assert.Contains("Empty zip file", stderr, StringComparison.Ordinal);
+    }
+
+    /// <summary>Tests that the temp variant falls back to the whole zip file for multiple entries.</summary>
+    [Fact]
+    public void LoadZippedFileToTempReturnsWholeZipForMultipleEntries()
+    {
+        var zipBytes = MakeZip(archive =>
+        {
+            archive.CreateEntry("a.txt");
+            archive.CreateEntry("b.txt");
+        });
+        var path = WriteFile("multi.zip", zipBytes);
+
+        var stderr = CaptureStderr(() =>
+        {
+            var tempPath = FileUtil.LoadZippedFileToTemp(path, out var name);
+            try
+            {
+                Assert.NotNull(tempPath);
+                Assert.Equal("", name);
+                Assert.Equal(zipBytes, File.ReadAllBytes(tempPath));
+            }
+            finally
+            {
+                if (tempPath != null)
+                {
+                    File.Delete(tempPath);
+                }
+            }
+        });
+
+        Assert.Contains("returning entire zip file", stderr, StringComparison.Ordinal);
+    }
+
+    /// <summary>Tests that the temp variant rejects a directory-only zip.</summary>
+    [Fact]
+    public void LoadZippedFileToTempRejectsDirectoryOnly()
+    {
+        var path = WriteFile("dir.zip", MakeZip(archive =>
+        {
+            archive.CreateEntry("sub/");
+        }));
+
+        var stderr = CaptureStderr(() =>
+        {
+            var tempPath = FileUtil.LoadZippedFileToTemp(path, out _);
+            Assert.Null(tempPath);
+        });
+
+        Assert.Contains("only contains a directory", stderr, StringComparison.Ordinal);
+    }
 }

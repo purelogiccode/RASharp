@@ -8,8 +8,9 @@ to reproduce it.
 
 | Metric | Value |
 |---|---|
-| Full test suite | **326/326 green** (Debug and Release) |
+| Full test suite | **559/559 green** (Debug and Release) |
 | Tier-2 parity cases | **90/90 byte-identical** vs the rcheevos **12.4.0**-built oracle |
+| Real-ROM parity cases | **61/61 byte-identical** vs the pinned **1.8.3** binary (user libraries, incl. 3DS with user keys) |
 | Tier-1 ported vectors | all upstream `test/rhash` vectors green |
 | CLI output | byte-identical (stdout + stderr + exit codes), including verbose mode and error paths |
 | Platforms | portable `net10.0`; publishes win-x64/arm64 + linux-x64/arm64 |
@@ -40,6 +41,13 @@ The Tier-2 suite is not decorative — it found real port bugs in Part I:
 And in Part II, the audit found the port had inherited the 12.2.1
 `merge_callbacks` bug (fixed with 12.4.0).
 
+The real-ROM sweep (Part III) caught a fourth, memory-model port bug:
+**zip entries >= 2 GiB crashed the CLI** — `FileUtil.LoadZippedFile`
+materializes the entry in a `byte[]`, which the CLR caps below 2 GiB, while
+the C mallocs the full entry. Fixed with a disk-backed fallback
+(`FileUtil.LoadZippedFileToTemp` + `GenerateHashes`), verified against
+2 GiB 3DS dumps (`7th Dragon III Code - VFD`, both Ace Combat releases).
+
 ## Oracle matrix
 
 | Oracle | Source | Used for |
@@ -50,6 +58,40 @@ And in Part II, the audit found the port had inherited the 12.2.1
 
 All are GPL-3.0-built, local-only, git-ignored. Building them:
 [oracles](../development/oracles.md).
+
+## Real-ROM parity (user libraries)
+
+`TestRealRomParity` extends Tier 2 to real dumps: for each configured
+library it takes the **first 50 files** (ordinal-sorted; recursive for MAME
+software-list layouts like `pc98_cd`, where each game lives in its own
+subfolder) and runs both executables with the numeric console id and the
+same absolute paths. stdout, stderr, and exit code must be byte-identical —
+the same rule as the synthetic corpus.
+
+| Console ids | Libraries (path stems) | Formats exercised |
+|---|---|---|
+| 1, 10, 11, 15, 33, 68 | Sega Genesis, 32X, Master System, Game Gear, SG-1000, PICO | zip (single/multi-entry) |
+| 2, 3, 4, 5, 6, 7, 18, 28, 30, 45, 50, 51, 53, 59, 78, 81 | Nintendo 64, SNES, GB/GBC/GBA, NES, DS/DSi, Virtual Boy, C64, Intellivision, 5200/7800, WonderSwan, ZX Spectrum, FDS | zip / cartridge |
+| 8, 49, 58, 76 | PC Engine, PC-FX, FM Towns, PC Engine CD | ISO / CD |
+| 9, 39, 40, 43, 56, 77, 42 | Sega CD, Saturn, Dreamcast, 3DO, Neo Geo CD, Jaguar CD, CD-i | **predominantly CHD** + cue/bin |
+| 12, 21, 41 | PlayStation, PS2, PSP (3 sub-libraries) | ISO/PBP + CD |
+| 13, 14, 17, 23, 25, 27, 35, 36, 37, 44, 52, 70 | Lynx, Neo Geo Pocket (+Color), Jaguar, Odyssey 2, 2600, Arcade (MAME romsets), Amiga, Atari ST, Amstrad CPC, ColecoVision, X68000, Zeebo | zip / disk images |
+| 22, 82 | Xbox, PlayStation 3 | whole-file; **PS3 is unsupported in both binaries** — the case pins the identical rejection |
+| 62 | Nintendo 3DS (+ CDN, DSiWare) | zip; needs the user-supplied `aes_keys.txt`/`seeddb.bin` (repo root, git-ignored); CDN/DSiWare multi-entry zips are rejected identically by both binaries; the main library uses 25 files (multi-GiB entries make 50 too slow) |
+
+Notes:
+
+- The oracle is the **pinned 1.8.3 binary** (`References\RAHasher-1.8.3\RAHasher.exe`)
+  — the Part I reference — not the 12.4.0 default, so the results line up
+  with the historical 1.8.3 evidence.
+- Cases skip with a note when the host is not Windows, the oracle is
+  missing, or a library path is absent; the suite stays green on machines
+  without the ROM libraries.
+- The CD libraries (Saturn, Dreamcast, Neo Geo CD, 3DO, CD-i) are
+  predominantly CHD — closing the "real CHDs not available locally" gap
+  from the historical record below.
+- The 3DS cases skip when `aes_keys.txt`/`seeddb.bin` are missing from the
+  repo root (they are user-supplied and git-ignored).
 
 ## Reproduce
 
@@ -83,5 +125,15 @@ Any mismatch in the parity suite is a **port bug** — the project never
 
 - 3DS real retail CIAs — requires user-supplied `aes_keys.txt`/`seeddb.bin`.
 - Tier 3 spot checks — requires real ROMs (external corpus).
-- Saturn/Dreamcast real CHDs — not available locally; covered by the
-  synthetic corpus + upstream vectors.
+- DOS (id 26) and Pokemon Mini (id 24) libraries — not yet configured in
+  `TestRealRomParity` (paths not provided); the consoles themselves are
+  covered by the synthetic corpus + upstream vectors.
+- 3DS CDN/DSiWare downloads — multi-entry zips (`00000000` + `00000001` +
+  `tmd.0`) cannot be hashed by either binary (both reject identically);
+  the CDN entries must be extracted to `.cia`/`.cxi` first.
+- **Unsupported formats by design**: RVZ (Wii/GameCube compressed discs) and
+  WUX/WUD (Wii U) have **no rcheevos implementation**, so RASharp does not
+  support them either — the project never adds net-new hashing algorithms
+  beyond what rcheevos defines. Wii U (id 20) has no hasher at all; both
+  binaries reject it with `Unsupported console for file hash: 20`. See
+  [Known quirks](known-quirks.md).

@@ -178,4 +178,55 @@ public static class FileUtil
             return null;
         }
     }
+
+    /* LoadZippedFile variant for entries too large for a byte[] (the CLR caps
+     * arrays below 2 GiB; the C mallocs the full entry). Same decision tree:
+     * empty zip -> null, multi-entry -> the whole zip file, dir-only -> null,
+     * otherwise the first entry — but materialized on disk instead of memory. */
+    /// <summary>LoadZippedFile variant for entries too large for a byte[] (the CLR caps arrays below 2 GiB; the C mallocs the full entry). Same decision tree: empty zip -&gt; null, mu</summary>
+    /// <param name="path">the file path</param>
+    /// <param name="unzippedFileName">the unzipped file name parameter</param>
+    /// <returns>a temp file with the content to hash, or null on failure (caller deletes it)</returns>
+    public static string? LoadZippedFileToTemp(string path, out string unzippedFileName)
+    {
+        unzippedFileName = "";
+        try
+        {
+            using var archive = ZipFile.OpenRead(path);
+            var entries = archive.Entries;
+            switch (entries.Count)
+            {
+                case 0:
+                    Console.Error.WriteLine("Empty zip file \"{0}\"", path);
+                    return null;
+                case > 1:
+                    Console.Error.WriteLine("Zip file \"{0}\" contains {1} files, determining which to open is not supported - returning entire zip file", path, entries.Count);
+                    var zipCopy = Path.GetTempFileName();
+                    File.Copy(path, zipCopy, overwrite: true);
+                    return zipCopy;
+            }
+
+            var entry = entries[0];
+            if (entry.FullName.EndsWith("/", StringComparison.Ordinal))
+            {
+                Console.Error.WriteLine("Zip file \"{0}\" only contains a directory", path);
+                return null;
+            }
+
+            var temp = Path.GetTempFileName();
+            using (var output = new FileStream(temp, FileMode.Create, FileAccess.Write))
+            using (var stream = entry.Open())
+            {
+                stream.CopyTo(output);
+            }
+
+            unzippedFileName = entry.FullName;
+            return temp;
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "LoadZippedFileToTemp failed for {Path}", path);
+            return null;
+        }
+    }
 }

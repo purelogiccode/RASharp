@@ -228,16 +228,32 @@ with a note.
 
 ### Real-ROM parity
 
-The harness covers all engines with synthetic discs (XA/MODE1/AUDIO layouts
-reproducing real-file conventions). For real dumps, point `RASHARP_ORACLE` at
-a 1.8.3 binary and drop ROMs into the corpus — or run both CLIs yourself:
+Beyond the synthetic corpus, `RASharp.Tests\Parity\TestRealRomParity.cs`
+hashes the **first files of each user console library** (60 library
+paths across 53 console ids, 50 files each except the 3DS library which
+uses 25 — multi-GiB extraction is slow) with both executables and requires
+byte-identical stdout/stderr and exit codes. It runs against the pinned
+1.8.3 binary (`References\RAHasher-1.8.3\RAHasher.exe`) so the results
+match the Part I oracle. Each case skips with a note when the host is not
+Windows, the oracle is missing, or the library path is absent — the
+synthetic corpus remains the portable suite.
 
-```
-RAHasher.exe PS1 game.cue   vs.   RASharp.exe PS1 game.cue
-```
+The libraries cover cartridge, disk-image, zip (incl. MAME romsets), and
+CD formats — the CD libraries (Saturn, Dreamcast, Neo Geo CD, 3DO, CD-i,
+PC Engine CD, Jaguar CD, Sega CD, PSP) are predominantly CHD. MAME
+software-list layouts with one game per subfolder are enumerated
+recursively. One case is a deliberate mutual-rejection pin: **PlayStation 3
+(id 82) is unsupported in both binaries**, so the case locks in that both
+print `Unsupported console for file hash: 82` identically.
 
-3DS parity requires user-supplied `aes_keys.txt`/`seeddb.bin` (not
-redistributable); pass them via `-s` on both sides.
+See [Parity evidence](../docs/reference/parity-evidence.md) for the
+coverage table and [Known quirks](../docs/reference/known-quirks.md) for
+the unsupported-format behavior (RVZ, WUX/WUD).
+
+3DS parity requires the user-supplied `aes_keys.txt`/`seeddb.bin` at the
+repo root (git-ignored); the 3DS cases skip with a note when they are
+missing. CDN/DSiWare multi-entry zips are rejected identically by both
+binaries — pinned as such.
 
 ## Parity evidence
 

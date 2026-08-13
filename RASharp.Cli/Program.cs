@@ -349,9 +349,33 @@ internal static class Program
             ext.Length == 4 && char.ToLowerInvariant(ext[1]) == 'z' && char.ToLowerInvariant(ext[2]) == 'i' && char.ToLowerInvariant(ext[3]) == 'p')
         {
             var data = FileUtil.LoadZippedFile(filePath, out _);
-            if (data != null && RcHash.GenerateFromBuffer(out var hash, (uint)consoleId, data, data.Length))
+            if (data != null)
             {
-                hashes.Add(new FileHash(hash, (uint)consoleId));
+                if (RcHash.GenerateFromBuffer(out var hash, (uint)consoleId, data, data.Length))
+                {
+                    hashes.Add(new FileHash(hash, (uint)consoleId));
+                }
+
+                return hashes;
+            }
+
+            /* entries >= 2 GiB cannot fit in a byte[] (the C mallocs the full
+             * entry) — extract to a temp file and hash from disk: same bytes,
+             * same hash */
+            var tempPath = FileUtil.LoadZippedFileToTemp(filePath, out _);
+            if (tempPath != null)
+            {
+                try
+                {
+                    if (RcHash.GenerateFromFile(out var zipFileHash, (uint)consoleId, tempPath))
+                    {
+                        hashes.Add(new FileHash(zipFileHash, (uint)consoleId));
+                    }
+                }
+                finally
+                {
+                    File.Delete(tempPath);
+                }
             }
 
             return hashes;
