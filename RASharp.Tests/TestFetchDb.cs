@@ -62,7 +62,7 @@ public class TestFetchDb : IDisposable
 
     /* ========================================================================= */
 
-/// <summary>Tests copying a local database file.</summary>
+    /// <summary>Tests copying a local database file.</summary>
     [Fact]
     public void FetchDbLocalCopy()
     {
@@ -80,7 +80,7 @@ public class TestFetchDb : IDisposable
     }
 
     /* a malformed download must never clobber an existing snapshot */
-/// <summary>Tests that an invalid database is refused and nothing is written.</summary>
+    /// <summary>Tests that an invalid database is refused and nothing is written.</summary>
     [Fact]
     public void FetchDbRefusesInvalidJson()
     {
@@ -95,7 +95,7 @@ public class TestFetchDb : IDisposable
         Assert.False(File.Exists(dest));
     }
 
-/// <summary>Tests that an empty game list is refused.</summary>
+    /// <summary>Tests that an empty game list is refused.</summary>
     [Fact]
     public void FetchDbRefusesEmptyList()
     {
@@ -110,7 +110,7 @@ public class TestFetchDb : IDisposable
         Assert.False(File.Exists(dest));
     }
 
-/// <summary>Tests an HTTP download via the injected client.</summary>
+    /// <summary>Tests an HTTP download via the injected client.</summary>
     [Fact]
     public void FetchDbHttpDownload()
     {
@@ -137,7 +137,7 @@ public class TestFetchDb : IDisposable
         }
     }
 
-/// <summary>Tests a failed download.</summary>
+    /// <summary>Tests a failed download.</summary>
     [Fact]
     public void FetchDbDownloadFailure()
     {
@@ -159,7 +159,7 @@ public class TestFetchDb : IDisposable
     }
 
     /* the output is written atomically: a temp file must not linger */
-/// <summary>Tests that no temp file is left behind.</summary>
+    /// <summary>Tests that no temp file is left behind.</summary>
     [Fact]
     public void FetchDbNoTempLeftBehind()
     {
@@ -173,7 +173,7 @@ public class TestFetchDb : IDisposable
         Assert.False(File.Exists(dest + ".tmp"));
     }
 
-/// <summary>Tests fetch-db --help and missing source argument.</summary>
+    /// <summary>Tests fetch-db --help and missing source argument.</summary>
     [Fact]
     public void FetchDbHelpAndMissingSource()
     {

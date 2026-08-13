@@ -105,7 +105,7 @@ public class TestHashNeo
     {
         /* rcheevos 12.4.0 adds "neo" (→ Arcade content hash) and "sms"
          * (→ Master System) to the bsearch-sorted extension table */
-        HashIterator.GetIteratorExtHandlers(out var numHandlers);
+        HashIterator.GetIteratorExtHandlers(out _);
 
         ExtHandlerEntry? neo = null;
         ExtHandlerEntry? sms = null;

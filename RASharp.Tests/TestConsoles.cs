@@ -33,7 +33,7 @@ public class TestConsoles
 
     /* ========================================================================= */
 
-/// <summary>Tests the default text output.</summary>
+    /// <summary>Tests the default text output.</summary>
     [Fact]
     public void ConsolesTextDefault()
     {
@@ -48,7 +48,7 @@ public class TestConsoles
         Assert.Contains(lines, line => line.TrimStart().StartsWith("62 3DS", StringComparison.Ordinal));
     }
 
-/// <summary>Tests the csv output.</summary>
+    /// <summary>Tests the csv output.</summary>
     [Fact]
     public void ConsolesCsv()
     {
@@ -63,7 +63,7 @@ public class TestConsoles
         Assert.Contains("62,3DS,,Nintendo 3DS", lines, StringComparer.Ordinal);
     }
 
-/// <summary>Tests the json output.</summary>
+    /// <summary>Tests the json output.</summary>
     [Fact]
     public void ConsolesJson()
     {
@@ -84,7 +84,7 @@ public class TestConsoles
         Assert.Equal(JsonValueKind.Null, threeDs.GetProperty("group").ValueKind);
     }
 
-/// <summary>Tests consoles --help.</summary>
+    /// <summary>Tests consoles --help.</summary>
     [Fact]
     public void ConsolesHelp()
     {
@@ -94,7 +94,7 @@ public class TestConsoles
         Assert.Contains("Usage: RASharp consoles", stdout, StringComparison.Ordinal);
     }
 
-/// <summary>Tests an unknown output format.</summary>
+    /// <summary>Tests an unknown output format.</summary>
     [Fact]
     public void ConsolesUnknownFormat()
     {
@@ -104,7 +104,7 @@ public class TestConsoles
         Assert.Contains("Unknown consoles format", stderr, StringComparison.Ordinal);
     }
 
-/// <summary>Tests an unexpected argument.</summary>
+    /// <summary>Tests an unexpected argument.</summary>
     [Fact]
     public void ConsolesUnexpectedArgument()
     {
@@ -116,7 +116,7 @@ public class TestConsoles
 
     /* end-to-end: the Program.Run dispatch must route "consoles" to the
      * subcommand when the real CLI binary is invoked */
-/// <summary>Tests that the real CLI binary dispatches the consoles subcommand.</summary>
+    /// <summary>Tests that the real CLI binary dispatches the consoles subcommand.</summary>
     [Fact]
     public void ConsolesDispatchThroughCliExe()
     {

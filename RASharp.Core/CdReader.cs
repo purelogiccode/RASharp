@@ -531,8 +531,6 @@ public static class CdReader
 
             if (StartsWithIgnoreCase(buffer, pos, len, "INDEX "))
             {
-                int m = 0, s = 0, f = 0;
-
                 pos += 6;
                 var index = Atoi(buffer, ref pos);
 
@@ -547,7 +545,7 @@ public static class CdReader
                 }
 
                 /* convert mm:ss:ff to sector count */
-                ParseMsf(buffer, ref pos, len, ref m, ref s, ref f);
+                ParseMsf(buffer, ref pos, len, out var m, out var s, out var f);
                 var sectorOffset = ((m * 60) + s) * 75 + f;
 
                 if (currentTrack.FirstSector == -1)
@@ -941,7 +939,6 @@ public static class CdReader
             }
             else if (track == ConsoleIds.RcHashCdtrackFirstData && trackType == 4)
             {
-                track = currentTrack;
                 break;
             }
             else if (track == ConsoleIds.RcHashCdtrackLargest && trackType == 4)
@@ -994,9 +991,13 @@ public static class CdReader
         return cdrom;
     }
 
-    private static void ParseMsf(byte[] buffer, ref int pos, int len, ref int m, ref int s, ref int f)
+    private static void ParseMsf(byte[] buffer, ref int pos, int len, out int m, out int s, out int f)
     {
         /* sscanf_s(ptr, "%d:%d:%d", &m, &s, &f) — fields that fail to parse stay 0 */
+        m = 0;
+        s = 0;
+        f = 0;
+
         m = Atoi(buffer, ref pos);
         if (pos < len && buffer[pos] == (byte)':')
         {

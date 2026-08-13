@@ -241,7 +241,7 @@ public static class TestDataGenDisc
         CopyString(image, 2048 * 16, "1CD001", 6);
         image[2048 * 16 + 156 + 2] = 45017 & 0xFF;
         image[2048 * 16 + 156 + 3] = (45017 >> 8) & 0xFF;
-        image[2048 * 16 + 156 + 4] = (45017 >> 16) & 0xFF;
+        image[2048 * 16 + 156 + 4] = 0; /* (45017 >> 16) & 0xFF — 45017 < 2^16, so bits 16-23 are 0 */
         Array.Copy(directoryData, 0, image, 2048 * 17, directoryData.Length);
 
         trackFirstSector += 18;

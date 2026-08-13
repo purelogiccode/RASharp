@@ -69,16 +69,16 @@ public class TestScan : IDisposable
         return path;
     }
 
-    private string WriteText(string relativePath, string content)
+    private void WriteText(string relativePath, string content)
     {
-        return WriteFile(relativePath, System.Text.Encoding.ASCII.GetBytes(content));
+        WriteFile(relativePath, System.Text.Encoding.ASCII.GetBytes(content));
     }
 
     /* writes a synthetic RetroAchievements.json (the DataFetcher snapshot
      * schema: ID, Title, ConsoleID, ConsoleName, ImageIcon, NumAchievements,
      * Points, DateModified, Hashes[]) at the _root — outside the scanned
      * roms/ subfolder */
-    private string WriteDb(string relativePath, params (int Id, string Title, string ConsoleName, string[] Hashes)[] games)
+    private void WriteDb(string relativePath, params (int Id, string Title, string ConsoleName, string[] Hashes)[] games)
     {
         var entries = games.Select(game =>
             $"{{\"ID\": {game.Id}, \"Title\": \"{game.Title}\", \"ConsoleID\": 1, " +
@@ -86,7 +86,7 @@ public class TestScan : IDisposable
             $"\"NumAchievements\": 5, \"Points\": 50, \"DateModified\": \"2024-01-01\", " +
             $"\"Hashes\": [\"{string.Join("\", \"", game.Hashes)}\"]}}");
         var json = "[\n" + string.Join(",\n", entries) + "\n]";
-        return WriteFile(relativePath, System.Text.Encoding.UTF8.GetBytes(json));
+        WriteFile(relativePath, System.Text.Encoding.UTF8.GetBytes(json));
     }
 
     /* ========================================================================= */
@@ -475,7 +475,7 @@ public class TestScan : IDisposable
             (2, "Test Game Two", "NES/Famicom", [Nes32KHash]));
         var dest = Path.Combine(_root, "Compatible Games");
 
-        var (exit, stdout, stderr) = RunScan("--match", DbPath, "--move", dest, RomsPath);
+        var (exit, _, stderr) = RunScan("--match", DbPath, "--move", dest, RomsPath);
 
         Assert.Equal(0, exit);
         Assert.False(File.Exists(gbPath));
@@ -528,7 +528,7 @@ public class TestScan : IDisposable
         WriteDb("ra.json", (1, "Test Game One", "Game Boy", [Md5Hex(gb)]));
         var dest = Path.Combine(_root, "Compatible Games");
 
-        var (exit, stdout, stderr) = RunScan("--match", DbPath, "--move", dest, "--dry-run", RomsPath);
+        var (exit, _, stderr) = RunScan("--match", DbPath, "--move", dest, "--dry-run", RomsPath);
 
         Assert.Equal(0, exit);
         Assert.True(File.Exists(gbPath), "source file must stay in place during a dry run");

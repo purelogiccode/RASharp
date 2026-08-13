@@ -77,7 +77,7 @@ public class TestCheckKeys : IDisposable
 
     /* ========================================================================= */
 
-/// <summary>Tests a valid key set.</summary>
+    /// <summary>Tests a valid key set.</summary>
     [Fact]
     public void CheckKeysOk()
     {
@@ -93,7 +93,7 @@ public class TestCheckKeys : IDisposable
         Assert.Contains("3DS keys OK", stdout, StringComparison.Ordinal);
     }
 
-/// <summary>Tests a missing aes_keys.txt.</summary>
+    /// <summary>Tests a missing aes_keys.txt.</summary>
     [Fact]
     public void CheckKeysMissingAesKeys()
     {
@@ -104,7 +104,7 @@ public class TestCheckKeys : IDisposable
         Assert.Contains("3DS keys INVALID", stdout, StringComparison.Ordinal);
     }
 
-/// <summary>Tests that a missing required key slot fails the check.</summary>
+    /// <summary>Tests that a missing required key slot fails the check.</summary>
     [Fact]
     public void CheckKeysMissingSlot2C()
     {
@@ -117,7 +117,7 @@ public class TestCheckKeys : IDisposable
     }
 
     /* the engine treats a key whose first byte is 0 as absent (KeyIsPresent) */
-/// <summary>Tests that all-zero keys count as missing.</summary>
+    /// <summary>Tests that all-zero keys count as missing.</summary>
     [Fact]
     public void CheckKeysAllZeroKeysCountAsMissing()
     {
@@ -133,7 +133,7 @@ public class TestCheckKeys : IDisposable
     }
 
     /* seeddb.bin is optional — its absence is only a warning */
-/// <summary>Tests that a missing seeddb.bin is a warning, not a failure.</summary>
+    /// <summary>Tests that a missing seeddb.bin is a warning, not a failure.</summary>
     [Fact]
     public void CheckKeysSeedDbMissingIsWarning()
     {
@@ -146,7 +146,7 @@ public class TestCheckKeys : IDisposable
         Assert.Contains("3DS keys OK", stdout, StringComparison.Ordinal);
     }
 
-/// <summary>Tests that a truncated seeddb.bin fails the check.</summary>
+    /// <summary>Tests that a truncated seeddb.bin fails the check.</summary>
     [Fact]
     public void CheckKeysSeedDbTruncated()
     {
@@ -160,7 +160,18 @@ public class TestCheckKeys : IDisposable
         Assert.Contains("truncated", stdout, StringComparison.Ordinal);
     }
 
-/// <summary>Tests the default current-directory behavior and help.</summary>
+    /* unexpected positional arguments are rejected via stderr (Console.Error) */
+    /// <summary>Tests that an unexpected positional argument fails with a stderr message.</summary>
+    [Fact]
+    public void CheckKeysUnexpectedArgument()
+    {
+        var (exit, _, stderr) = RunCheckKeys("bogus.txt");
+
+        Assert.Equal(1, exit);
+        Assert.Contains("Unexpected argument", stderr, StringComparison.Ordinal);
+    }
+
+    /// <summary>Tests the default current-directory behavior and help.</summary>
     [Fact]
     public void CheckKeysDefaultDirAndHelp()
     {

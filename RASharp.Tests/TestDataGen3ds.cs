@@ -251,10 +251,10 @@ internal static class TestDataGen3Ds
                     counter[i] = header[0x108 + i];
                 }
 
-                counter[12] = (exefsOffset >> 24) & 0xFF;
-                counter[13] = (exefsOffset >> 16) & 0xFF;
-                counter[14] = (exefsOffset >> 8) & 0xFF;
-                counter[15] = exefsOffset & 0xFF;
+                counter[12] = 0; /* (exefsOffset >> 24) & 0xFF — 0x400 < 2^24 */
+                counter[13] = 0; /* (exefsOffset >> 16) & 0xFF — 0x400 < 2^16 */
+                counter[14] = (exefsOffset >> 8) & 0xFF; /* 0x400 >> 8 = 4 */
+                counter[15] = 0; /* exefsOffset & 0xFF — 0x400 is 0x100-aligned */
             }
 
             /* section table (first 0x200 bytes) and icon use the primary key */
@@ -312,7 +312,8 @@ internal static class TestDataGen3Ds
         const uint alignMask = 63;
 
         const uint certOffset = (ciaHeaderSize + alignMask) & ~alignMask;
-        var tikOffset = (certOffset + certSize + alignMask) & ~alignMask;
+        /* certSize is 0 (no certificate chain), so the ticket starts right at the aligned cert offset */
+        var tikOffset = (certOffset + alignMask) & ~alignMask;
         var tmdOffset = (tikOffset + tikSize + alignMask) & ~alignMask;
         var contentOffset = (tmdOffset + tmdSize + alignMask) & ~alignMask;
 
