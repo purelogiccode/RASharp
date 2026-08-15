@@ -31,61 +31,103 @@ dotnet add package RetroAchievementsSharp
 Works with the .NET 8, 9, and 10 SDKs/runtimes on Windows, Linux, macOS,
 x64 and arm64.
 
-## Quick start
+## Using the library
+
+Requires **.NET 8, 9, or 10** (older runtimes are not supported). Add the
+package:
+
+```
+dotnet add package RetroAchievementsSharp
+```
+
+All API entry points live in the `RetroAchievementsSharp` namespace; every
+hash is a 32-character lowercase hex string that matches the hash published
+on retroachievements.org for the same file.
+
+### Hash a ROM file
 
 ```csharp
 using RetroAchievementsSharp;
 
-// Hash a ROM exactly the way RetroAchievements does (60+ consoles; whole-file,
-// cartridge, disc, zip, CHD, RVZ, and 3DS algorithms are included):
 if (RcHash.GenerateFromFile(out string hash, ConsoleIds.RcConsoleNintendo, "game.nes"))
-    Console.WriteLine(hash); // 32 hex chars — matches the published RA hash
+    Console.WriteLine(hash); // e.g. "a3f5c0f8e1b2d9a4c7d6e5f4a3b2c1d0"
 ```
 
-More examples:
+`GenerateFromFile` returns `true` when the file hashed successfully. The
+`ConsoleIds` constants cover every supported console
+(`RcConsoleGameboy`, `RcConsoleMegaDrive`, `RcConsolePlaystation`, …).
+
+### Hash in-memory data
 
 ```csharp
-// Auto-detect the console by extension (the engine tries every candidate):
-var iterator = new RcHashIterator();
-HashIterator.InitializeIterator(iterator, "Super Mario (USA).sfc", null, 0);
-while (HashIterator.Iterate(out var hash, iterator) != 0)
-    Console.WriteLine(hash); // the first hash that matched a console
-HashIterator.DestroyIterator(iterator);
-
-// Hash an in-memory buffer (e.g. the first entry of a zip):
-if (RcHash.GenerateFromBuffer(out hash, ConsoleIds.RcConsoleMegaDrive, data, data.Length))
-    Console.WriteLine(hash);
-
-// GameCube / Wii discs hash RVZ and WIA images live (decode-on-read,
-// no rvz→iso conversion) via RVZSharp; CHD via CHDSharp:
-if (RcHash.GenerateFromFile(out hash, ConsoleIds.RcConsoleGamecube, "game.rvz"))
-    Console.WriteLine(hash);
-if (RcHash.GenerateFromFile(out hash, ConsoleIds.RcConsoleWii, "game.chd"))
-    Console.WriteLine(hash);
-
-// 3DS .cia/.3ds files need key files before hashing:
-Hash3Ds.InitHash3Ds(@"C:\RetroArch\system"); // dir with aes_keys.txt/seeddb.bin
-if (RcHash.GenerateFromFile(out hash, ConsoleIds.RcConsoleNintendo3Ds, "game.cia"))
+byte[] data = File.ReadAllBytes("rom.bin");
+if (RcHash.GenerateFromBuffer(out string hash, ConsoleIds.RcConsoleGameboy, data, data.Length))
     Console.WriteLine(hash);
 ```
 
-- `RcHash.GenerateFromFile(out hash, consoleId, path)` — hash a file.
-- `RcHash.GenerateFromBuffer(out hash, consoleId, buffer, bufferSize)` —
-  hash in-memory data (e.g. the first entry of a zip).
-- `?(...)` per-console entry points: `HashEngine.FromFile`, `HashEngine.FromBuffer`,
-  `HashRom.RcHashNes`, `HashDisc.RcHashPsx`, and the iterate API
-  `HashIterator`/`RcHashIterator` for auto-detection (`?` mode).
-- 3DS `.cia`/`.3ds` files need key files: call `Hash3Ds.InitHash3Ds(systemDir)`
-  with a directory containing `aes_keys.txt` (and optionally `seeddb.bin`).
-- CHD discs are supported out of the box via
-  [CHDSharp](https://www.nuget.org/packages/CHDSharp).
-- GameCube/Wii `​.rvz`/`.wia` discs are hashed live (decode-on-read, no
-  conversion) via [RVZSharp](https://www.nuget.org/packages/RVZSharp).
+### Auto-detect the console (`?` mode)
 
-Full API reference and docs: <https://purelogiccode.github.io/RetroAchievementsSharp/>.
-For exact engine behavior (64 MiB cap, header-stripping rules, track
-selection, verbose messages), see the [documentation](docs/index.md) and
-[known quirks](docs/reference/known-quirks.md).
+When you don't know the console, use the iterator API — it tries every
+console's handler in the engine's exact table order and returns the first
+match:
+
+```csharp
+var iterator = new RcHashIterator();
+HashIterator.InitializeIterator(iterator, "Super Mario (USA).sfc", null, 0);
+while (HashIterator.Iterate(out string hash, iterator) != 0)
+    Console.WriteLine(hash); // the first hash that matched a console
+HashIterator.DestroyIterator(iterator);
+```
+
+A single file can produce several hashes (e.g. a multi-disc `.m3u`), which
+is why `Iterate` is a loop.
+
+### Disc images (`.cue`, `.iso`, `.gdi`, `.chd`, `.rvz`, `.wia`)
+
+Discs hash directly — no conversion needed. CHD is read via CHDSharp;
+GameCube/Wii RVZ/WIA images are decoded live via RVZSharp:
+
+```csharp
+if (RcHash.GenerateFromFile(out string hash, ConsoleIds.RcConsolePlaystation, "disc.cue"))
+    Console.WriteLine(hash);
+
+if (RcHash.GenerateFromFile(out hash, ConsoleIds.RcConsoleGamecube, "game.rvz"))
+    Console.WriteLine(hash);
+
+if (RcHash.GenerateFromFile(out hash, ConsoleIds.RcConsoleWii, "game.chd"))
+    Console.WriteLine(hash);
+```
+
+### 3DS `.cia` / `.3ds` (key files required)
+
+Call `Hash3Ds.InitHash3Ds(systemDir)` once with a directory containing
+`aes_keys.txt` (and optionally `seeddb.bin` for seed-encrypted titles):
+
+```csharp
+Hash3Ds.InitHash3Ds(@"C:\RetroArch\system");
+if (RcHash.GenerateFromFile(out string hash, ConsoleIds.RcConsoleNintendo3Ds, "game.cia"))
+    Console.WriteLine(hash);
+```
+
+### Error handling
+
+- `GenerateFromFile` / `GenerateFromBuffer` return `false` (never throw) on
+  unsupported files, missing 3DS keys, or hashing failures.
+- The engine reports errors through the message callbacks (see
+  `RcHash.InitErrorMessageCallback`) — the CLI wires these to Serilog.
+- `HashIterator.Iterate` returns `0` when no console accepted the file.
+
+### Notes
+
+- **Global configuration is process-wide** — `Hash3Ds.InitHash3Ds` and the
+  custom filereader/cdreader registrations (`RcHash.InitCustomFilereader`,
+  `RcHash.InitCustomCdreader`) are global state, matching the C engine.
+  Initialize once at startup; concurrent hashing from multiple threads is
+  not supported.
+- Full API reference: <https://purelogiccode.github.io/RetroAchievementsSharp/reference/public-api/>.
+  For exact engine behavior (64 MiB cap, header-stripping rules, track
+  selection, verbose messages), see the [documentation](docs/index.md) and
+  [known quirks](docs/reference/known-quirks.md).
 
 ## Supported formats
 

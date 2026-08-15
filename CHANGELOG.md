@@ -43,11 +43,23 @@ For the port history and the evolution plan, see `ConversionPlan.md`.
   harness vs. source-built C oracles, RVZ-vs-ISO equality on real
   GameCube/Wii discs, and real-ROM parity — **587/587 green on net8.0,
   net9.0, and net10.0**.
+- All logging routed through Serilog; the CLI forwards Warning+ events to
+  the bug report API and reports usage telemetry at launch (both
+  disable-able via environment variables — see `docs/development/logging.md`).
+- Docs site on GitHub Pages (MkDocs Material, left-nav sidebar) deployed
+  automatically by CI, plus a hand-maintained GitHub wiki.
 
 ### Fixed
 - Three real CLI parity bugs caught by the harness (arg-count guard crash,
   wildcard path construction, usage banner blank line), and the inherited
   12.2.1 `merge_callbacks` bug synced to 12.4.0.
+- `TestHash3Ds` flakiness under parallel multi-TFM test runs (shared temp
+  dirs replaced with per-instance dirs).
+
+### Removed
+- Dead code: the unused `HashEngine.NotYetImplemented` stub and
+  `HashEngine.MergeCallbacks` (the C merge lives in `rc_hash_reset_iterator`,
+  ported as `HashEngine.ResetIterator`).
 
 ### Changed
 - License: the library links RVZSharp (GPL-2.0-or-later, Dolphin-derived),

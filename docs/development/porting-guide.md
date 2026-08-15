@@ -46,8 +46,10 @@ maintainable, and reviewable.
   fields, BCD MSF.
 - **Track math** — MSF→LBA (`− 150`), pregap, `file_first_sector`
   accumulation across cue FILE blocks, the sector-16 probe.
-- **Callback plumbing** — `MergeCallbacks` (the 12.2.1 bug!), the global
-  vs. iterator-local cdreader/filereader duality.
+- **Callback plumbing** — global callbacks merged into the iterator by
+  `HashEngine.ResetIterator` (the 12.2.1 `error_message`→`verbose_message`
+  bug and its 12.4.0 fix!), the global vs. iterator-local
+  cdreader/filereader duality.
 - **Text fidelity** — error and verbose strings are part of the parity
   contract (the harness compares raw stdout/stderr bytes).
 

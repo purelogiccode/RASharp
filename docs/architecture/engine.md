@@ -60,10 +60,12 @@ buffer, and the filereader/cdreader callbacks. `HashIterator` provides:
 `Callbacks.cs` mirrors the `rc_hash_callbacks_t` struct: error/verbose
 message callbacks, filereader (open/seek/tell/read/close), cdreader
 (open_track/read_sector/close_track/first_track_sector/open_track_iterator)
-and the 3DS key funcs. `MergeCallbacks` merges a partial callback set into
-the iterator — **including the 12.4.0 bugfix** (the 12.2.1 original assigned
-`error_message` into `verbose_message`; the port inherited the bug and fixed
-it in Part II).
+and the 3DS key funcs. Every hash run starts from `HashEngine.ResetIterator`
+(the port of `rc_hash_reset_iterator`), which merges the **global**
+callbacks (verbose/error messages, custom filereader, cdreader, 3DS key
+funcs) into the iterator's callback bag — **including the 12.4.0 bugfix**
+(the 12.2.1 original assigned `error_message` into `verbose_message`; the
+port inherited the bug and fixed it in Part II).
 
 ## Key constants
 

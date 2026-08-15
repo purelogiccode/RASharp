@@ -22,3 +22,6 @@ site/
 # Python (tools/)
 __pycache__/
 *.pyc
+
+# Release artifacts (packages + CLI binaries + zips)
+release/

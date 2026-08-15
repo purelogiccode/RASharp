@@ -30,9 +30,27 @@ pack from NuGet, so e.g. Linux-arm64 can be produced on Windows.
 | `linux-x64` | `artifacts/linux-x64/RetroAchievementsSharp` | ELF |
 | `linux-arm64` | `artifacts/linux-arm64/RetroAchievementsSharp` | ELF |
 
+## Release archives
+
+For GitHub releases, zip each publish output with a consistent name:
+
+```text
+retroachievementssharp_v<version>_<rid>.zip
+```
+
+e.g. for version `1.0.0`:
+
+```text
+retroachievementssharp_v1.0.0_win-x64.zip
+retroachievementssharp_v1.0.0_win-arm64.zip
+retroachievementssharp_v1.0.0_linux-x64.zip
+retroachievementssharp_v1.0.0_linux-arm64.zip
+```
+
 !!! note "Linux permissions"
     Files cross-published from Windows carry no POSIX execute bit — run
-    `chmod +x RetroAchievementsSharp` after copying to a Linux host.
+    `chmod +x RetroAchievementsSharp` after copying to a Linux host (or set
+    the bit when creating the archive on a Linux machine).
 
 The `artifacts/` directory is git-ignored; sizes vary with the .NET version.
 
@@ -85,7 +103,7 @@ Consume the just-packed nupkg from a scratch project:
 
 ```bash
 mkdir /tmp/smoke && cd /tmp/smoke && dotnet new console --framework net8.0
-dotnet add package RetroAchievementsSharp --source C:\Sincronizar\source\repos\CSharp_RASharp\artifacts
+dotnet add package RetroAchievementsSharp --source <repo>\release
 dotnet run
 ```
 

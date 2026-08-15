@@ -66,6 +66,7 @@ RetroAchievementsSharp.Cli/bin/Release/net10.0/RetroAchievementsSharp.Cli.exe '?
 - **Reference** — [console table](reference/console-table.md),
   [hashing semantics](reference/hashing-semantics.md), [public API](reference/public-api.md),
   [known quirks](reference/known-quirks.md), [parity evidence](reference/parity-evidence.md)
+- **Release notes** — [RetroAchievementsSharp 1.0.0](ReleaseNotes.md)
 
 ## Repository layout
 

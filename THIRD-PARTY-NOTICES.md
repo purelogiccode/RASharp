@@ -15,8 +15,9 @@ provenance.
 | RVZSharp | 1.0.0 (NuGet) | GPL-2.0-or-later (Dolphin-derived) | GameCube/Wii RVZ/WIA decoding in `RvzFilereader` (no rvz→iso conversion) |
 | VideoGameFileSystemParser | 1.2.0 (NuGet) | MIT — Copyright (c) 2025 Peterson Fernandes | Alternative ISO9660/UDF filesystem backend (`FileSystemResolver`) |
 | Serilog | 4.4.0 (NuGet) | Apache-2.0 | Logging in the library, CLI, and tests |
-| Meziantou.Analyzer | 3.0.156 (NuGet, build-time only) | MIT | Code-quality analyzers (never shipped) |
-| Microsoft.SourceLink.GitHub | 8.0.0 (NuGet, PrivateAssets) | MIT — Copyright (c) .NET Foundation | SourceLink/SourceRevisionId in symbols and packages |
+| Serilog.Sinks.Console | 6.1.1 (NuGet, CLI only) | Apache-2.0 | Console sink for the CLI (byte-exact parity output) |
+| Meziantou.Analyzer | 3.0.157 (NuGet, build-time only) | MIT | Code-quality analyzers (never shipped) |
+| Microsoft.SourceLink.GitHub | 10.0.400 (NuGet, PrivateAssets) | MIT — Copyright (c) .NET Foundation | SourceLink/SourceRevisionId in symbols and packages |
 
 ## The MIT notice of the ported rcheevos code
 

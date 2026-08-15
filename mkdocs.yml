@@ -87,4 +87,5 @@ nav:
       - reference/public-api.md
       - reference/known-quirks.md
       - reference/parity-evidence.md
+  - Release Notes: ReleaseNotes.md
   - License: license.md
