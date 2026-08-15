@@ -13,7 +13,7 @@ to reproduce it.
 | Real-ROM parity cases | **61/61 byte-identical** vs the pinned **1.8.3** binary (user libraries, incl. 3DS with user keys) |
 | Tier-1 ported vectors | all upstream `test/rhash` vectors green |
 | CLI output | byte-identical (stdout + stderr + exit codes), including verbose mode and error paths |
-| Platforms | portable `net10.0`; publishes win-x64/arm64 + linux-x64/arm64 |
+| Platforms | `net8.0;net9.0;net10.0` (581/581 green on each); CLI publishes win-x64/arm64 + linux-x64/arm64 |
 
 ## The three tiers
 

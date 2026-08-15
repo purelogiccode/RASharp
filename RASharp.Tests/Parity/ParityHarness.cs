@@ -175,9 +175,16 @@ public static class ParityHarness
         if (!string.IsNullOrEmpty(env) && File.Exists(env))
             return env;
 
+        /* prefer the CLI built for the TFM the test assembly itself runs on,
+         * then fall back through the remaining targets */
+        var currentTfm = AppContext.TargetFrameworkName;
+        var tfms = new List<string> { currentTfm! }
+            .Concat(new[] { "net10.0", "net9.0", "net8.0" }.Where(tfm => !string.Equals(tfm, currentTfm, StringComparison.Ordinal)))
+            .Distinct(StringComparer.Ordinal).ToArray();
+
         foreach (var config in new[] { "Debug", "Release" })
         {
-            foreach (var tfm in new[] { "net10.0", "net10.0-windows" })
+            foreach (var tfm in tfms)
             {
                 var path = Path.Combine(RepoRoot, "RASharp.Cli", "bin", config, tfm, "RASharp.exe");
                 if (File.Exists(path))

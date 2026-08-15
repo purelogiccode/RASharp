@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RASharp", "RASharp", "{C08287F2-09DE-3BD4-6090-544C90990688}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RASharp.Core", "RASharp.Core\RASharp.Core.csproj", "{529574C6-4129-4AFA-A436-10E4C24801AC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RASharp.Cli", "RASharp.Cli\RASharp.Cli.csproj", "{FE6169AC-0352-48A5-ADF6-77FB4283C5C0}"
@@ -60,10 +58,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{529574C6-4129-4AFA-A436-10E4C24801AC} = {C08287F2-09DE-3BD4-6090-544C90990688}
-		{FE6169AC-0352-48A5-ADF6-77FB4283C5C0} = {C08287F2-09DE-3BD4-6090-544C90990688}
-		{7A568635-B1DA-4599-92F2-E77EB365D497} = {C08287F2-09DE-3BD4-6090-544C90990688}
 	EndGlobalSection
 EndGlobal

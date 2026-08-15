@@ -1,15 +1,56 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- NuGet package metadata -->
+    <IsPackable>true</IsPackable>
+    <PackageId>RASharp.Core</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Peterson Fernandes</Authors>
+    <Description>A native C# port of the RetroAchievements hashing engine (rcheevos/RAHasher, MIT) that produces 100% identical hashes to the original for every supported console. Supports cartridge, disc (.cue/.bin/.iso/.gdi/.chd), zip, m3u, Arcade, DOS and 3DS inputs.</Description>
+    <PackageTags>RetroAchievements;rcheevos;RAHasher;hash;hashing;rom;iso;disc;chd;3ds;nes;snes;n64;playstation</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/purelogiccode/RASharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/purelogiccode/RASharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>master</RepositoryBranch>
+    <PackageReleaseNotes>https://github.com/purelogiccode/RASharp/blob/master/CHANGELOG.md</PackageReleaseNotes>
+
+    <!-- symbols, source link and reproducible packs -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+
+    <!-- XML docs are packed (GenerateDocumentationFile); CS1591 (missing
+         doc comments) is suppressed so the build stays warnings-as-errors -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <!-- guards consumer compatibility on every future pack build -->
+    <EnablePackageValidation>true</EnablePackageValidation>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CHDSharp" Version="1.2.0" />
     <PackageReference Include="Serilog" Version="4.4.0" />
     <PackageReference Include="VideoGameFileSystemParser" Version="1.2.0" />
-    <PackageReference Update="Meziantou.Analyzer" Version="3.0.156" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
+    <None Include="..\assets\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

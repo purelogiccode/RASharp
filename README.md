@@ -1,44 +1,73 @@
 # RASharp
 
-A native C# port of the **RAHasher 1.8.3** CLI (`rcheevos` commit
-`40d916de00fe757bab40fb4db41a7912193a48e3`) that produces **100% identical
-hashes** to the original for every supported console. MIT-licensed class
-library + CLI, using `CHDSharp` for CHD reading and
-`VideoGameFileSystemParser` for the alternative filesystem backend.
+[![NuGet](https://img.shields.io/nuget/v/RASharp.Core)](https://www.nuget.org/packages/RASharp.Core)
+[![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%209.0%20%7C%2010.0-512BD4)](https://dotnet.microsoft.com/download)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Repo](https://img.shields.io/badge/github-purelogiccode%2FRASharp-181717?logo=github)](https://github.com/purelogiccode/RASharp)
 
-See `ConversionPlan.md` for the full porting plan, module-by-module mapping,
-and phase status.
+A native C# port of the **RAHasher 1.8.3** hashing engine (`rcheevos`
+`40d916d` → 12.4.0) that produces **100% identical hashes** to the original
+for every supported console — the same hashes the
+[RetroAchievements](https://retroachievements.org) website and its clients
+use to identify ROMs and disc images.
 
-## Building
+- **Library** — `RASharp.Core` ([NuGet](https://www.nuget.org/packages/RASharp.Core)),
+  targets `net8.0`, `net9.0`, and `net10.0`; MIT licensed.
+- **CLI** — `RASharp.exe`, byte-identical in behavior to `RAHasher 1.8.3`,
+  plus convenience subcommands (`scan`, `identify`, `consoles`, `checkkeys`,
+  `fetch-db`).
+- **Verified** — 581/581 tests on **each** supported TFM, including a parity
+  harness against source-built C oracles and spot checks against the
+  published RetroAchievements game database.
 
-```
-dotnet build RASharp.sln -c Release
-```
-
-Produces `RASharp.Cli\bin\Release\net10.0-windows\RASharp.exe`.
-
-Requires the .NET 10 SDK. All projects target the portable `net10.0` TFM
-(`CHDSharp` and `VideoGameFileSystemParser` 1.2.0 both ship portable libs),
-so the same code runs on Windows, Linux, x64, and arm64. NuGet
-dependencies: `CHDSharp` 1.2.0 and `VideoGameFileSystemParser` 1.2.0 (both
-MIT).
-
-## Publishing
-
-Self-contained single-file executables (no .NET runtime needed on the target):
+## Installation
 
 ```
-dotnet publish RASharp.Cli -c Release -r win-x64    --self-contained true -p:PublishSingleFile=true -o artifacts/win-x64
-dotnet publish RASharp.Cli -c Release -r win-arm64  --self-contained true -p:PublishSingleFile=true -o artifacts/win-arm64
-dotnet publish RASharp.Cli -c Release -r linux-x64  --self-contained true -p:PublishSingleFile=true -o artifacts/linux-x64
-dotnet publish RASharp.Cli -c Release -r linux-arm64 --self-contained true -p:PublishSingleFile=true -o artifacts/linux-arm64
+dotnet add package RASharp.Core
 ```
 
-Produces `RASharp.exe` (Windows) / `RASharp` (Linux) in `artifacts\<rid>\`.
-(The parity suite's oracle is a Windows PE, so Tier-2 parity runs on Windows;
-on Linux the parity cases skip and the ported vectors still run.)
+Works with the .NET 8, 9, and 10 SDKs/runtimes on Windows, Linux, macOS,
+x64 and arm64.
 
-## Usage
+## Quick start
+
+```csharp
+using RASharp.Core;
+
+// Hash a ROM exactly the way RetroAchievements does (20+ consoles; whole-file,
+// cartridge, disc, zip, and 3DS algorithms are included):
+if (RcHash.GenerateFromFile(out string hash, ConsoleIds.RcConsoleNintendo, "game.nes"))
+    Console.WriteLine(hash); // 32 hex chars — matches the published RA hash
+```
+
+- `RcHash.GenerateFromFile(out hash, consoleId, path)` — hash a file.
+- `RcHash.GenerateFromBuffer(out hash, consoleId, buffer, bufferSize)` —
+  hash in-memory data (e.g. the first entry of a zip).
+- `?(...)` per-console entry points: `HashEngine.FromFile`, `HashEngine.FromBuffer`,
+  `HashRom.RcHashNes`, `HashDisc.RcHashPsx`, and the iterate API
+  `HashIterator`/`RcHashIterator` for auto-detection (`?` mode).
+- 3DS `.cia`/`.3ds` files need key files: call `Hash3Ds.InitHash3Ds(systemDir)`
+  with a directory containing `aes_keys.txt` (and optionally `seeddb.bin`).
+- CHD discs are supported out of the box via
+  [CHDSharp](https://www.nuget.org/packages/CHDSharp).
+
+Full API reference and docs: <https://purelogiccode.github.io/RASharp/>.
+For exact engine behavior (64 MiB cap, header-stripping rules, track
+selection, verbose messages), see the [documentation](docs/index.md) and
+[known quirks](docs/reference/known-quirks.md).
+
+## Supported formats
+
+Raw ROMs (all cartridge consoles), `.zip` (pre-loaded ROM, Arduboy FX,
+DOSZ/Zip64/DOSC), `.m3u` playlists, discs (`.cue`/`.bin`/`.iso`/`.gdi`/`.chd`),
+3DS `.cia`/`.3ds`/`.3dsx` (keys via `-s` / `Hash3Ds.InitHash3Ds`), and
+Neo Geo `.neo` carts. Console list: NES/Famicom, SNES/SFC, N64, GB/GBC/GBA,
+Master System, Mega Drive/Genesis, Game Gear, 32X, SG-1000, PCE/TG-16,
+PCE-CD, Saturn, Sega CD, Dreamcast, PS1, PS2, PSP, 3DO, PC-FX, Jaguar(+CD),
+Neo Geo Pocket(+Color), Neo Geo CD, NDS/DSi/3DS — the full rcheevos console
+table (~59 consoles), including classic microcomputers.
+
+## CLI usage
 
 Identical to RAHasher 1.8.3:
 
@@ -59,8 +88,6 @@ Examples:
 RASharp NES game.nes
 RASharp PS1 disc.cue
 RASharp -s C:\RetroArch\system 3DS game.cia
-RASharp ? unknown.bin
-RASharp GB *.gb
 ```
 
 Supported input formats: raw ROMs, `.zip` (pre-loaded ROM / Arduboy FX /
@@ -75,198 +102,123 @@ DOSZ), `.m3u` playlists, `.cue/.bin/.iso/.gdi` discs, `.chd` discs, 3DS
 > numeric id — e.g. `RASharp 62 game.cia`. (The C's `find_console_id` falls
 > back to `atoi`, so the key `3DS` would silently resolve to console 3!)
 
-### RASharp extensions: `scan`
+### `RASharp scan` — hash a whole ROM library
 
-`RASharp scan` (not present in RAHasher 1.8.3 — the legacy positional
-interface above is unchanged) hashes a whole ROM library with per-file
-console auto-detection and emits one manifest row per file:
+(not present in RAHasher 1.8.3 — the legacy positional interface above is
+unchanged) hashes each file with per-file console auto-detection and emits
+one manifest row per file:
 
 ```
 RASharp scan [options] <path>...
   -f, --format <text|csv|json>  output format (default: text)
   -s <systempath>               supplementary files directory (3DS keys)
       --match <db.json>         RetroAchievements database snapshot
-                                (RetroAchievements.json); rows whose hash
-                                belongs to a game are annotated with it
       --move <dir>              move matched files into <dir>/<console-key>/
-                                <filename> (requires --match); existing
-                                files are renamed with a (1), (2) suffix
       --dry-run                 preview --move without moving anything
-                                (requires --move)
       --no-recursive            do not descend into subdirectories
   -h, --help                    show help
 ```
 
 Each file is auto-detected the same way the `?` system key works for a
-single file. Text rows look like `<hash> <console-key> <path>`; with
-`--match`, matched rows append `=> <Title> (ID <id>)` (csv gains
-`game_id,game_title` columns, json gains a `games` array). A file that
-fails every candidate console gets the `????` marker and a `?` console.
-Hidden, system, and reparse-point files are skipped; hidden
-subdirectories are skipped too. The manifest goes to stdout, the summary
-(`Scanned N file(s): X hashed, Y failed`) to stderr; exit code `0` when
-every file hashed, `1` when any failed. Examples:
+single file; matched rows append `=> <Title> (ID <id>)`. The manifest goes
+to stdout, the summary (`Scanned N file(s): X hashed, Y failed`) to stderr;
+exit code `0` when every file hashed, `1` when any failed.
 
-```
-RASharp scan C:\ROMs
-RASharp scan --format json C:\ROMs > manifest.json
-RASharp scan --format csv --no-recursive "C:\ROMs\NES" > nes.csv
-RASharp scan --match RetroAchievements.json C:\ROMs > matched.txt
-RASharp scan --match RetroAchievements.json --move "C:\ROMs\Compatible Games" C:\ROMs
-RASharp scan --match RetroAchievements.json --move "C:\ROMs\Compatible Games" --dry-run C:\ROMs
-```
+### Other subcommands
 
-`--match` accepts the `RetroAchievements.json` snapshot produced by the
-`RetroAchievements.DataFetcher` tool (a JSON array of games with a
-`Hashes[]` list each). `--move` relocates only the matched files, grouped
-by detected console key (`Compatible Games\NES\...`, `GB\...`, `PS1\...`),
-never overwriting — colliding names get a `(1)`, `(2)` suffix. `--dry-run`
-prints the exact move plan (collision suffixes included) to stderr without
-touching any file. Note: `.zip`
-files hash by filename (Arcade) during auto-detection, so they rarely
-match the database — extract them first.
+- `RASharp consoles [--format text|csv|json]` — dump the console table.
+- `RASharp checkkeys [-s <systempath>]` — validate 3DS key files.
+- `RASharp identify <system> <file> [--db <RetroAchievements.json> | --user <u> --api-key <k>]`
+  — hash one file and resolve it to a game with achievements (local
+  snapshot or live API).
+- `RASharp fetch-db <url-or-path> [--out <file>]` — download a database
+  snapshot, validate it, save atomically.
 
-### RASharp extensions: `consoles`
+Full details for every subcommand: [docs/getting-started/usage.md](docs/getting-started/usage.md).
 
-`RASharp consoles` dumps the console metadata table (id, key, group, name)
-that the usage banner shows, in a machine-readable form for scripts:
+## Building
 
-```
-RASharp consoles [--format text|csv|json]
+```sh
+dotnet build RASharp.sln -c Release
 ```
 
-```
-RASharp consoles                      # the familiar table
-RASharp consoles --format csv > consoles.csv
-RASharp consoles -f json              # [{"id": 7, "key": "NES", "group": "Nintendo", "name": "NES/Famicom"}, ...]
-```
+Requires any .NET 8+ SDK. All three projects multi-target `net8.0;net9.0;net10.0`
+(CHDSharp, VideoGameFileSystemParser 1.2.0 and Serilog 4.4.0 all ship
+portable libs for these TFMs). Build a single target with
+`-f net8.0` (faster).
 
-NULL-group consoles (`3DS`, `Oric`, `DOS`, ...) keep a blank `group` in
-text/csv and `null` in json, matching how the usage banner marks consoles
-"not supported by RA". Exit code `0` on success, `1` on usage errors.
+## Publishing the CLI
 
-### RASharp extensions: `checkkeys`, `identify`, `fetch-db`
+Self-contained single-file executables (no runtime needed on the target):
 
-**`RASharp checkkeys [-s <systempath>]`** — validates the 3DS key files in a
-system directory (`aes_keys.txt` must carry `slot0x2CKeyX`, `slot0x3DKeyX`,
-and at least one `common<slot>=` key; `seeddb.bin` is optional and only
-warned about when missing). Uses the same "key present" semantics as the
-3DS engine. Exit `0` when the keys are usable, `1` otherwise.
-
-**`RASharp identify <system> <file> [options]`** — hashes a single file
-with an explicit console (the same flow as the legacy CLI, including zip
-content hashing and 3DS keys — `?` auto-detects) and resolves the hash to
-a game with achievements:
-
-```
-RASharp identify NES game.nes --db RetroAchievements.json
-RASharp identify GB game.zip --db RetroAchievements.json   # zip content hash
-RASharp identify ? unknown.bin --db RetroAchievements.json
-RASharp identify PS1 disc.cue --user myname --api-key <key>   # live API lookup
+```sh
+dotnet publish RASharp.Cli -c Release -r win-x64    --self-contained true -p:PublishSingleFile=true -o artifacts/win-x64
+dotnet publish RASharp.Cli -c Release -r linux-x64  --self-contained true -p:PublishSingleFile=true -o artifacts/linux-x64
 ```
 
-Without credentials the hash is looked up in a local
-`RetroAchievements.json` snapshot (`--db`, default file in the current
-directory). With `--user`/`--api-key` (or `RASHARP_RA_USER` /
-`RASHARP_RA_API_KEY`) it fetches `API_GetGameList` for the file's console
-from retroachievements.org and looks the hash up live — the public API has
-no hash-to-game endpoint, so the live path downloads the same game list
-the DataFetcher snapshot contains. `-f json` emits machine-readable rows.
-Exit `0` when at least one hash resolves to a game, `1` otherwise.
+Produces `RASharp.exe` (Windows) / `RASharp` (Linux) in `artifacts\<rid>\`.
+(The parity suite's oracle is a Windows PE, so Tier-2 parity runs on Windows;
+on Linux the parity cases skip and the ported vectors still run.)
 
-**`RASharp fetch-db <url-or-path> [--out <file>]`** — downloads (or copies)
-a RetroAchievements database snapshot, validates it with the same parser
-`scan --match` uses, and saves it atomically (temp file + rename, so a
-failed download never clobbers a good snapshot). Default output
-`RetroAchievements.json` in the current directory:
+## Packaging the NuGet library
 
-```
-RASharp fetch-db "https://example.com/RetroAchievements.json"
-RASharp fetch-db "C:\Downloads\RetroAchievements.json" --out RetroAchievements.json
+```sh
+dotnet pack RASharp.Core -c Release
+# publishes RASharp.Core.1.0.0.nupkg + .snupkg (default: bin/Release); make artifacts/:
+dotnet pack RASharp.Core -c Release -o artifacts
 ```
 
-The snapshot must contain at least one game with hashes; a malformed or
-empty result is refused. Exit `0` on success, `1` on failure.
+The package includes the net8/9/10 assemblies, XML docs, the MIT license
+and third-party notices, SourceLink/symbols, and runs NuGet package
+validation on every pack. Publishing to NuGet.org:
+
+```bash
+dotnet nuget push artifacts/RASharp.Core.1.0.0.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
+```
+
+See [publishing.md](docs/getting-started/publishing.md) for details.
 
 ## Testing
 
+```bash
+dotnet test RASharp.sln -c Release          # all TFMs (net8, net9, net10)
+dotnet test RASharp.sln -f net10.0          # one TFM
+dotnet test RASharp.sln --filter FullyQualifiedName~Parity   # parity only
 ```
-dotnet test RASharp.sln
-```
 
-The suite has two tiers:
+The suite (581 tests, green on **each** of net8.0/net9.0/net10.0):
 
-### Tier 1 — ported rcheevos vectors
+- **Tier 1** — every ported rcheevos `test/rhash` vector (cartridge, disc,
+  cdreader, zip, m3u, handler order) plus synthetic 3DS fixtures.
+- **Tier 2** — parity harness vs. a source-built C oracle (rcheevos 12.4.0,
+  falling back to the pinned 1.8.3 build): 90 generated cases + all CLI arg
+  modes; stdout/stderr + exit codes byte-identical.
+- **Real-ROM parity** — first files of 60 user library directories vs. the
+  pinned 1.8.3 binary (skipped-with-note when the libraries or oracle are
+  absent).
+- **Published-hash spot checks** — real ROM samples hashed and looked up in
+  a RetroAchievements game-database snapshot, asserting official matches per
+  library (skips when the snapshot isn't present).
 
-All of rcheevos' own `test/rhash/*` vectors ported to xUnit (cartridge,
-disc, cdreader, zip, m3u, handler-order), plus synthetic 3DS fixtures with
-known key material. Deterministic and offline.
-
-### Tier 2 — parity harness vs. the original binary
-
-`RASharp.Tests\Parity\` runs both executables with identical arguments and
-asserts **byte-identical stdout/stderr and equal exit codes** on an 90-case
-generated corpus: 29 whole-file console vectors, cartridge algorithms
-(NES/FDS/7800/NDS/SCV), all disc consoles (PSX ± homebrew, PS2, PSP, Sega CD,
-Saturn, 3DO, Jaguar CD, PCE-CD, PC-FX, Dreamcast, Neo Geo CD, GameCube),
-CHD (PSX/PSP/pregap/multi-track), zip (Arduboy FX, DOSZ/Zip64/DOSC, parent
-chains), 3DS (all crypto variants + error paths), m3u, and CLI arg modes
-(`?` auto-detect, wildcards, multi-file, `-v`, usage, unknown key/flag,
-missing file). Every hash is additionally pinned to the ported vector value
-where real-file behavior matches the mock semantics.
-
-The corpus is generated in a unique `%TEMP%\rasharp_parity_corpus_<id>` directory from the same deterministic generators the unit vectors use — no ROM files needed.
-
-**Oracle resolution** (in order): `RASHARP_ORACLE` env var →
-`References\rcheevos-12.4.0\bin64\RAHasher.exe` (built from rcheevos **12.4.0**,
-the current source of truth — Part II of ConversionPlan.md) →
-`References\RAHasher-1.8.3\bin64\RAHasher.exe` (pinned 1.8.3 sources) →
-`References\RAHasher.exe` (any other 1.8.3 binary). The harness probes the
-oracle's capabilities and falls back to numeric console ids / skips `?` cases
-for legacy builds that lack them. If no oracle is found, parity tests skip
-with a note.
-
-### Real-ROM parity
-
-Beyond the synthetic corpus, `RASharp.Tests\Parity\TestRealRomParity.cs`
-hashes the **first files of each user console library** (60 library
-paths across 53 console ids, 50 files each except the 3DS library which
-uses 25 — multi-GiB extraction is slow) with both executables and requires
-byte-identical stdout/stderr and exit codes. It runs against the pinned
-1.8.3 binary (`References\RAHasher-1.8.3\RAHasher.exe`) so the results
-match the Part I oracle. Each case skips with a note when the host is not
-Windows, the oracle is missing, or the library path is absent — the
-synthetic corpus remains the portable suite.
-
-The libraries cover cartridge, disk-image, zip (incl. MAME romsets), and
-CD formats — the CD libraries (Saturn, Dreamcast, Neo Geo CD, 3DO, CD-i,
-PC Engine CD, Jaguar CD, Sega CD, PSP) are predominantly CHD. MAME
-software-list layouts with one game per subfolder are enumerated
-recursively. One case is a deliberate mutual-rejection pin: **PlayStation 3
-(id 82) is unsupported in both binaries**, so the case locks in that both
-print `Unsupported console for file hash: 82` identically.
-
-See [Parity evidence](../docs/reference/parity-evidence.md) for the
-coverage table and [Known quirks](../docs/reference/known-quirks.md) for
-the unsupported-format behavior (RVZ, WUX/WUD).
-
-3DS parity requires the user-supplied `aes_keys.txt`/`seeddb.bin` at the
-repo root (git-ignored); the 3DS cases skip with a note when they are
-missing. CDN/DSiWare multi-entry zips are rejected identically by both
-binaries — pinned as such.
+See [parity-evidence.md](docs/reference/parity-evidence.md) for the coverage
+table and [known-quirks.md](docs/reference/known-quirks.md) for the
+unsupported-format behavior (ROM encoding not part of rcheevos).
 
 ## Parity evidence
 
-Phase 8 (Tier 2) status: **90/90 parity cases green; full suite 326/326** —
-byte-identical output between `RASharp.exe` and the source-built
-RAHasher 1.8.3 on every case, including verbose mode, error paths, and exit
-codes. The harness also caught and fixed three real CLI port bugs (arg-count
-guard crash, wildcard path construction, usage banner blank line).
+Current: **581/581 green on net8.0, net9.0, net10.0** — byte-identical
+CLI output between `RASharp.exe` and the C oracles, including verbose mode,
+error paths, and exit codes; real-ROM parity 61/61; published-hash
+spot-check 15/15 library/console pairs. The harness has caught and fixed
+real port bugs (arg-count guard crash, wildcard path construction, usage
+banner blank line, silent `merge_callbacks` bug) — parity is never "accepted"
+as a difference; it's asserted.
 
-Part II (rcheevos 12.4.0 sync): engine evolved to 12.4.0 — `.neo` Neo Geo
-cart hashing, `sms`/`neo` iterate mapping, `merge_callbacks` fix, buffer-size
-and GDI/zip guards — verified byte-for-byte against a 12.4.0-built oracle
-(90/90 parity, 326/326 suite).
+## Documentation
+
+Full docs (mkdocs site): [docs](docs/index.md) — architecture, engine
+deep-dives, testing, known quirks, and the release-sync playbook for
+absorbing future rcheevos releases.
 
 ## License
 
@@ -275,3 +227,7 @@ ported 1:1 (MIT); `Program.cs`, `FileUtil.cs`, `Hash3DS.cs`, and
 `ChdCdReader.cs` are new implementations written for behavior parity with the
 GPL-3.0 RALibretro RAHasher (used as read-only reference, never copied; the
 GPL binary and sources live in `References\` only and are not shipped).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).

@@ -490,7 +490,11 @@ public static class HashEngine
     {
         var digest = md5.Finish();
 
+#if NET8_0
+        hash = Convert.ToHexString(digest).ToLowerInvariant();
+#else
         hash = Convert.ToHexStringLower(digest);
+#endif
 
         IteratorVerboseFormatted(iterator, "Generated hash {0}", hash);
 

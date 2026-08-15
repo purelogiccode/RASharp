@@ -16,11 +16,13 @@ rcheevos 12.2.1) and since evolved to rcheevos 12.4.0.
 - **100 % parity, proven** — a Tier-2 harness runs `RASharp.exe` and the
   original C binaries with identical arguments and requires byte-identical
   stdout/stderr and equal exit codes: **90/90 corpus cases green** against
-  the rcheevos 12.4.0-built oracle; **326/326 tests green** (Debug + Release).
+  the rcheevos 12.4.0-built oracle; **581/581 tests green on each of
+  net8.0, net9.0, net10.0** (Debug + Release).
 - **81 consoles** in the CLI table — cartridge, disc, encrypted (3DS), CHD,
   zip-based (Arduboy FX, DOSZ/DOSC) and `.neo` Neo Geo cart formats.
-- **Cross-platform** — portable `net10.0` TFM; publishes self-contained
-  single-file executables for Windows x64/arm64 and Linux x64/arm64.
+- **Cross-platform** — `RASharp.Core` is a NuGet library targeting
+  `net8.0;net9.0;net10.0`; the CLI publishes self-contained single-file
+  executables for Windows x64/arm64 and Linux x64/arm64.
 - **Honest engineering** — the port reproduces the original's quirks
   (64 MiB whole-file cap, `atoi` console-key fallback, wildcard path
   construction) *and* inherits its bugfixes (the 12.4.0 `merge_callbacks`
@@ -66,7 +68,7 @@ RASharp.Cli/bin/Release/net10.0/RASharp.exe '?' unknown.bin
 
 ```
 RASharp.sln                 solution (Core + Cli + Tests)
-Directory.Build.props       net10.0, nullable, warnings-as-errors
+Directory.Build.props       net8.0/9.0/10.0 multi-targeting, nullable, warnings-as-errors
 mkdocs.yml                  this documentation site
 docs/                       these pages
 RASharp.Core/               the hashing engine (class library)

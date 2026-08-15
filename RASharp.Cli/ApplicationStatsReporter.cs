@@ -21,13 +21,23 @@ using System.Text.Json;
 
 namespace RASharp.Cli;
 
+/* System.Threading.Lock is net9+ only; on net8 the alias degrades to a
+ * plain object monitor. Either way the `lock` statements below use the
+ * best primitive available on the target framework. */
+#if NET9_0_OR_GREATER
+using LockObject = Lock;
+
+#else
+using LockObject = object;
+#endif
+
 /// <summary>Application usage telemetry. Reports a usage hit to the ApplicationStats API at application launch (AspNet_ApplicationStats — see its InstructionsToUseApiEndpoi</summary>
 internal static class ApplicationStatsReporter
 {
     internal const string DefaultUrl = "https://www.purelogiccode.com/ApplicationStats/stats";
 
     private static readonly HttpClient SHttp = new() { Timeout = TimeSpan.FromSeconds(10) };
-    private static readonly Lock SPendingLock = new();
+    private static readonly LockObject SPendingLock = new();
     private static readonly List<Task> SPending = new();
     private static bool _sEnabled = true;
 

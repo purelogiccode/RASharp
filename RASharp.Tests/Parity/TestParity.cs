@@ -491,11 +491,11 @@ public class TestParity
         File.WriteAllBytes(Path.Combine(threeDsDir, "encrypted.cia"), TestDataGen3Ds.GenerateCia(encNcch, titleId, 0, titleKey, true));
         File.WriteAllBytes(Path.Combine(threeDsDir, "plain.cia"), TestDataGen3Ds.GenerateCia(TestDataGen3Ds.GenerateNcch(false, false, false, 0x01, 0, null, null, out _, out _), titleId, 0, titleKey, false));
         File.WriteAllBytes(Path.Combine(threeDsDir, "homebrew.3dsx"), TestDataGen3Ds.Generate3Dsx());
-        File.WriteAllBytes(Path.Combine(threeDsDir, "junk.bin"), new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 });
+        File.WriteAllBytes(Path.Combine(threeDsDir, "junk.bin"), [0x00, 0x01, 0x02, 0x03, 0x04, 0x05]);
 
         /* ---- .neo fixtures (rcheevos 12.4.0 test data) ---- */
         var neoPayload = TestDataGen.GenerateGenericFile(131072);
-        _sNeoPayloadHash = Convert.ToHexStringLower(MD5.HashData(neoPayload));
+        _sNeoPayloadHash = Convert.ToHexString(MD5.HashData(neoPayload)).ToLowerInvariant();
         Write("game.neo", TestHashNeo.GenerateNeoFile(131072, "Test Game", "TestCorp"));
         Write("game_alt.neo", TestHashNeo.GenerateNeoFile(131072, "test game (alt name)", "OtherTool"));
         var neoBad = TestHashNeo.GenerateNeoFile(131072, "Test Game", "TestCorp");

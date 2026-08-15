@@ -56,7 +56,7 @@ public class TestHash3Ds : IDisposable
             TestDataGen3Ds.GenerateCia(plain, titleId, 0, titleKey, false));
 
         File.WriteAllBytes(Path.Combine(_dir, "homebrew.3dsx"), TestDataGen3Ds.Generate3Dsx());
-        File.WriteAllBytes(Path.Combine(_dir, "junk.bin"), new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 });
+        File.WriteAllBytes(Path.Combine(_dir, "junk.bin"), [0x00, 0x01, 0x02, 0x03, 0x04, 0x05]);
     }
 
     /// <summary>Releases the mounted filesystem.</summary>

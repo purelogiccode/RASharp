@@ -29,6 +29,16 @@ using Serilog.Events;
 
 namespace RASharp.Cli;
 
+/* System.Threading.Lock is net9+ only; on net8 the alias degrades to a
+ * plain object monitor. Either way the `lock` statements below use the
+ * best primitive available on the target framework. */
+#if NET9_0_OR_GREATER
+using LockObject = Lock;
+
+#else
+using LockObject = object;
+#endif
+
 /// <summary>Bug report forwarding sink. Forwards Warning+ log events to the bug report API (AspNet_BugReportEmailService — see its InstructionsToSendBugs.md): POST {RASHARP</summary>
 internal sealed class BugReportSink : ILogEventSink, IDisposable
 {
@@ -37,12 +47,12 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
     private const int MaxStackTraceLength = 8000;
 
     private static readonly HttpClient SHttp = new() { Timeout = TimeSpan.FromSeconds(10) };
-    private static readonly Lock SRateLock = new();
+    private static readonly LockObject SRateLock = new();
     private static DateTime _sLastSentUtc = DateTime.MinValue;
 
     private readonly string _url;
     private readonly string _apiKey;
-    private readonly Lock _pendingLock = new();
+    private readonly LockObject _pendingLock = new();
     private readonly List<Task> _pending = new();
 
     public BugReportSink(string url, string apiKey)

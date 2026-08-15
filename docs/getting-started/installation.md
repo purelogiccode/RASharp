@@ -2,10 +2,11 @@
 
 ## Prerequisites
 
-- **.NET 10 SDK** (or newer 10.x) — all projects target the portable
-  `net10.0` TFM. Install from <https://dotnet.microsoft.com/download> or
-  your package manager (`apt install dotnet-sdk-10.0`, `winget install
-  Microsoft.DotNet.SDK.10`, …).
+- **.NET 8 SDK or newer** — all three projects multi-target the portable
+  `net8.0;net9.0;net10.0` TFMs (any one SDK ≥ 8.0 builds all of them;
+  .NET 10 SDK is required only to test the `net10.0` target). Install from
+  <https://dotnet.microsoft.com/download> or your package manager
+  (`apt install dotnet-sdk-10.0`, `winget install Microsoft.DotNet.SDK.10`, …).
 - **No native dependencies** — the engine is 100 % managed. `CHDSharp` and
   `VideoGameFileSystemParser` are pure managed NuGet packages.
 - **Windows, Linux, macOS** all work for building; the CLI publishes for
@@ -13,6 +14,10 @@
 - The **parity test suite additionally needs a C-built oracle binary on
   Windows** — see [Building the oracles](../development/oracles.md). Without
   one, the Tier-2 parity cases skip (the ported vectors still run).
+
+`RASharp.Core` is also available as a **NuGet package**
+(`dotnet add package RASharp.Core`) for use from any net8.0+ application —
+see [Packaging the library](publishing.md#packaging-the-library).
 
 ## Clone & build
 
@@ -43,9 +48,9 @@ NuGet dependencies (both MIT):
 dotnet test RASharp.sln -c Release
 ```
 
-Expected result: **326 passed, 0 failed** (Debug and Release). The suite has
-three tiers — see [Testing](../development/testing.md) for details and how
-to filter them.
+Expected result: **581 passed, 0 failed per TFM** (net8.0, net9.0,
+net10.0). The suite has three tiers — see [Testing](../development/testing.md)
+for details and how to filter them.
 
 ## Verify the build
 
@@ -67,4 +72,4 @@ RASharp.Cli/bin/Release/net10.0/RASharp.exe
 | `error NETSDK1005: Assets file ... not found` | run `dotnet restore` once |
 | parity tests report `SKIPPED` | no usable oracle found on a Windows host — build one (see [oracles](../development/oracles.md)) or set `RASHARP_ORACLE` |
 | build fails on a warning | `TreatWarningsAsErrors` is on by design; fix the warning rather than suppressing it |
-| `RASharp.exe` not found under `bin/Release/net10.0-windows` | the project targets portable `net10.0` — look under `bin/Release/net10.0/` |
+| `RASharp.exe` not found under `bin/Release/net10.0-windows` | the projects target portable `net8.0;net9.0;net10.0` — look under `bin/Release/<tfm>/` (any of the three works) |
