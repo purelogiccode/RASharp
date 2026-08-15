@@ -45,7 +45,7 @@ RASharp.Cli/bin/Release/net10.0/RASharp.exe '?' unknown.bin
 | Part | Scope | Status |
 |---|---|---|
 | Part I (phases 0–8) | Port of RAHasher 1.8.3 / rcheevos `40d916d` (12.2.1) | ✅ Complete — 82/82 parity vs the source-built 1.8.3 oracle |
-| Part II (phases E0–E6) | Evolution to rcheevos 12.4.0 (single source of truth) | ◑ E0–E4 done (.neo, bugfixes, guards, vectors, corpus); E5 real-world spot checks and E6 release-sync playbook open |
+| Part II (phases E0–E6) | Evolution to rcheevos 12.4.0 (single source of truth) | ✅ Complete — 12.4.0 oracle; E5 real-world validation done (real-ROM parity 61/61 + published-hash spot checks 15/15); release-sync playbook published |
 
 ## Documentation map
 

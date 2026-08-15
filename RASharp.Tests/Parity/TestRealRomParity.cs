@@ -97,8 +97,11 @@ public class TestRealRomParity
         yield return [82u, "PlayStation 3 (unsupported in both)", @"X:\Sony PlayStation 3", false, "", 50];
         /* 3DS: requires the user-supplied aes_keys.txt/seeddb.bin (repo root) —
          * the CDN/DSiWare libraries are multi-entry zips that both binaries
-         * reject identically (returning entire zip file -> Not a 3DS ROM) */
-        yield return [62u, "Nintendo 3DS", @"F:\Nintendo 3DS", true, systemDir, 25];
+         * reject identically (returning entire zip file -> Not a 3DS ROM).
+         * Retail .3ds zips hold multi-GiB first entries that the 1.8.3 oracle
+         * (miniz) must inflate fully (~23 s/GB), so a sample of 5 keeps the
+         * run inside the 180 s process timeout. */
+        yield return [62u, "Nintendo 3DS", @"F:\Nintendo 3DS", true, systemDir, 5];
         yield return [62u, "Nintendo 3DS CDN", @"F:\Nintendo 3DS CDN", true, systemDir, 25];
         yield return [62u, "Nintendo 3DS DSiWare", @"F:\Nintendo 3DS DSiWare", false, systemDir, 25];
     }
