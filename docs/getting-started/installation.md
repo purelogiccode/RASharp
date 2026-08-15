@@ -15,16 +15,16 @@
   Windows** — see [Building the oracles](../development/oracles.md). Without
   one, the Tier-2 parity cases skip (the ported vectors still run).
 
-`RASharp` is also available as a **NuGet package**
-(`dotnet add package RASharp`) for use from any net8.0+ application —
+`RetroAchievementsSharp` is also available as a **NuGet package**
+(`dotnet add package RetroAchievementsSharp`) for use from any net8.0+ application —
 see [Packaging the library](publishing.md#packaging-the-library).
 
 ## Clone & build
 
 ```bash
-git clone https://github.com/purelogiccode/RASharp.git
-cd RASharp
-dotnet build RASharp.sln -c Release
+git clone https://github.com/purelogiccode/RetroAchievementsSharp.git
+cd RetroAchievementsSharp
+dotnet build RetroAchievementsSharp.sln -c Release
 ```
 
 The solution contains three projects (plus a manual-only slow test project
@@ -32,10 +32,10 @@ kept out of the solution):
 
 | Project | Kind | Purpose |
 |---|---|---|
-| `RASharp` | class library | the hashing engine (public API mirror of `include/rc_hash.h`) |
-| `RASharp.Cli` | console app | the RAHasher-compatible command line (`RASharp.Cli.exe`) |
-| `RASharp.Tests` | xUnit (fast) | ported rcheevos vectors + engine/CLI unit tests — in the solution |
-| `RASharp.Slow.Tests` | xUnit (slow) | parity harness vs. C oracles, real-ROM, RVZ, published-DB — run manually, not in the solution |
+| `RetroAchievementsSharp` | class library | the hashing engine (public API mirror of `include/rc_hash.h`) |
+| `RetroAchievementsSharp.Cli` | console app | the RAHasher-compatible command line (`RetroAchievementsSharp.Cli.exe`) |
+| `RetroAchievementsSharp.Tests` | xUnit (fast) | ported rcheevos vectors + engine/CLI unit tests — in the solution |
+| `RetroAchievementsSharp.Slow.Tests` | xUnit (slow) | parity harness vs. C oracles, real-ROM, RVZ, published-DB — run manually, not in the solution |
 
 NuGet dependencies:
 
@@ -49,8 +49,8 @@ NuGet dependencies:
 ## Run the test suite
 
 ```bash
-dotnet test RASharp.sln -c Release            # fast suite
-dotnet test RASharp.Slow.Tests -c Release     # slow suite (parity; manual)
+dotnet test RetroAchievementsSharp.sln -c Release            # fast suite
+dotnet test RetroAchievementsSharp.Slow.Tests -c Release     # slow suite (parity; manual)
 ```
 
 Expected result: **415 passed, 0 failed per TFM on the fast suite**
@@ -61,14 +61,14 @@ and how to filter them.
 ## Verify the build
 
 ```bash
-RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe GB <any-file>
+RetroAchievementsSharp.Cli/bin/Release/net10.0/RetroAchievementsSharp.Cli.exe GB <any-file>
 ```
 
 prints the 32-character MD5 of the file (the same hash RAHasher 1.8.3
 prints). No-args prints the console table and usage:
 
 ```bash
-RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe
+RetroAchievementsSharp.Cli/bin/Release/net10.0/RetroAchievementsSharp.Cli.exe
 ```
 
 ## Troubleshooting
@@ -78,4 +78,4 @@ RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe
 | `error NETSDK1005: Assets file ... not found` | run `dotnet restore` once |
 | parity tests report `SKIPPED` | no usable oracle found on a Windows host — build one (see [oracles](../development/oracles.md)) or set `RASHARP_ORACLE` |
 | build fails on a warning | `TreatWarningsAsErrors` is on by design; fix the warning rather than suppressing it |
-| `RASharp.Cli.exe` not found under `bin/Release/net10.0-windows` | the projects target portable `net8.0;net9.0;net10.0` — look under `bin/Release/<tfm>/` (any of the three works) |
+| `RetroAchievementsSharp.Cli.exe` not found under `bin/Release/net10.0-windows` | the projects target portable `net8.0;net9.0;net10.0` — look under `bin/Release/<tfm>/` (any of the three works) |

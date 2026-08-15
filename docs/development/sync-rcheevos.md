@@ -6,7 +6,7 @@ phase E6 of the conversion plan).
 
 ## Scope — no net-new hashing algorithms
 
-RASharp only implements what rcheevos defines. Formats or consoles that
+RetroAchievementsSharp only implements what rcheevos defines. Formats or consoles that
 rcheevos does not support — e.g. RVZ (Wii/GameCube), WUX/WUD (Wii U, id 20
 has no hasher) — are out of scope by policy, even when users request them:
 a custom algorithm would have no upstream reference and no oracle to

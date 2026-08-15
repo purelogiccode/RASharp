@@ -1,4 +1,4 @@
-# The parity harness (`RASharp.Tests/Parity/`)
+# The parity harness (`RetroAchievementsSharp.Tests/Parity/`)
 
 The Tier-2 harness is the project's core proof: it runs **both executables**
 (the ported CLI and a C-built oracle) with identical arguments and requires
@@ -25,7 +25,7 @@ The Tier-2 harness is the project's core proof: it runs **both executables**
    - `ExpectSuccess` — exit code 0 required where the vector proves success;
    - `ExpectedHash` — the trimmed stdout equals the ported vector value
      (pins both binaries to upstream truth).
-4. Usage/name differences are normalized (`RAHasher` → `RASharp`) only for
+4. Usage/name differences are normalized (`RAHasher` → `RetroAchievementsSharp`) only for
    the usage cases; everything else compares raw bytes (including `\r\n`).
 
 ## Oracle resolution and probes
@@ -70,6 +70,6 @@ cdreader depends on:
 1. Write the fixture in `BuildCorpus` (or reuse a generator).
 2. Add a `ParityCase` in `BuildCases` — `Add(...)` for a success with a
    pinned hash, `ExpectSuccess: false` for error parity.
-3. Run the slow suite: `dotnet test RASharp.Slow.Tests --filter FullyQualifiedName~TestParity`.
+3. Run the slow suite: `dotnet test RetroAchievementsSharp.Slow.Tests --filter FullyQualifiedName~TestParity`.
 4. Any mismatch is a **port bug** — investigate, never "accept" a
    difference.

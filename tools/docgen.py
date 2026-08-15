@@ -7,10 +7,10 @@ domain dictionary or the member name."""
 import os
 import re
 
-ROOTS = ['RASharp', 'RASharp.Cli', 'RASharp.Tests']
+ROOTS = ['RetroAchievementsSharp', 'RetroAchievementsSharp.Cli', 'RetroAchievementsSharp.Tests']
 
 # files where private methods are part of the documented surface (CLI entry/flow)
-DOC_PRIVATE = {'RASharp.Cli/Program.cs'}
+DOC_PRIVATE = {'RetroAchievementsSharp.Cli/Program.cs'}
 
 CONSOLE = {
     '7800': 'Atari 7800', 'Arcade': 'arcade (romset zip or .neo)', 'NeogeoCart': 'Neo Geo cart (.neo)',

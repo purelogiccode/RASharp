@@ -89,5 +89,5 @@ are case-insensitive; **NULL-group consoles accept numeric ids only** (the
 | 22 | `Xbox` |  | Xbox |
 
 !!! tip "Finding a console"
-    Run `RASharp` with no arguments — the CLI prints this exact table,
+    Run `RetroAchievementsSharp` with no arguments — the CLI prints this exact table,
     byte-identical to the 1.8.3 usage output (modulo the executable name).

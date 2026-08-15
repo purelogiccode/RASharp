@@ -1,6 +1,6 @@
 # Parity evidence
 
-The claim — *"RASharp produces 100 % identical output to the original"* —
+The claim — *"RetroAchievementsSharp produces 100 % identical output to the original"* —
 is an engineering claim with receipts. This page lists the evidence and how
 to reproduce it.
 
@@ -8,8 +8,8 @@ to reproduce it.
 
 | Metric | Value |
 |---|---|
-| Fast suite (`RASharp.Tests`, in the solution) | **415/415 green** (Debug and Release) |
-| Slow suite (`RASharp.Slow.Tests`, run manually) | **172/172 green** |
+| Fast suite (`RetroAchievementsSharp.Tests`, in the solution) | **415/415 green** (Debug and Release) |
+| Slow suite (`RetroAchievementsSharp.Slow.Tests`, run manually) | **172/172 green** |
 | Tier-2 parity cases | **90/90 byte-identical** vs the rcheevos **12.4.0**-built oracle |
 | RVZ-vs-ISO cases | **6/6** — real GameCube/Wii RVZ images hashed live via RVZSharp equal the DolphinTool-converted ISO hashes |
 | Real-ROM parity cases | **61/61 byte-identical** vs the pinned **1.8.3** binary (user libraries, incl. 3DS with user keys) |
@@ -49,7 +49,7 @@ to reproduce it.
 
 The Tier-2 suite is not decorative — it found real port bugs in Part I:
 
-1. **Arg-count guard off-by-one** — `RASharp.Cli.exe 4` crashed with an
+1. **Arg-count guard off-by-one** — `RetroAchievementsSharp.Cli.exe 4` crashed with an
    unhandled exception instead of printing usage (fixed).
 2. **Wildcard path construction** diverged from `FindFirstFile`/`util::directory`
    semantics (fixed, incl. the `dir/*.bin` quirk reproduction).
@@ -114,17 +114,17 @@ Notes:
 
 ```bash
 # fast suite (in the solution; Debug + Release)
-dotnet test RASharp.sln -c Debug
-dotnet test RASharp.sln -c Release
+dotnet test RetroAchievementsSharp.sln -c Debug
+dotnet test RetroAchievementsSharp.sln -c Release
 
 # slow suite — parity/real-world, run manually (not in the sln)
-dotnet test RASharp.Slow.Tests -c Release
+dotnet test RetroAchievementsSharp.Slow.Tests -c Release
 
 # parity corpus only (slow suite)
-dotnet test RASharp.Slow.Tests --filter FullyQualifiedName~TestParity
+dotnet test RetroAchievementsSharp.Slow.Tests --filter FullyQualifiedName~TestParity
 
 # force a specific oracle
-RASHARP_ORACLE=C:\path\to\RAHasher.exe dotnet test RASharp.Slow.Tests --filter FullyQualifiedName~TestParity
+RASHARP_ORACLE=C:\path\to\RAHasher.exe dotnet test RetroAchievementsSharp.Slow.Tests --filter FullyQualifiedName~TestParity
 ```
 
 Any mismatch in the parity suite is a **port bug** — the project never

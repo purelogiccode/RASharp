@@ -1,6 +1,6 @@
 # License
 
-RASharp is licensed under the **GNU General Public License, version 2 or
+RetroAchievementsSharp is licensed under the **GNU General Public License, version 2 or
 later** (GPL-2.0-or-later). It is a translation of the MIT-licensed rcheevos
 `rc_hash` engine that links the GPL-2.0-or-later RVZSharp library (Dolphin
 RVZ/WIA, used for live GameCube/Wii disc hashing); its CLI behavior is
@@ -36,7 +36,7 @@ retains the upstream rcheevos MIT copyright notice, reproduced in
 
 ## Usage in your own projects
 
-RASharp is GPL-2.0-or-later: you can link it, use it, and modify it under
+RetroAchievementsSharp is GPL-2.0-or-later: you can link it, use it, and modify it under
 the GPL-2.0-or-later terms (see `LICENSE`), including (at your option) any
 later version of the GPL. If you ship binaries or a derived work, keep a
 copy of `LICENSE` and `THIRD-PARTY-NOTICES.md` alongside them and make your

@@ -37,7 +37,7 @@ mkdocs build
   (`[usage](getting-started/usage.md)`).
 - Admonitions (`!!! note "..."`) for callouts; fenced code blocks with
   language hints; tables for reference data.
-- The console table is generated from `RASharp.Cli/Consoles.cs` — see the
+- The console table is generated from `RetroAchievementsSharp.Cli/Consoles.cs` — see the
   comment at the top of `reference/console-table.md` for the regeneration
   snippet.
 - Keep parity counts (`90/90`, `326/326`) in sync with the actual suite —

@@ -1,14 +1,21 @@
 # Changelog
 
-All notable changes to **RASharp** are documented here (keep-a-changelog format).
+All notable changes to **RetroAchievementsSharp** are documented here (keep-a-changelog format).
 
 The project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 For the port history and the evolution plan, see `ConversionPlan.md`.
 
 ## [Unreleased]
 
+### Changed
+- **Renamed from RASharp to RetroAchievementsSharp** — NuGet package id,
+  solution/projects/assemblies, namespaces (`RetroAchievementsSharp` /
+  `RetroAchievementsSharp.Models`), CLI binary, and the repository moved to
+  `https://github.com/purelogiccode/RetroAchievementsSharp`. The old
+  `RASharp` package id was already taken on NuGet.org.
+
 ### Added
-- NuGet packaging for `RASharp` (net8.0;net9.0;net10.0, SourceLink, XML
+- NuGet packaging for `RetroAchievementsSharp` (net8.0;net9.0;net10.0, SourceLink, XML
   docs, symbols, package validation), package icon, and CHANGELOG.md.
 
 ### Changed
@@ -29,7 +36,7 @@ For the port history and the evolution plan, see `ConversionPlan.md`.
   `aes_keys.txt`/`seeddb.bin`).
 - CLI with byte-identical behavior to RAHasher 1.8.3, plus the `scan`,
   `consoles`, `checkkeys`, `identify`, and `fetch-db` subcommands.
-- NuGet package `RASharp` 1.0.0 (net8.0;net9.0;net10.0, GPL-2.0-or-later,
+- NuGet package `RetroAchievementsSharp` 1.0.0 (net8.0;net9.0;net10.0, GPL-2.0-or-later,
   SourceLink, XML docs on every public member, symbols, package validation);
   every public member of the library is documented (CS1591 is an error).
 - Test suite: all ported rcheevos vectors, synthetic 3DS fixtures, a parity
@@ -44,9 +51,9 @@ For the port history and the evolution plan, see `ConversionPlan.md`.
 
 ### Changed
 - License: the library links RVZSharp (GPL-2.0-or-later, Dolphin-derived),
-  so RASharp is distributed under GPL-2.0-or-later (the ported rcheevos
+  so RetroAchievementsSharp is distributed under GPL-2.0-or-later (the ported rcheevos
   engine stays MIT and is credited in THIRD-PARTY-NOTICES.md).
 
 ---
 
-[1.0.0]: https://github.com/purelogiccode/RASharp/releases/tag/v1.0.0
+[1.0.0]: https://github.com/purelogiccode/RetroAchievementsSharp/releases/tag/v1.0.0

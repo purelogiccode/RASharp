@@ -9,7 +9,7 @@ why it stays.
 
 ### 1. NULL-group console keys resolve via `atoi`
 `find_console_id` only matches keys whose console has a non-empty RA group.
-Everything else falls back to `atoi` — so `RASharp 3DS file` silently
+Everything else falls back to `atoi` — so `RetroAchievementsSharp 3DS file` silently
 hashes as **console 3 (SNES)**, and `Oric`/`TI83`/`TIC-80`/`ESCV`/`DOS`
 keys print usage + exit 1. Use numeric ids for NULL-group consoles.
 
@@ -59,17 +59,17 @@ extracted temp file — same bytes, same hash. Verified against real 2 GiB
 3DS dumps in the real-ROM suite.
 
 ### 10. RVZ/WIA (supported) vs. WUX/WUD (unsupported)
-rcheevos defines no reader for Dolphin's RVZ, but RASharp adds one via
+rcheevos defines no reader for Dolphin's RVZ, but RetroAchievementsSharp adds one via
 RVZSharp (`RvzFilereader`, GPL-2.0-or-later): GameCube/Wii `.rvz`/`.wia`
 files are decoded on read and hashed exactly like the plain ISO — validated
 against DolphinTool conversions (6/6). The CLI selects the RVZ reader per
 file by extension (`?` auto-detect maps `.rvz` to GameCube + Wii). What the
 binaries actually do:
 
-- **RVZ/WIA**: fully supported — `RASharp 16 game.rvz`, `RASharp 19 game.wia`,
-  or `RASharp ? game.rvz` hash the decoded disc image (same hash as the
+- **RVZ/WIA**: fully supported — `RetroAchievementsSharp 16 game.rvz`, `RetroAchievementsSharp 19 game.wia`,
+  or `RetroAchievementsSharp ? game.rvz` hash the decoded disc image (same hash as the
   converted ISO).
-- **WUX/WUD (Wii U)**: no reader exists in either engine. `RASharp 20 game.wux`
+- **WUX/WUD (Wii U)**: no reader exists in either engine. `RetroAchievementsSharp 20 game.wux`
   hits the console with **no hasher at all** — id 20 (Wii U) exists in the
   console table but has no `FromFile` case
   (`Unsupported console for file hash: 20`).

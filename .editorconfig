@@ -1,4 +1,4 @@
-# RASharp — style & analyzer configuration
+# RetroAchievementsSharp — style & analyzer configuration
 root = true
 
 [*.cs]

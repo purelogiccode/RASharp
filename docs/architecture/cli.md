@@ -8,7 +8,7 @@ entries: id, key, group, name) and is safe to reuse as data.
 ## Argument processing
 
 ```
-RASharp [-v] [-s systempath] system filepath...
+RetroAchievementsSharp [-v] [-s systempath] system filepath...
 ```
 
 1. Flags loop: `-v` enables verbose, `-s` takes the next argument as the
@@ -53,7 +53,7 @@ file path, for zips).
 | usage / bad args | full console table + usage, exit 1 |
 
 The usage banner matches the C byte-for-byte (modulo the executable name):
-`RASharp 1.8.3` + `====================` + usage + the `ID Key Group Name`
+`RetroAchievementsSharp 1.8.3` + `====================` + usage + the `ID Key Group Name`
 table with blank lines between groups.
 
 ## Console table quirks

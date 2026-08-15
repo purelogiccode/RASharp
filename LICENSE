@@ -1,17 +1,17 @@
-RASharp - Copyright (C) 2026 Peterson Fernandes (https://github.com/drpetersonfernandes)
+RetroAchievementsSharp - Copyright (C) 2026 Peterson Fernandes (https://github.com/drpetersonfernandes)
           and Pure Logic Code (https://github.com/purelogiccode).
 
-RASharp is a native C# port of the hashing engine used by RetroAchievements
+RetroAchievementsSharp is a native C# port of the hashing engine used by RetroAchievements
 (RAHasher / rcheevos, MIT license, Copyright (c) 2018 RetroAchievements.org -
 see THIRD-PARTY-NOTICES.md for the MIT notice of the ported code).
 
-RASharp links RVZSharp (https://github.com/purelogiccode/RVZSharp) to hash
+RetroAchievementsSharp links RVZSharp (https://github.com/purelogiccode/RVZSharp) to hash
 GameCube/Wii RVZ and WIA disc images live, without converting them to ISO.
 RVZSharp implements the Dolphin RVZ/WIA disc container
 (https://github.com/dolphin-emu/dolphin) and its format logic is derived from
 Dolphin's DiscIO module; it is therefore distributed under the same license
 Dolphin uses: the GNU General Public License, version 2 or any later version.
-Because RASharp is linked with that GPL-2.0-or-later code, RASharp is
+Because RetroAchievementsSharp is linked with that GPL-2.0-or-later code, RetroAchievementsSharp is
 distributed under the GPL-2.0-or-later terms below.
 
 The full license text follows.

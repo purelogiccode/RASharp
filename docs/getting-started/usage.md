@@ -1,12 +1,12 @@
 # CLI usage
 
-RASharp replicates the RAHasher 1.8.3 command line exactly — same arguments,
+RetroAchievementsSharp replicates the RAHasher 1.8.3 command line exactly — same arguments,
 same output format, same exit codes.
 
 ## Synopsis
 
 ```text
-RASharp [-v] [-s systempath] system filepath...
+RetroAchievementsSharp [-v] [-s systempath] system filepath...
 ```
 
 | Argument | Meaning |
@@ -20,41 +20,41 @@ RASharp [-v] [-s systempath] system filepath...
 
 ```bash
 # cartridge
-RASharp NES game.nes
-RASharp 7 game.nes                # same, numeric id
+RetroAchievementsSharp NES game.nes
+RetroAchievementsSharp 7 game.nes                # same, numeric id
 
 # disc image (cue references the bin)
-RASharp PS1 disc.cue
-RASharp SAT saturn.cue
-RASharp DC game.gdi
-RASharp GC game.iso
+RetroAchievementsSharp PS1 disc.cue
+RetroAchievementsSharp SAT saturn.cue
+RetroAchievementsSharp DC game.gdi
+RetroAchievementsSharp GC game.iso
 
 # CHD
-RASharp PS1 game.chd
+RetroAchievementsSharp PS1 game.chd
 
 # 3DS (needs key files in the system dir)
-RASharp -s C:\RetroArch\system 3DS game.cia
-RASharp -s C:\RetroArch\system 62 game.3ds   # numeric id form
+RetroAchievementsSharp -s C:\RetroArch\system 3DS game.cia
+RetroAchievementsSharp -s C:\RetroArch\system 62 game.3ds   # numeric id form
 
 # zip pre-load / arcade
-RASharp ARC romset.zip
-RASharp ARD game.arduboy
-RASharp 26 game.dosz
+RetroAchievementsSharp ARC romset.zip
+RetroAchievementsSharp ARD game.arduboy
+RetroAchievementsSharp 26 game.dosz
 
 # Neo Geo cart (Geolith .neo) — content-hashed
-RASharp ARC game.neo
+RetroAchievementsSharp ARC game.neo
 
 # auto-detect by extension
-RASharp '?' unknown.bin
+RetroAchievementsSharp '?' unknown.bin
 
 # wildcards and multiple files
-RASharp GB *.gb
-RASharp PS1 game1.cue game2.cue
+RetroAchievementsSharp GB *.gb
+RetroAchievementsSharp PS1 game1.cue game2.cue
 ```
 
 ## Console keys and ids
 
-The console table (81 entries) is printed by running RASharp with no
+The console table (81 entries) is printed by running RetroAchievementsSharp with no
 arguments. Keys are matched case-insensitively; any console can also be
 addressed by its numeric id (see the [console table](../reference/console-table.md)).
 

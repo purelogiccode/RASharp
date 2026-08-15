@@ -1,0 +1,477 @@
+// New implementation, behavior parity with RALibretro RAHasher (GPL-3.0,
+// used as reference only) — src/RAHasher.cpp. The console metadata table is
+// factual data (see Consoles.cs); everything else is written fresh to match
+// the observable CLI behavior.
+
+using RetroAchievementsSharp.Models;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
+
+namespace RetroAchievementsSharp.Cli;
+
+/// <summary>New implementation, behavior parity with RALibretro RAHasher (GPL-3.0, used as reference only) — src/RAHasher.cpp. The console metadata table is factual data (s</summary>
+internal static class Program
+{
+    internal const string Version = "1.8.3";
+
+    /// <summary>main.</summary>
+    /// <param name="args">the command-line arguments</param>
+    /// <returns>the result</returns>
+    private static int Main(string[] args)
+    {
+        try
+        {
+            ConfigureLogging();
+            ApplicationStatsReporter.ReportUsage();
+            return Run(args);
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Unhandled exception");
+            Console.Error.WriteLine("Unhandled exception: {0}", ex.Message);
+            return 1;
+        }
+        finally
+        {
+            ApplicationStatsReporter.Flush();
+            Log.CloseAndFlush();
+        }
+    }
+
+    /* Serilog wiring. The console sink reproduces the original's byte-exact
+     * output (message + platform newline, no themes); the bug-report sink
+     * forwards Warning+ events. The API key comes from Constants (decoded at
+     * startup) unless RASHARP_BUGREPORT_API_KEY overrides it;
+     * RASHARP_BUGREPORT_DISABLE=1 forces forwarding off. The sink never
+     * writes to stdout/stderr, so parity output is unaffected. */
+    /// <summary>Serilog wiring. The console sink reproduces the original's byte-exact output (message + platform newline, no themes); the bug-report sink forwards Warning+ even</summary>
+    private static void ConfigureLogging()
+    {
+        var configuration = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .WriteTo.Console(
+                outputTemplate: "{Message:l}{NewLine}",
+                theme: ConsoleTheme.None,
+                standardErrorFromLevel: LogEventLevel.Error);
+
+        var apiKey = Environment.GetEnvironmentVariable("RASHARP_BUGREPORT_API_KEY");
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            apiKey = Constants.BugReportApiKey;
+        }
+
+        var disabled = string.Equals(Environment.GetEnvironmentVariable("RASHARP_BUGREPORT_DISABLE"), "1", StringComparison.Ordinal);
+        if (!disabled)
+        {
+            var url = Environment.GetEnvironmentVariable("RASHARP_BUGREPORT_URL") ?? BugReportSink.DefaultUrl;
+            configuration.WriteTo.Sink(new BugReportSink(url, apiKey), restrictedToMinimumLevel: LogEventLevel.Warning);
+        }
+
+        Log.Logger = configuration.CreateLogger();
+    }
+
+    /// <summary>Executes the CLI argument loop.</summary>
+    /// <param name="args">the command-line arguments</param>
+    /// <returns>the result</returns>
+    private static int Run(string[] args)
+    {
+        /* subcommands — scan, consoles, checkkeys, identify, and fetch-db are
+         * RetroAchievementsSharp extensions (RAHasher 1.8.3 has none). Dispatch before the
+         * legacy positional parse: none of the names is a console key, so the
+         * original CLI's behavior is untouched. */
+        if (args.Length > 0)
+        {
+            if (string.Equals(args[0], ScanCommand.Name, StringComparison.Ordinal))
+            {
+                return ScanCommand.Run(args[1..]);
+            }
+
+            if (string.Equals(args[0], ConsolesCommand.Name, StringComparison.Ordinal))
+            {
+                return ConsolesCommand.Run(args[1..]);
+            }
+
+            if (string.Equals(args[0], CheckKeysCommand.Name, StringComparison.Ordinal))
+            {
+                return CheckKeysCommand.Run(args[1..]);
+            }
+
+            if (string.Equals(args[0], IdentifyCommand.Name, StringComparison.Ordinal))
+            {
+                return IdentifyCommand.Run(args[1..]);
+            }
+
+            if (string.Equals(args[0], FetchDbCommand.Name, StringComparison.Ordinal))
+            {
+                return FetchDbCommand.Run(args[1..]);
+            }
+        }
+
+        var singleFile = true;
+        var systemDirectory = ".";
+
+        /* C's argi counts argv[0]; C# args start at 0, so use 0-based indexes
+         * and translate the C bounds checks by one */
+        var argi = 0;
+        while (argi < args.Length && args[argi].StartsWith('-'))
+        {
+            if (string.Equals(args[argi], "-v", StringComparison.Ordinal))
+            {
+                RcHash.InitVerboseMessageCallback(RhashLog);
+                ++argi;
+            }
+            else if (string.Equals(args[argi], "-s", StringComparison.Ordinal))
+            {
+                /* C reads argv[++argi] even at end-of-args (segfault); harden to usage */
+                if (argi + 1 >= args.Length)
+                {
+                    Usage(Environment.ProcessPath ?? "RetroAchievementsSharp");
+                    return 1;
+                }
+
+                systemDirectory = args[++argi];
+                ++argi;
+            }
+            else
+            {
+                Usage(Environment.ProcessPath ?? "RetroAchievementsSharp");
+                return 1;
+            }
+        }
+
+        /* C: argi + 2 > argc. C's argi counts argv[0] (argi_c = argi_cs + 1) and
+         * argc = args.Length + 1, so the C# form is argi + 2 > args.Length */
+        if (argi + 2 > args.Length)
+        {
+            Usage(Environment.ProcessPath ?? "RetroAchievementsSharp");
+            return 1;
+        }
+
+        var consoleKey = args[argi++];
+        var consoleId = string.Equals(consoleKey, "?", StringComparison.Ordinal) ? 1 + ConsoleIds.RcConsoleMax : FindConsoleId(consoleKey);
+        if (consoleId == 0)
+        {
+            Usage(Environment.ProcessPath ?? "RetroAchievementsSharp");
+            return 1;
+        }
+
+        RcHash.InitErrorMessageCallback(RhashLogErrorMessage);
+
+        if (consoleId == ConsoleIds.RcConsoleNintendo3Ds)
+        {
+            Hash3Ds.InitHash3Ds(systemDirectory);
+        }
+
+        /* C: argi + 1 < argc  <=>  argi + 1 < args.Length */
+        if (argi + 1 < args.Length)
+        {
+            if (consoleId > ConsoleIds.RcConsoleMax)
+            {
+                Console.WriteLine("Specific console must be specified when processing multiple files");
+                return 1;
+            }
+
+            singleFile = false;
+        }
+        else
+        {
+            var file = args[argi];
+            if (file.Contains('*') || file.Contains('?'))
+            {
+                if (consoleId > ConsoleIds.RcConsoleMax)
+                {
+                    Console.WriteLine("Specific console must be specified when using wildcards");
+                    return 1;
+                }
+
+                singleFile = false;
+            }
+        }
+
+        if (!singleFile)
+        {
+            /* verbose logging not allowed when processing multiple files */
+            RcHash.InitVerboseMessageCallback(null);
+        }
+
+        while (argi < args.Length)
+        {
+            var file = args[argi++];
+
+            if (file.Contains('*') || file.Contains('?'))
+            {
+                if (ProcessFiles(consoleId, file) == 0)
+                    return 1;
+            }
+            else
+            {
+                var result = ProcessFile(consoleId, file);
+
+                if (singleFile)
+                    Console.WriteLine();
+                else
+                    Console.WriteLine(" {0}", FileUtil.FileNameWithExtension(file));
+
+                if (result == 0)
+                    return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    /// <summary>Resolves a console key or numeric id to a console id.</summary>
+    /// <param name="key">the console key or numeric id</param>
+    /// <returns>the console id, or 0 when unknown</returns>
+    internal static int FindConsoleId(string key)
+    {
+        foreach (var console in Consoles.All)
+        {
+            if (console.Group != null && string.Equals(key, console.Key, StringComparison.OrdinalIgnoreCase))
+                return (int)console.Id;
+        }
+
+        /* falling back to original behaviour: atoi(key) */
+        return Atoi(key);
+    }
+
+    /* C atoi semantics: optional sign, leading digits, 0 when none */
+    /// <summary>C atoi semantics: optional sign, leading digits, 0 when none</summary>
+    /// <param name="s">the s parameter</param>
+    /// <returns>the result</returns>
+    private static int Atoi(string s)
+    {
+        var i = 0;
+        var negative = false;
+        if (i < s.Length && (s[i] == '-' || s[i] == '+'))
+        {
+            negative = s[i] == '-';
+            ++i;
+        }
+
+        var value = 0;
+        while (i < s.Length && s[i] >= '0' && s[i] <= '9')
+        {
+            value = value * 10 + (s[i] - '0');
+            ++i;
+        }
+
+        return negative ? -value : value;
+    }
+
+    /// <summary>Prints the usage banner and console table.</summary>
+    /// <param name="appname">the application name</param>
+    private static void Usage(string appname)
+    {
+        Console.WriteLine("RetroAchievementsSharp {0}", Version);
+        Console.WriteLine("====================");
+        Console.WriteLine("Usage: {0} [-v] [-s systempath] system filepath...", FileUtil.FileName(appname));
+        Console.WriteLine();
+        Console.WriteLine("  -v             (optional) enables verbose messages for debugging");
+        Console.WriteLine("  -s systempath  (optional) specifies where supplementary files are stored (typically a path to RetroArch/system)");
+        Console.WriteLine("  system         specifies the system key or id associated to the game (which hash algorithm to use)");
+        Console.WriteLine("  filepath       specifies the path to the game file (file may include wildcards, path may not)");
+        Console.WriteLine();
+        Console.WriteLine(" ID Key     Group    Name");
+        Console.WriteLine(" -- ------- -------- ---------------------------");
+
+        string? lastGroup = null;
+        foreach (var console in Consoles.All)
+        {
+            if (console.Group != null && lastGroup != null && !string.Equals(lastGroup, console.Group, StringComparison.Ordinal))
+                Console.WriteLine();
+
+            Console.WriteLine(" {0,2} {1,-7} {2,-8} {3}", console.Id, console.Key, console.Group ?? "", console.Name);
+
+            if (console.Group != null)
+            {
+                lastGroup = console.Group;
+            }
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("For a single file, console ID can be specified as '?' (to attempt guessing by extension)");
+        Console.WriteLine("Warning: consoles with a 'blank' group are currently not supported by RA!");
+    }
+
+    /// <summary>Verbose message callback routed through Serilog.</summary>
+    /// <param name="message">the message text</param>
+    private static void RhashLog(string message)
+    {
+        /* parity-critical: the console sink must emit message + newline only */
+        Log.Information("{Message}", message);
+    }
+
+    /// <summary>Error message callback routed through Serilog (stderr).</summary>
+    /// <param name="message">the message text</param>
+    private static void RhashLogErrorMessage(string message)
+    {
+        /* parity-critical: goes to stderr via standardErrorFromLevel */
+        Log.Error("{Message}", message);
+    }
+
+    /// <summary>Processes a single file for a console.</summary>
+    /// <param name="consoleId">the console identifier</param>
+    /// <param name="file">the file path</param>
+    /// <returns>the result</returns>
+    private static int ProcessFile(int consoleId, string file)
+    {
+        var filePath = FileUtil.FullPath(file);
+        var hashes = GenerateHashes(consoleId, filePath);
+        foreach (var hash in hashes)
+        {
+            Console.Write(hash.Hash);
+        }
+
+        return hashes.Count;
+    }
+
+    /// <summary>A generated hash and the console that produced it.</summary>
+    /// <param name="Hash">the 32-char hash</param>
+    /// <param name="ConsoleId">the console identifier</param>
+    internal sealed record FileHash(string Hash, uint ConsoleId);
+
+    /* the hashing core of ProcessFile, shared with the identify subcommand:
+     * zip special case, CHD cdreader selection, and the '?' auto-detect
+     * iterator (which can produce several hashes, e.g. multi-disc m3u). */
+    /// <summary>Computes the hash(es) for a file and console — the legacy single-file flow.</summary>
+    /// <param name="consoleId">the console identifier</param>
+    /// <param name="filePath">the full file path</param>
+    /// <returns>the generated hashes (empty when hashing failed)</returns>
+    internal static List<FileHash> GenerateHashes(int consoleId, string filePath)
+    {
+        var hashes = new List<FileHash>();
+        var ext = FileUtil.Extension(filePath);
+
+        if (consoleId != ConsoleIds.RcConsoleArcade && consoleId <= ConsoleIds.RcConsoleMax &&
+            ext.Length == 4 && char.ToLowerInvariant(ext[1]) == 'z' && char.ToLowerInvariant(ext[2]) == 'i' && char.ToLowerInvariant(ext[3]) == 'p')
+        {
+            var data = FileUtil.LoadZippedFile(filePath, out _);
+            if (data != null)
+            {
+                if (RcHash.GenerateFromBuffer(out var hash, (uint)consoleId, data, data.Length))
+                {
+                    hashes.Add(new FileHash(hash, (uint)consoleId));
+                }
+
+                return hashes;
+            }
+
+            /* entries >= 2 GiB cannot fit in a byte[] (the C mallocs the full
+             * entry) — extract to a temp file and hash from disk: same bytes,
+             * same hash */
+            var tempPath = FileUtil.LoadZippedFileToTemp(filePath, out _);
+            if (tempPath != null)
+            {
+                try
+                {
+                    if (RcHash.GenerateFromFile(out var zipFileHash, (uint)consoleId, tempPath))
+                    {
+                        hashes.Add(new FileHash(zipFileHash, (uint)consoleId));
+                    }
+                }
+                finally
+                {
+                    File.Delete(tempPath);
+                }
+            }
+
+            return hashes;
+        }
+
+        switch (ext.Length)
+        {
+            case 4 when char.ToLowerInvariant(ext[1]) == 'c' && char.ToLowerInvariant(ext[2]) == 'h' && char.ToLowerInvariant(ext[3]) == 'd':
+                ChdCdReader.InitChdCdreader();
+                HashEngine.ResetFilereader();
+                break;
+            case 4 when char.ToLowerInvariant(ext[1]) == 'r' && char.ToLowerInvariant(ext[2]) == 'v' && char.ToLowerInvariant(ext[3]) == 'z':
+                RvzFilereader.InitRvzFilereader();
+                RcHash.InitDefaultCdreader();
+                break;
+            default:
+                RcHash.InitDefaultCdreader();
+                HashEngine.ResetFilereader();
+                break;
+        }
+
+        if (consoleId > ConsoleIds.RcConsoleMax)
+        {
+            var iterator = new RcHashIterator();
+            HashIterator.InitializeIterator(iterator, filePath, null, 0);
+            while (HashIterator.Iterate(out var hash, iterator) != 0)
+            {
+                /* Iterate advances Index past the console that accepted the file */
+                var matched = iterator.Index > 0 ? iterator.Consoles[iterator.Index - 1] : 0;
+                hashes.Add(new FileHash(hash, matched));
+            }
+
+            HashIterator.DestroyIterator(iterator);
+            return hashes;
+        }
+
+        if (RcHash.GenerateFromFile(out var fileHash, (uint)consoleId, filePath))
+        {
+            hashes.Add(new FileHash(fileHash, (uint)consoleId));
+        }
+
+        return hashes;
+    }
+
+    /// <summary>Processes one wildcard match, printing the hash and filename.</summary>
+    /// <param name="consoleId">the console identifier</param>
+    /// <param name="file">the file path</param>
+    /// <returns>the result</returns>
+    private static int ProcessIteratedFile(int consoleId, string file)
+    {
+        var result = ProcessFile(consoleId, file);
+        if (result == 0)
+            Console.Write("????????????????????????????????");
+
+        Console.WriteLine(" {0}", FileUtil.FileNameWithExtension(file));
+        return result;
+    }
+
+    /// <summary>Expands a wildcard pattern and processes every match.</summary>
+    /// <param name="consoleId">the console identifier</param>
+    /// <param name="pattern">the wildcard pattern</param>
+    /// <returns>the result</returns>
+    private static int ProcessFiles(int consoleId, string pattern)
+    {
+        var count = 0;
+
+        /* util::directory splits on '\' only (Windows) */
+        var path = FileUtil.Directory(pattern);
+        if (string.Equals(path, pattern, StringComparison.Ordinal)) /* no backslash found. scan is in current directory */
+        {
+            path = ".";
+        }
+
+        /* FindFirstFileA scans the full pattern (forward slashes accepted); the
+         * per-file path is then built from the backslash-split directory, which
+         * reproduces the original's behavior for patterns like "dir/*.bin" (the
+         * match is found, but the open path is ".\<name>"). Directory-less
+         * patterns scan the current directory. */
+        var patternDir = Path.GetDirectoryName(pattern);
+        if (string.IsNullOrEmpty(patternDir))
+        {
+            patternDir = ".";
+        }
+
+        var patternName = Path.GetFileName(pattern) ?? "*";
+
+        /* Note: FindFirstFileA also matches directories; a directory literally named
+         * "x.gb" would produce a "????" line in the original but is skipped here.
+         * Pre-existing edge case, kept for simplicity. */
+        foreach (var entry in Directory.EnumerateFiles(patternDir, patternName))
+        {
+            count += ProcessIteratedFile(consoleId, path + "\\" + Path.GetFileName(entry));
+        }
+
+        if (count == 0)
+            Console.WriteLine("No matches found");
+
+        return count;
+    }
+}

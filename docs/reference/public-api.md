@@ -1,6 +1,6 @@
 # Public API
 
-`RASharp` mirrors `include/rc_hash.h`. The primary entry points are on
+`RetroAchievementsSharp` mirrors `include/rc_hash.h`. The primary entry points are on
 the static `RcHash` class.
 
 ## Hashing
@@ -33,11 +33,11 @@ key funcs wire the decryption key providers (see
 ## Iterator API
 
 ```csharp
-// namespace RASharp.Models
+// namespace RetroAchievementsSharp.Models
 public sealed class RcHashIterator { ... }        // rc_hash_iterator_t
 public sealed record ExtHandlerEntry(string Ext, Action<RcHashIterator, int> Handler, int Data);
 
-// namespace RASharp
+// namespace RetroAchievementsSharp
 public static class HashIterator
 {
     public static void InitializeIterator(RcHashIterator iterator, string? path, byte[]? buffer, int bufferSize)
@@ -50,7 +50,7 @@ public static class HashIterator
 `Iterate` drives the `?` auto-detect: it walks the handler table in the C's
 exact order and returns the first console whose algorithm accepts the file.
 
-## Delegate structs (`RASharp.Models`)
+## Delegate structs (`RetroAchievementsSharp.Models`)
 
 ```csharp
 public class RcHashFilereader      // rc_hash_filereader: Open/Seek/Tell/Read/Close
@@ -59,7 +59,7 @@ public class RcHashCdreader        // rc_hash_cdreader: OpenTrack/ReadSector/Clo
 public class RcHashEncryptionCallbacks  // 3DS key funcs
 public class RcHashCallbacks            // VerboseMessage/ErrorMessage + Filereader/Cdreader/Encryption
 public sealed class CdromTrack          // rc_hash_cdrom_track_t (sector math state)
-public delegate void RcHashMessageCallbackDeprecated(string message)   // RASharp (Callbacks.cs)
+public delegate void RcHashMessageCallbackDeprecated(string message)   // RetroAchievementsSharp (Callbacks.cs)
 ```
 
 ## RVZ/WIA disc reading
@@ -105,5 +105,5 @@ the module ports described in [Architecture](../architecture/overview.md).
 
 ## CLI
 
-`RASharp.Cli` exposes `Consoles.All` (`ConsoleInfo[]`: id, key, group,
+`RetroAchievementsSharp.Cli` exposes `Consoles.All` (`ConsoleInfo[]`: id, key, group,
 name) — the factual metadata table used by the usage output.

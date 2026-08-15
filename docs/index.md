@@ -1,10 +1,10 @@
-# RASharp
+# RetroAchievementsSharp
 
 **A native C# port of the RAHasher 1.8.3 CLI that produces 100 % identical
 RetroAchievements hashes — now tracking the current rcheevos release
 (12.4.0) as the single source of truth.**
 
-RASharp is a GPL-2.0-or-later class library + CLI that hashes ROMs and disc
+RetroAchievementsSharp is a GPL-2.0-or-later class library + CLI that hashes ROMs and disc
 images exactly the way RetroAchievements identifies games: same algorithms,
 same constants, same edge cases, byte-for-byte. The engine is a 1:1
 translation of the `rc_hash` module of [rcheevos](https://github.com/RetroAchievements/rcheevos),
@@ -13,7 +13,7 @@ rcheevos 12.2.1) and since evolved to rcheevos 12.4.0.
 
 ## Highlights
 
-- **100 % parity, proven** — a Tier-2 harness runs `RASharp.Cli.exe` and the
+- **100 % parity, proven** — a Tier-2 harness runs `RetroAchievementsSharp.Cli.exe` and the
   original C binaries with identical arguments and requires byte-identical
   stdout/stderr and equal exit codes: **90/90 corpus cases green** against
   the rcheevos 12.4.0-built oracle; **415/415 fast tests + 172/172 slow
@@ -21,7 +21,7 @@ rcheevos 12.2.1) and since evolved to rcheevos 12.4.0.
 - **81 consoles** in the CLI table — cartridge, disc, encrypted (3DS), CHD,
   RVZ/WIA (GameCube/Wii, hashed live — no rvz→iso conversion),
   zip-based (Arduboy FX, DOSZ/DOSC) and `.neo` Neo Geo cart formats.
-- **Cross-platform** — `RASharp` is a NuGet library targeting
+- **Cross-platform** — `RetroAchievementsSharp` is a NuGet library targeting
   `net8.0;net9.0;net10.0`; the CLI publishes self-contained single-file
   executables for Windows x64/arm64 and Linux x64/arm64.
 - **Honest engineering** — the port reproduces the original's quirks
@@ -37,12 +37,12 @@ rcheevos 12.2.1) and since evolved to rcheevos 12.4.0.
 ## Quick start
 
 ```bash
-dotnet build RASharp.sln -c Release
-dotnet test  RASharp.sln -c Release
+dotnet build RetroAchievementsSharp.sln -c Release
+dotnet test  RetroAchievementsSharp.sln -c Release
 
-RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe NES game.nes
-RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe PS1 disc.cue
-RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe '?' unknown.bin
+RetroAchievementsSharp.Cli/bin/Release/net10.0/RetroAchievementsSharp.Cli.exe NES game.nes
+RetroAchievementsSharp.Cli/bin/Release/net10.0/RetroAchievementsSharp.Cli.exe PS1 disc.cue
+RetroAchievementsSharp.Cli/bin/Release/net10.0/RetroAchievementsSharp.Cli.exe '?' unknown.bin
 ```
 
 ## Project status
@@ -70,13 +70,13 @@ RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe '?' unknown.bin
 ## Repository layout
 
 ```
-RASharp.sln                 solution (Core + Cli + Tests)
+RetroAchievementsSharp.sln                 solution (Core + Cli + Tests)
 Directory.Build.props       net8.0/9.0/10.0 multi-targeting, nullable, warnings-as-errors
 mkdocs.yml                  this documentation site
 docs/                       these pages
-RASharp/               the hashing engine (class library)
-RASharp.Cli/                the RAHasher-compatible command line
-RASharp.Tests/              ported rcheevos vectors + the Tier-2 parity harness
+RetroAchievementsSharp/               the hashing engine (class library)
+RetroAchievementsSharp.Cli/                the RAHasher-compatible command line
+RetroAchievementsSharp.Tests/              ported rcheevos vectors + the Tier-2 parity harness
 References/                 read-only reference material (never shipped):
                             rcheevos-12.4.0, rcheevos-40d916d, RAHasher-1.8.3,
                             C oracle binaries (GPL, local test oracles only)

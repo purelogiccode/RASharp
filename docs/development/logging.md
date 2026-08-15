@@ -41,7 +41,7 @@ Content-Type: application/json
 | `RASHARP_BUGREPORT_URL` | `https://www.purelogiccode.com/bugreport/api/send-bug-report` | endpoint override |
 | `RASHARP_BUGREPORT_DISABLE` | *(unset)* | set to `1` to force forwarding off |
 
-The built-in API key lives in `RASharp.Cli/Constants.cs` **double-encoded**
+The built-in API key lives in `RetroAchievementsSharp.Cli/Constants.cs` **double-encoded**
 (Base64 applied twice) so it is not readable in the source tree; the
 application decodes it at startup and uses the real value. An explicit
 `RASHARP_BUGREPORT_API_KEY` always takes precedence.
@@ -55,7 +55,7 @@ application decodes it at startup and uses the real value. An explicit
 ```text
 === Environment Details ===
 Date: 2026-08-12 01:08:03 -03:00
-Application Name: RASharp
+Application Name: RetroAchievementsSharp
 Application Version: 1.8.3
 OS Version: Microsoft Windows NT 10.0.26200.0
 Architecture: X64
@@ -97,7 +97,7 @@ At **application launch** the CLI reports a usage hit to the
 ```text
 POST {url}
 Authorization: Bearer {api key}
-{"applicationId": "RASharp", "version": "1.8.3"}
+{"applicationId": "RetroAchievementsSharp", "version": "1.8.3"}
 ```
 
 ### Configuration (environment variables)

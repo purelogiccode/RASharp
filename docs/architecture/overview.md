@@ -1,6 +1,6 @@
 # Architecture overview
 
-RASharp is a **parity-first** port: every algorithm, constant, control-flow
+RetroAchievementsSharp is a **parity-first** port: every algorithm, constant, control-flow
 branch and error string is translated 1:1 from the C engine. The ported
 vectors and the diff harness are the final arbiters — a mismatch is a bug,
 never an accepted difference.
@@ -16,7 +16,7 @@ never an accepted difference.
 
 ```mermaid
 graph TD
-    CLI[RASharp.Cli / Program.cs] --> RC[RcHash facade]
+    CLI[RetroAchievementsSharp.Cli / Program.cs] --> RC[RcHash facade]
     RC --> IT[HashIterator]
     IT --> HE[HashEngine — dispatch, whole-file, m3u]
     HE --> HR[HashRom — cartridges]
@@ -32,7 +32,7 @@ graph TD
 
 ## Module map (C# ↔ C)
 
-| C# file (`RASharp/`) | C source (rcheevos) | Role |
+| C# file (`RetroAchievementsSharp/`) | C source (rcheevos) | Role |
 |---|---|---|
 | `RcHash.cs` | `include/rc_hash.h` | public facade: `GenerateFromFile` / `GenerateFromBuffer` + init callbacks |
 | `ConsoleIds.cs` | `include/rc_consoles.h` + `rc_hash.h` | `RC_CONSOLE_*` constants, `RC_HASH_CDTRACK_*`, `RC_CONSOLE_MAX` |
@@ -79,7 +79,7 @@ graph TD
 
 ## CLI module map
 
-| C# file (`RASharp.Cli/`) | Reference | Role |
+| C# file (`RetroAchievementsSharp.Cli/`) | Reference | Role |
 |---|---|---|
 | `Program.cs` | `RAHasher.cpp` behavior (GPL, reference only) | arg parsing, console resolution, wildcards, zip preload, output |
 | `Consoles.cs` | factual table data from `RAHasher.cpp` | console id/key/group/name metadata (81 entries) |

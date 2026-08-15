@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-RASharp is a GPL-2.0-or-later port of the hashing engine of RAHasher 1.8.3
+RetroAchievementsSharp is a GPL-2.0-or-later port of the hashing engine of RAHasher 1.8.3
 (`rcheevos` commit `40d916d`, MIT) that links the GPL-2.0-or-later RVZSharp
 library. This file lists every third-party component that contributes code,
 behavior, data, or test vectors to this project, with its license and
@@ -10,7 +10,7 @@ provenance.
 
 | Component | Version/Pin | License | Provenance / Use |
 |---|---|---|---|
-| rcheevos (rc_hash engine) | commit `40d916de00fe757bab40fb4db41a7912193a48e3` | MIT — Copyright (c) 2018 RetroAchievements.org | Ported 1:1 into `RASharp` (see the MIT notice below); test vectors under `test/rhash/` ported into `RASharp.Tests` |
+| rcheevos (rc_hash engine) | commit `40d916de00fe757bab40fb4db41a7912193a48e3` | MIT — Copyright (c) 2018 RetroAchievements.org | Ported 1:1 into `RetroAchievementsSharp` (see the MIT notice below); test vectors under `test/rhash/` ported into `RetroAchievementsSharp.Tests` |
 | CHDSharp | 1.2.0 (NuGet) | MIT — Copyright (c) 2026 Peterson Fernandes and Gordon Jefferyes | CHD V1–V5 reading in `ChdCdReader` |
 | RVZSharp | 1.0.0 (NuGet) | GPL-2.0-or-later (Dolphin-derived) | GameCube/Wii RVZ/WIA decoding in `RvzFilereader` (no rvz→iso conversion) |
 | VideoGameFileSystemParser | 1.2.0 (NuGet) | MIT — Copyright (c) 2025 Peterson Fernandes | Alternative ISO9660/UDF filesystem backend (`FileSystemResolver`) |
@@ -20,7 +20,7 @@ provenance.
 
 ## The MIT notice of the ported rcheevos code
 
-The hashing engine in `RASharp` (and its test vectors) is ported from
+The hashing engine in `RetroAchievementsSharp` (and its test vectors) is ported from
 [rcheevos](https://github.com/RetroAchievements/rcheevos), which is licensed
 under the MIT License:
 
@@ -53,7 +53,7 @@ SOFTWARE.
 RVZSharp is copyright (c) 2025-2026 Peterson Fernandes and Pure Logic Code,
 licensed under GPL-2.0-or-later; its RVZ/WIA format logic is derived from
 [Dolphin](https://github.com/dolphin-emu/dolphin)'s DiscIO module (GPL-2.0-or-later).
-Because RASharp links RVZSharp, the combined library is distributed under
+Because RetroAchievementsSharp links RVZSharp, the combined library is distributed under
 GPL-2.0-or-later (see `LICENSE`).
 
 RVZSharp's own runtime dependencies (all MIT):
@@ -67,12 +67,12 @@ RVZSharp's own runtime dependencies (all MIT):
 ## GPL reference material (NOT shipped)
 
 The following are used **only as read-only behavioral references** while
-writing the C# implementation, and are **not** included in the RASharp
+writing the C# implementation, and are **not** included in the RetroAchievementsSharp
 sources, binaries, or NuGet package:
 
 - `RAHasher-1.8.3` — RAHasher CLI sources (`RAHasher.cpp`, `Util.cpp`,
   `Hash3DS.cpp`, `HashCHD.cpp`, `Logger.*`), GPL-3.0 (RALibretro lineage,
-  LeXofLeviafan fork). RASharp's `Program.cs`, `FileUtil.cs`, `Hash3DS.cs`,
+  LeXofLeviafan fork). RetroAchievementsSharp's `Program.cs`, `FileUtil.cs`, `Hash3DS.cs`,
   and `ChdCdReader.cs` are new implementations written to match observable
   behavior only; no GPL text is copied.
 - `RAHasher.exe` (test oracle for the parity harness) — built from the
