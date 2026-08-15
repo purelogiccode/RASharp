@@ -384,10 +384,17 @@ internal static class Program
         if (ext.Length == 4 && char.ToLowerInvariant(ext[1]) == 'c' && char.ToLowerInvariant(ext[2]) == 'h' && char.ToLowerInvariant(ext[3]) == 'd')
         {
             ChdCdReader.InitChdCdreader();
+            HashEngine.ResetFilereader();
+        }
+        else if (ext.Length == 4 && char.ToLowerInvariant(ext[1]) == 'r' && char.ToLowerInvariant(ext[2]) == 'v' && char.ToLowerInvariant(ext[3]) == 'z')
+        {
+            RvzFilereader.InitRvzFilereader();
+            RcHash.InitDefaultCdreader();
         }
         else
         {
             RcHash.InitDefaultCdreader();
+            HashEngine.ResetFilereader();
         }
 
         if (consoleId > ConsoleIds.RcConsoleMax)

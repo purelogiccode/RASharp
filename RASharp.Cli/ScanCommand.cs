@@ -248,10 +248,17 @@ internal static class ScanCommand
             if (string.Equals(ext, ".chd", StringComparison.OrdinalIgnoreCase))
             {
                 ChdCdReader.InitChdCdreader();
+                HashEngine.ResetFilereader();
+            }
+            else if (string.Equals(ext, ".rvz", StringComparison.OrdinalIgnoreCase))
+            {
+                RvzFilereader.InitRvzFilereader();
+                RcHash.InitDefaultCdreader();
             }
             else
             {
                 RcHash.InitDefaultCdreader();
+                HashEngine.ResetFilereader();
             }
 
             var iterator = new RcHashIterator();

@@ -50,6 +50,8 @@ if (RcHash.GenerateFromFile(out string hash, ConsoleIds.RcConsoleNintendo, "game
   with a directory containing `aes_keys.txt` (and optionally `seeddb.bin`).
 - CHD discs are supported out of the box via
   [CHDSharp](https://www.nuget.org/packages/CHDSharp).
+- GameCube/Wii `​.rvz`/`.wia` discs are hashed live (decode-on-read, no
+  rvz→iso conversion) via [RVZSharp](https://www.nuget.org/packages/RVZSharp).
 
 Full API reference and docs: <https://purelogiccode.github.io/RASharp/>.
 For exact engine behavior (64 MiB cap, header-stripping rules, track
@@ -59,7 +61,8 @@ selection, verbose messages), see the [documentation](docs/index.md) and
 ## Supported formats
 
 Raw ROMs (all cartridge consoles), `.zip` (pre-loaded ROM, Arduboy FX,
-DOSZ/Zip64/DOSC), `.m3u` playlists, discs (`.cue`/`.bin`/`.iso`/`.gdi`/`.chd`),
+DOSZ/Zip64/DOSC), `.m3u` playlists, discs (`.cue`/`.bin`/`.iso`/`.gdi`/`.chd`,
+  GameCube/Wii `.rvz`/`.wia`),
 3DS `.cia`/`.3ds`/`.3dsx` (keys via `-s` / `Hash3Ds.InitHash3Ds`), and
 Neo Geo `.neo` carts. Console list: NES/Famicom, SNES/SFC, N64, GB/GBC/GBA,
 Master System, Mega Drive/Genesis, Game Gear, 32X, SG-1000, PCE/TG-16,

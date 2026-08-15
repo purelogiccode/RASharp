@@ -157,6 +157,13 @@ public static class HashIterator
         iterator.Consoles[0] = ConsoleIds.RcConsoleMsx;
     }
 
+    private static void InitializeIteratorRvz(RcHashIterator iterator, int data)
+    {
+        /* RVZ/WIA containers hold GameCube and Wii discs only */
+        iterator.Consoles[0] = ConsoleIds.RcConsoleGamecube;
+        iterator.Consoles[1] = ConsoleIds.RcConsoleWii;
+    }
+
     private static void InitializeIteratorTap(RcHashIterator iterator, int data)
     {
         /* also Oric and ZX Spectrum, but all are full file hashes */
@@ -240,6 +247,7 @@ public static class HashIterator
         new("pzx", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleZxSpectrum),
         new("ri", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleMsx),
         new("rom", InitializeIteratorRom, 0),
+        new("rvz", InitializeIteratorRvz, 0),
         new("sap", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleThomsonto8), /* disk */
         new("scl", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleZxSpectrum),
         new("sfc", InitializeIteratorSingle, (int)ConsoleIds.RcConsoleSuperNintendo),

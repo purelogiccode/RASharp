@@ -93,6 +93,7 @@ addressed by its numeric id (see the [console table](../reference/console-table.
 | `.cue` / `.bin` / `.iso` | disc images (2352/2336/2048 sector layouts auto-detected) |
 | `.gdi` | Dreamcast track table |
 | `.chd` | via CHDSharp (read-only, V1–V5) |
+| `.rvz`  / `.wia` | GameCube/Wii discs hashed live via RVZSharp (decode-on-read, no rvz→iso conversion) |
 | `.cia` / `.3ds` / `.3dsx` | 3DS encrypted formats (keys via `-s`) |
 | `.neo` | Geolith Neo Geo carts — content-hashed (ROM data after the 4096-byte header) |
 
