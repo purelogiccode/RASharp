@@ -2,7 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/RASharp)](https://www.nuget.org/packages/RASharp)
 [![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%209.0%20%7C%2010.0-512BD4)](https://dotnet.microsoft.com/download)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
 [![Repo](https://img.shields.io/badge/github-purelogiccode%2FRASharp-181717?logo=github)](https://github.com/purelogiccode/RASharp)
 
 A native C# port of the **RAHasher 1.8.3** hashing engine (`rcheevos`
@@ -12,13 +12,14 @@ for every supported console — the same hashes the
 use to identify ROMs and disc images.
 
 - **Library** — `RASharp` ([NuGet](https://www.nuget.org/packages/RASharp)),
-  targets `net8.0`, `net9.0`, and `net10.0`; MIT licensed.
+  targets `net8.0`, `net9.0`, and `net10.0`; GPL-2.0-or-later.
 - **CLI** — `RASharp.Cli.exe`, byte-identical in behavior to `RAHasher 1.8.3`,
   plus convenience subcommands (`scan`, `identify`, `consoles`, `checkkeys`,
   `fetch-db`).
-- **Verified** — 581/581 tests on **each** supported TFM, including a parity
-  harness against source-built C oracles and spot checks against the
-  published RetroAchievements game database.
+- **Verified** — 587/587 tests on **each** supported TFM, including a parity
+  harness against source-built C oracles, RVZ-vs-ISO equality on real
+  GameCube/Wii discs, and spot checks against the published RetroAchievements
+  game database.
 
 ## Installation
 
@@ -34,10 +35,37 @@ x64 and arm64.
 ```csharp
 using RASharp;
 
-// Hash a ROM exactly the way RetroAchievements does (20+ consoles; whole-file,
-// cartridge, disc, zip, and 3DS algorithms are included):
+// Hash a ROM exactly the way RetroAchievements does (60+ consoles; whole-file,
+// cartridge, disc, zip, CHD, RVZ, and 3DS algorithms are included):
 if (RcHash.GenerateFromFile(out string hash, ConsoleIds.RcConsoleNintendo, "game.nes"))
     Console.WriteLine(hash); // 32 hex chars — matches the published RA hash
+```
+
+More examples:
+
+```csharp
+// Auto-detect the console by extension (the engine tries every candidate):
+var iterator = new RcHashIterator();
+HashIterator.InitializeIterator(iterator, "Super Mario (USA).sfc", null, 0);
+while (HashIterator.Iterate(out var hash, iterator) != 0)
+    Console.WriteLine(hash); // the first hash that matched a console
+HashIterator.DestroyIterator(iterator);
+
+// Hash an in-memory buffer (e.g. the first entry of a zip):
+if (RcHash.GenerateFromBuffer(out hash, ConsoleIds.RcConsoleMegaDrive, data, data.Length))
+    Console.WriteLine(hash);
+
+// GameCube / Wii discs hash RVZ and WIA images live (decode-on-read,
+// no rvz→iso conversion) via RVZSharp; CHD via CHDSharp:
+if (RcHash.GenerateFromFile(out hash, ConsoleIds.RcConsoleGamecube, "game.rvz"))
+    Console.WriteLine(hash);
+if (RcHash.GenerateFromFile(out hash, ConsoleIds.RcConsoleWii, "game.chd"))
+    Console.WriteLine(hash);
+
+// 3DS .cia/.3ds files need key files before hashing:
+Hash3Ds.InitHash3Ds(@"C:\RetroArch\system"); // dir with aes_keys.txt/seeddb.bin
+if (RcHash.GenerateFromFile(out hash, ConsoleIds.RcConsoleNintendo3Ds, "game.cia"))
+    Console.WriteLine(hash);
 ```
 
 - `RcHash.GenerateFromFile(out hash, consoleId, path)` — hash a file.
@@ -51,7 +79,7 @@ if (RcHash.GenerateFromFile(out string hash, ConsoleIds.RcConsoleNintendo, "game
 - CHD discs are supported out of the box via
   [CHDSharp](https://www.nuget.org/packages/CHDSharp).
 - GameCube/Wii `​.rvz`/`.wia` discs are hashed live (decode-on-read, no
-  rvz→iso conversion) via [RVZSharp](https://www.nuget.org/packages/RVZSharp).
+  conversion) via [RVZSharp](https://www.nuget.org/packages/RVZSharp).
 
 Full API reference and docs: <https://purelogiccode.github.io/RASharp/>.
 For exact engine behavior (64 MiB cap, header-stripping rules, track
@@ -62,7 +90,7 @@ selection, verbose messages), see the [documentation](docs/index.md) and
 
 Raw ROMs (all cartridge consoles), `.zip` (pre-loaded ROM, Arduboy FX,
 DOSZ/Zip64/DOSC), `.m3u` playlists, discs (`.cue`/`.bin`/`.iso`/`.gdi`/`.chd`,
-  GameCube/Wii `.rvz`/`.wia`),
+GameCube/Wii `.rvz`/`.wia`),
 3DS `.cia`/`.3ds`/`.3dsx` (keys via `-s` / `Hash3Ds.InitHash3Ds`), and
 Neo Geo `.neo` carts. Console list: NES/Famicom, SNES/SFC, N64, GB/GBC/GBA,
 Master System, Mega Drive/Genesis, Game Gear, 32X, SG-1000, PCE/TG-16,
@@ -171,8 +199,8 @@ dotnet pack RASharp -c Release
 dotnet pack RASharp -c Release -o artifacts
 ```
 
-The package includes the net8/9/10 assemblies, XML docs, the MIT license
-and third-party notices, SourceLink/symbols, and runs NuGet package
+The package includes the net8/9/10 assemblies, XML docs, the GPL-2.0-or-later
+license and third-party notices, SourceLink/symbols, and runs NuGet package
 validation on every pack. Publishing to NuGet.org:
 
 ```bash
@@ -189,13 +217,16 @@ dotnet test RASharp.sln -f net10.0          # one TFM
 dotnet test RASharp.sln --filter FullyQualifiedName~Parity   # parity only
 ```
 
-The suite (581 tests, green on **each** of net8.0/net9.0/net10.0):
+The suite (587 tests, green on **each** of net8.0/net9.0/net10.0):
 
 - **Tier 1** — every ported rcheevos `test/rhash` vector (cartridge, disc,
   cdreader, zip, m3u, handler order) plus synthetic 3DS fixtures.
 - **Tier 2** — parity harness vs. a source-built C oracle (rcheevos 12.4.0,
   falling back to the pinned 1.8.3 build): 90 generated cases + all CLI arg
   modes; stdout/stderr + exit codes byte-identical.
+- **RVZ validation** — real GameCube/Wii RVZ images hashed live through
+  RVZSharp must equal the DolphinTool-converted ISO hash (6 files, 3 consoles
+  each; skips when the libraries or DolphinTool are absent).
 - **Real-ROM parity** — first files of 60 user library directories vs. the
   pinned 1.8.3 binary (skipped-with-note when the libraries or oracle are
   absent).
@@ -209,13 +240,13 @@ unsupported-format behavior (ROM encoding not part of rcheevos).
 
 ## Parity evidence
 
-Current: **581/581 green on net8.0, net9.0, net10.0** — byte-identical
+Current: **587/587 green on net8.0, net9.0, net10.0** — byte-identical
 CLI output between `RASharp.Cli.exe` and the C oracles, including verbose mode,
-error paths, and exit codes; real-ROM parity 61/61; published-hash
-spot-check 15/15 library/console pairs. The harness has caught and fixed
-real port bugs (arg-count guard crash, wildcard path construction, usage
-banner blank line, silent `merge_callbacks` bug) — parity is never "accepted"
-as a difference; it's asserted.
+error paths, and exit codes; RVZ-vs-ISO equality 6/6 (GameCube and Wii);
+real-ROM parity 61/61; published-hash spot-check 15/15 library/console pairs.
+The harness has caught and fixed real port bugs (arg-count guard crash,
+wildcard path construction, usage banner blank line, silent `merge_callbacks`
+bug) — parity is never "accepted" as a difference; it's asserted.
 
 ## Documentation
 
@@ -225,11 +256,13 @@ absorbing future rcheevos releases.
 
 ## License
 
-MIT — see `LICENSE` and `THIRD-PARTY-NOTICES.md`. The rcheevos engine is
-ported 1:1 (MIT); `Program.cs`, `FileUtil.cs`, `Hash3DS.cs`, and
-`ChdCdReader.cs` are new implementations written for behavior parity with the
-GPL-3.0 RALibretro RAHasher (used as read-only reference, never copied; the
-GPL binary and sources live in `References\` only and are not shipped).
+GPL-2.0-or-later — see `LICENSE` and `THIRD-PARTY-NOTICES.md`. Copyright (c)
+2026 Peterson Fernandes and Pure Logic Code. The rcheevos engine is ported
+1:1 (MIT, credited in the notices); RVZ/WIA hashing links RVZSharp which is
+GPL-2.0-or-later (Dolphin-derived). `Program.cs`, `FileUtil.cs`, `Hash3DS.cs`,
+and `ChdCdReader.cs` are new implementations written for behavior parity with
+the GPL-3.0 RALibretro RAHasher (used as read-only reference, never copied;
+the GPL binary and sources live in `References\` only and are not shipped).
 
 ## Changelog
 

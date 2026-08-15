@@ -6,9 +6,9 @@ The test suite is three-tiered. Run everything with:
 dotnet test RASharp.sln -c Release
 ```
 
-**Current state: 559/559 green (Debug and Release), parity 90/90 vs the
-rcheevos 12.4.0-built oracle, plus 61/61 real-ROM cases vs the pinned
-1.8.3 binary (user libraries, see [Parity evidence](../reference/parity-evidence.md)).**
+**Current state: 587/587 green (Debug and Release), parity 90/90 vs the
+rcheevos 12.4.0-built oracle, RVZ-vs-ISO 6/6, plus 61/61 real-ROM cases vs
+the pinned 1.8.3 binary (user libraries, see [Parity evidence](../reference/parity-evidence.md)).**
 
 ## Tier 1 — ported rcheevos vectors (offline, deterministic)
 
@@ -26,6 +26,7 @@ expected MD5s copied verbatim:
 | `TestHash.cs` | m3u + handler-table order (`test_hash.c`) |
 | `TestHash3Ds.cs` | synthetic 3DS fixtures (own tooling, keyed) |
 | `TestChdCdReader.cs` | CHD reading + both-backends agreement |
+| `TestRvzParity.cs` | RVZ-vs-ISO equality (DolphinTool conversion vs live RVZSharp hashing) |
 
 The generators (`TestDataGen.cs`, `TestDataGenDisc.cs`,
 `TestDataGen3ds.cs`) are ports of `test/rhash/data.c` and are deterministic:

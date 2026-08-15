@@ -4,7 +4,7 @@
 RetroAchievements hashes — now tracking the current rcheevos release
 (12.4.0) as the single source of truth.**
 
-RASharp is an MIT-licensed class library + CLI that hashes ROMs and disc
+RASharp is a GPL-2.0-or-later class library + CLI that hashes ROMs and disc
 images exactly the way RetroAchievements identifies games: same algorithms,
 same constants, same edge cases, byte-for-byte. The engine is a 1:1
 translation of the `rc_hash` module of [rcheevos](https://github.com/RetroAchievements/rcheevos),
@@ -16,9 +16,10 @@ rcheevos 12.2.1) and since evolved to rcheevos 12.4.0.
 - **100 % parity, proven** — a Tier-2 harness runs `RASharp.Cli.exe` and the
   original C binaries with identical arguments and requires byte-identical
   stdout/stderr and equal exit codes: **90/90 corpus cases green** against
-  the rcheevos 12.4.0-built oracle; **581/581 tests green on each of
+  the rcheevos 12.4.0-built oracle; **587/587 tests green on each of
   net8.0, net9.0, net10.0** (Debug + Release).
 - **81 consoles** in the CLI table — cartridge, disc, encrypted (3DS), CHD,
+  RVZ/WIA (GameCube/Wii, hashed live — no rvz→iso conversion),
   zip-based (Arduboy FX, DOSZ/DOSC) and `.neo` Neo Geo cart formats.
 - **Cross-platform** — `RASharp` is a NuGet library targeting
   `net8.0;net9.0;net10.0`; the CLI publishes self-contained single-file
@@ -27,9 +28,11 @@ rcheevos 12.2.1) and since evolved to rcheevos 12.4.0.
   (64 MiB whole-file cap, `atoi` console-key fallback, wildcard path
   construction) *and* inherits its bugfixes (the 12.4.0 `merge_callbacks`
   fix was ported the day the C# port's copy of the bug was found).
-- **MIT** — the ported engine is MIT (rcheevos); the GPL-3.0 RAHasher
-  reference material is used only as a behavioral reference and is never
-  shipped.
+- **GPL-2.0-or-later** — the ported engine core is MIT (rcheevos, credited
+  in `THIRD-PARTY-NOTICES.md`); RVZ/WIA hashing links RVZSharp
+  (GPL-2.0-or-later, Dolphin-derived), so the library is distributed under
+  GPL-2.0-or-later. The GPL-3.0 RAHasher reference material is used only as
+  a behavioral reference and is never shipped.
 
 ## Quick start
 
@@ -81,4 +84,5 @@ References/                 read-only reference material (never shipped):
 
 ## License
 
-MIT — see [license.md](license.md) and `THIRD-PARTY-NOTICES.md` in the repo.
+GPL-2.0-or-later — see [license.md](license.md) and `THIRD-PARTY-NOTICES.md`
+in the repo. Copyright (c) 2026 Peterson Fernandes and Pure Logic Code.

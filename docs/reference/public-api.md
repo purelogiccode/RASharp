@@ -53,14 +53,29 @@ exact order and returns the first console whose algorithm accepts the file.
 ## Delegate structs (`RASharp.Models`)
 
 ```csharp
-public sealed class RcHashFilereader      // rc_hash_filereader: Open/Seek/Tell/Read/Close
-public sealed class RcHashCdreader        // rc_hash_cdreader: OpenTrack/ReadSector/CloseTrack/
-                                          //   FirstTrackSector/OpenTrackIterator
-public sealed class RcHashEncryptionCallbacks  // 3DS key funcs
-public sealed class RcHashCallbacks            // VerboseMessage/ErrorMessage + Filereader/Cdreader/Encryption
-public sealed class CdromTrack                 // rc_hash_cdrom_track_t (sector math state)
+public class RcHashFilereader      // rc_hash_filereader: Open/Seek/Tell/Read/Close
+public class RcHashCdreader        // rc_hash_cdreader: OpenTrack/ReadSector/CloseTrack/
+                                   //   FirstTrackSector/OpenTrackIterator
+public class RcHashEncryptionCallbacks  // 3DS key funcs
+public class RcHashCallbacks            // VerboseMessage/ErrorMessage + Filereader/Cdreader/Encryption
+public sealed class CdromTrack          // rc_hash_cdrom_track_t (sector math state)
 public delegate void RcHashMessageCallbackDeprecated(string message)   // RASharp (Callbacks.cs)
 ```
+
+## RVZ/WIA disc reading
+
+```csharp
+public static class RvzFilereader
+{
+    public static void InitRvzFilereader()   // installs the RVZSharp-backed global filereader
+}
+```
+
+GameCube/Wii `.rvz`/`.wia` files are hashed live (decode-on-read) — the
+filereader maps `FileOpen`/`FileSeek`/`FileRead` onto `RvzReader.ReadAt`.
+The CLI selects it automatically by extension; library users call
+`RcHash.GenerateFromFile` after `RvzFilereader.InitRvzFilereader()`
+(restore with `HashEngine.InitCustomFilereader(null)`).
 
 ## Constants
 

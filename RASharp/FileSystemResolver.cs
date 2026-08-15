@@ -20,6 +20,10 @@ public sealed class FileSystemResolver : IDisposable
 {
     private readonly ChdContainer _container;
 
+    /// <summary>Opens and parses the filesystem of a CHD disc image.</summary>
+    /// <param name="chdPath">the path of the CHD file</param>
+    /// <param name="consoleType">the console filesystem type (e.g. the ISO9660/UDF variant)</param>
+    /// <exception cref="InvalidOperationException">the disc could not be parsed as the requested console type</exception>
     public FileSystemResolver(string chdPath, ConsoleType consoleType)
     {
         _container = new ChdContainer(chdPath);
@@ -30,8 +34,10 @@ public sealed class FileSystemResolver : IDisposable
         }
     }
 
+    /// <summary>The console filesystem type the disc was parsed as.</summary>
     public ConsoleType ConsoleType => _container.ConsoleType;
 
+    /// <summary>The parsed filesystem entries of the disc.</summary>
     public IReadOnlyList<FileEntry> Entries => _container.Entries;
 
     /* resolve a path to the first extent of the file, like

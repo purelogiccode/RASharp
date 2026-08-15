@@ -35,12 +35,14 @@ The solution contains three projects:
 | `RASharp.Cli` | console app | the RAHasher-compatible command line (`RASharp.Cli.exe`) |
 | `RASharp.Tests` | xUnit | ported rcheevos vectors + the Tier-2 parity harness |
 
-NuGet dependencies (both MIT):
+NuGet dependencies:
 
-| Package | Version | Role |
-|---|---|---|
-| `CHDSharp` | 1.2.0 | CHD V1–V5 reading (`ChdFile`, `Tracks`, metadata) |
-| `VideoGameFileSystemParser` | 1.2.0 | alternative ISO9660/UDF backend behind `FileSystemResolver` |
+| Package | Version | License | Role |
+|---|---|---|---|
+| `CHDSharp` | 1.2.0 | MIT | CHD V1–V5 reading (`ChdFile`, `Tracks`, metadata) |
+| `RVZSharp` | 1.0.0 | GPL-2.0-or-later | GameCube/Wii RVZ/WIA live hashing (`RvzFilereader`) |
+| `VideoGameFileSystemParser` | 1.2.0 | MIT | alternative ISO9660/UDF backend behind `FileSystemResolver` |
+| `Serilog` | 4.4.0 | Apache-2.0 | logging |
 
 ## Run the test suite
 
@@ -48,8 +50,8 @@ NuGet dependencies (both MIT):
 dotnet test RASharp.sln -c Release
 ```
 
-Expected result: **581 passed, 0 failed per TFM** (net8.0, net9.0,
-net10.0). The suite has three tiers — see [Testing](../development/testing.md)
+Expected result: **587 passed, 0 failed per TFM** (net8.0, net9.0,
+net10.0). The suite has multiple tiers — see [Testing](../development/testing.md)
 for details and how to filter them.
 
 ## Verify the build

@@ -58,18 +58,19 @@ dotnet publish RASharp.Cli -c Release -r linux-x64 -p:PublishSingleFile=true -o 
 ## What is inside the binary
 
 The single file bundles the .NET runtime, `RASharp` (engine),
-`RASharp.Cli`, `CHDSharp` and `VideoGameFileSystemParser`. There are no
-native libraries — trimming is intentionally disabled to keep the
+`RASharp.Cli`, `CHDSharp`, `RVZSharp` and `VideoGameFileSystemParser`. There
+are no native libraries — trimming is intentionally disabled to keep the
 reflection-free engine's behavior identical to the tested build.
 
 ## Packaging the library
 
 `RASharp` is packable (`IsPackable=true`) and carries complete NuGet
-metadata: `net8.0;net9.0;net10.0` assemblies, XML docs, the MIT license and
-third-party notices, a package icon, SourceLink (with symbols), repository
-metadata, and a `PackageReleaseNotes` link to CHANGELOG.md. Package
-validation (`EnablePackageValidation`) runs on every pack and fails the
-build if any public API change would break consumers.
+metadata: `net8.0;net9.0;net10.0` assemblies, XML docs on every public
+member (CS1591 is an error), the GPL-2.0-or-later license and third-party
+notices, a package icon, SourceLink (with symbols), repository metadata, and
+a `PackageReleaseNotes` link to CHANGELOG.md. Package validation
+(`EnablePackageValidation`) runs on every pack and fails the build if any
+public API change would break consumers.
 
 ```bash
 dotnet pack RASharp -c Release -o artifacts
@@ -105,8 +106,9 @@ Steps before the first push:
 4. Use an API key scoped to `RASharp`; never commit the key.
 
 The first release should be `1.0.0`: the engine behavior is pinned to
-rcheevos 12.4.0 and the verifiable surface (581 tests per TFM, parity
-corpus, real-ROM and published-hash spot checks) is stable. After that,
+rcheevos 12.4.0 and the verifiable surface (587 tests per TFM, parity
+corpus, RVZ-vs-ISO, real-ROM and published-hash spot checks) is stable.
+After that,
 follow <https://learn.microsoft.com/nuget/guides/api/package-versioning>
 for SemVer-compliant bumps (behavior changes to the *ported* engine are
 backwards-incompatible by design and warrant a major bump).

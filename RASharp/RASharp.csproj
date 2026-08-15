@@ -9,10 +9,12 @@
     <IsPackable>true</IsPackable>
     <PackageId>RASharp</PackageId>
     <Version>1.0.0</Version>
-    <Authors>Peterson Fernandes</Authors>
+    <Authors>Peterson Fernandes; Pure Logic Code</Authors>
+    <Owners>Peterson Fernandes; Pure Logic Code</Owners>
+    <Title>RASharp</Title>
     <Description>A native C# port of the RetroAchievements hashing engine (rcheevos/RAHasher, MIT) that produces 100% identical hashes to the original for every supported console. Supports cartridge, disc (.cue/.bin/.iso/.gdi/.chd/.rvz/.wia), zip, m3u, Arcade, DOS and 3DS inputs.</Description>
     <PackageTags>RetroAchievements;rcheevos;RAHasher;hash;hashing;rom;iso;disc;chd;rvz;wia;gamecube;wii;3ds;nes;snes;n64;playstation</PackageTags>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>GPL-2.0-or-later</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
@@ -21,6 +23,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryBranch>master</RepositoryBranch>
     <PackageReleaseNotes>https://github.com/purelogiccode/RASharp/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <Copyright>Copyright (c) 2026 Peterson Fernandes (drpetersonfernandes) and Pure Logic Code</Copyright>
 
     <!-- symbols, source link and reproducible packs -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -31,12 +34,16 @@
     <Deterministic>true</Deterministic>
 
     <!-- XML docs are packed (GenerateDocumentationFile); CS1591 (missing
-         doc comments) is suppressed so the build stays warnings-as-errors -->
+         doc comments) is an error via Directory.Build.props
+         (TreatWarningsAsErrors), so new public members must be documented -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
 
     <!-- guards consumer compatibility on every future pack build -->
     <EnablePackageValidation>true</EnablePackageValidation>
+    <Company>PureLogicCode.com</Company>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -51,7 +58,7 @@
     <None Include="..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\LICENSE" Pack="true" PackagePath="\" />
     <None Include="..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
-    <None Include="..\assets\icon.png" Pack="true" PackagePath="\" />
+    <None Include="icon\icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>

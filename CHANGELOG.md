@@ -24,18 +24,28 @@ For the port history and the evolution plan, see `ConversionPlan.md`.
   engine: cartridge (NES/FDS, SNES, N64, NDS/DSi, PCE, SCV, 7800, Lynx,
   Arduboy, Neo Geo `.neo`, Arcade), disc (PSX, PS2, PSP, Saturn, Sega CD,
   PCE-CD, PC-FX, 3DO, Jaguar CD, Neo Geo CD, Dreamcast, GameCube, Wii), CHD,
+  RVZ/WIA (GameCube/Wii, hashed live via RVZSharp — no rvz→iso conversion),
   zip (Arduboy FX, DOSZ/DOSC), m3u, and 3DS (CIA/NCCH/3DSX with
   `aes_keys.txt`/`seeddb.bin`).
 - CLI with byte-identical behavior to RAHasher 1.8.3, plus the `scan`,
   `consoles`, `checkkeys`, `identify`, and `fetch-db` subcommands.
+- NuGet package `RASharp` 1.0.0 (net8.0;net9.0;net10.0, GPL-2.0-or-later,
+  SourceLink, XML docs on every public member, symbols, package validation);
+  every public member of the library is documented (CS1591 is an error).
 - Test suite: all ported rcheevos vectors, synthetic 3DS fixtures, a parity
-  harness vs. source-built C oracles, and real-ROM parity — **581/581 green
-  on net8.0, net9.0, and net10.0**.
+  harness vs. source-built C oracles, RVZ-vs-ISO equality on real
+  GameCube/Wii discs, and real-ROM parity — **587/587 green on net8.0,
+  net9.0, and net10.0**.
 
 ### Fixed
 - Three real CLI parity bugs caught by the harness (arg-count guard crash,
   wildcard path construction, usage banner blank line), and the inherited
   12.2.1 `merge_callbacks` bug synced to 12.4.0.
+
+### Changed
+- License: the library links RVZSharp (GPL-2.0-or-later, Dolphin-derived),
+  so RASharp is distributed under GPL-2.0-or-later (the ported rcheevos
+  engine stays MIT and is credited in THIRD-PARTY-NOTICES.md).
 
 ---
 

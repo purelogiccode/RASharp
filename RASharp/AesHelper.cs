@@ -11,7 +11,10 @@ namespace RASharp;
 /// <summary>AesHelper — AES-128 primitives matching the call patterns of rcheevos' aes.c (MIT reference; BCL-backed). The engine uses 128-bit keys only (AES_KEYLEN == 16), </summary>
 public static class AesHelper
 {
+    /// <summary>The AES-128 key length in bytes.</summary>
     public const int KeyLen = 16;
+
+    /// <summary>The AES block length in bytes.</summary>
     public const int BlockLen = 16;
 
     /* AES_CBC_decrypt_buffer */

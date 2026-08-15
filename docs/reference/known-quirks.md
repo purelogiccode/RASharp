@@ -58,25 +58,30 @@ fallback (`LoadZippedFileToTemp` + `GenerateHashes`) that hashes the
 extracted temp file — same bytes, same hash. Verified against real 2 GiB
 3DS dumps in the real-ROM suite.
 
-### 10. Unsupported formats: RVZ, WUX/WUD — no fallback hashing
-rcheevos defines no reader for Dolphin's RVZ (compressed Wii/GameCube) or
-Cemu's WUX/WUD (Wii U), so RASharp has none either (by project policy, no
-net-new algorithms beyond rcheevos). What the binaries actually do:
+### 10. RVZ/WIA (supported) vs. WUX/WUD (unsupported)
+rcheevos defines no reader for Dolphin's RVZ, but RASharp adds one via
+RVZSharp (`RvzFilereader`, GPL-2.0-or-later): GameCube/Wii `.rvz`/`.wia`
+files are decoded on read and hashed exactly like the plain ISO — validated
+against DolphinTool conversions (6/6). The CLI selects the RVZ reader per
+file by extension (`?` auto-detect maps `.rvz` to GameCube + Wii). What the
+binaries actually do:
 
-- **Explicit console**: the format is never parsed. `RASharp 19 game.rvz`
-  reads the file as a raw Wii disc and fails the magic check
-  (`Not a supported Wii file`); `RASharp 20 game.wux` hits the console with
-  **no hasher at all** — id 20 (Wii U) exists in the console table but has
-  no `FromFile` case (`Unsupported console for file hash: 20`).
-- **`?` auto-detect**: an unknown extension falls through to the generic
-  whole-file MD5 fallback with a warning
-  (`No console mapping specified for rvz file extension - trying full file
+- **RVZ/WIA**: fully supported — `RASharp 16 game.rvz`, `RASharp 19 game.wia`,
+  or `RASharp ? game.rvz` hash the decoded disc image (same hash as the
+  converted ISO).
+- **WUX/WUD (Wii U)**: no reader exists in either engine. `RASharp 20 game.wux`
+  hits the console with **no hasher at all** — id 20 (Wii U) exists in the
+  console table but has no `FromFile` case
+  (`Unsupported console for file hash: 20`).
+- **`?` auto-detect for other unknown containers**: an unknown extension
+  falls through to the generic whole-file MD5 fallback with a warning
+  (`No console mapping specified for wux file extension - trying full file
   hash`). The result is the hash of the compressed container bytes, **not**
   a game hash — do not use it for identification.
 
-Both behaviors are byte-identical to the 1.8.3 oracle (verified). The
-practical route for such files is conversion (RVZ → ISO via Dolphin,
-WUX → raw image), then the existing `iso` handler applies.
+The WUX/WUD behavior is byte-identical to the 1.8.3 oracle (verified). The
+practical route for such files is conversion (WUX → raw image), then the
+existing `iso` handler applies.
 
 ## Intentional differences (documented, not bugs)
 

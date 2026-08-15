@@ -54,8 +54,10 @@ extra:
   generator: false
 
 copyright: >
-  MIT License — RASharp is a port of the MIT-licensed rcheevos engine.
-  RAHasher reference material is GPL-3.0 and is never shipped.
+  GPL-2.0-or-later — Copyright (c) 2026 Peterson Fernandes and Pure Logic
+  Code. The ported core is the MIT-licensed rcheevos engine (credited in
+  THIRD-PARTY-NOTICES.md). RAHasher reference material is GPL-3.0 and is
+  never shipped.
 
 nav:
   - Home: index.md

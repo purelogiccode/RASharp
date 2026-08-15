@@ -13,10 +13,16 @@ namespace RASharp;
 public static class HashEngine
 {
     /* arbitrary limit to prevent allocating and hashing large files */
+    /// <summary>The 64 MiB cap on whole-file and buffered hashes (same limit as the C engine's MAX_BUFFER_SIZE).</summary>
     public const long MaxBufferSize = 64 * 1024 * 1024;
 
+    /// <summary>Seek origin: from the start of the file (0).</summary>
     public const int SeekSet = 0;
+
+    /// <summary>Seek origin: from the current position (1).</summary>
     public const int SeekCur = 1;
+
+    /// <summary>Seek origin: from the end of the file (2).</summary>
     public const int SeekEnd = 2;
 
     /* ===================================================== */

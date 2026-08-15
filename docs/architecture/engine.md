@@ -11,8 +11,8 @@ There are two switches, mirroring `rc_hash_from_file` and
 
 - **File dispatch** (`GenerateFromFile` → `FromFile`) — the primary path used
   by the CLI. Handles `.m3u` playlists for the playlist-capable consoles,
-  `.zip` pre-loading (CLI level), `.chd` cdreader registration, and routes
-  every `RC_CONSOLE_*` to its handler.
+  `.zip` pre-loading and `.chd`/`.rvz` reader selection (CLI level), and
+  routes every `RC_CONSOLE_*` to its handler.
 - **Buffer dispatch** (`FromBuffer`) — used by the CLI zip pre-load path and
   by `RcHash.GenerateFromBuffer`. Whole-file consoles hash the buffer
   directly; algorithm consoles re-run their header detection on the buffer.
@@ -51,8 +51,9 @@ buffer, and the filereader/cdreader callbacks. `HashIterator` provides:
   one succeeds;
 - the **extension→console table** (`ExtHandlers`, mirror of the C's
   `rc_hash_ext_handlers` bsearch table) — e.g. `nes`→Nintendo, `neo`→Arcade,
-  `sms`→Master System, `cue`/`gdi`/`chd`→disc readers. Table order is
-  sorted for binary search, exactly like the C.
+  `sms`→Master System, `cue`/`gdi`/`chd`→disc readers, `rvz`→GameCube/Wii
+  (RVZSharp path). Table order is sorted for binary search, exactly like the
+  C.
 
 ## Callbacks
 
