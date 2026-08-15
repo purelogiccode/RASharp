@@ -15,8 +15,8 @@
   Windows** — see [Building the oracles](../development/oracles.md). Without
   one, the Tier-2 parity cases skip (the ported vectors still run).
 
-`RASharp.Core` is also available as a **NuGet package**
-(`dotnet add package RASharp.Core`) for use from any net8.0+ application —
+`RASharp` is also available as a **NuGet package**
+(`dotnet add package RASharp`) for use from any net8.0+ application —
 see [Packaging the library](publishing.md#packaging-the-library).
 
 ## Clone & build
@@ -31,8 +31,8 @@ The solution contains three projects:
 
 | Project | Kind | Purpose |
 |---|---|---|
-| `RASharp.Core` | class library | the hashing engine (public API mirror of `include/rc_hash.h`) |
-| `RASharp.Cli` | console app | the RAHasher-compatible command line (`RASharp.exe`) |
+| `RASharp` | class library | the hashing engine (public API mirror of `include/rc_hash.h`) |
+| `RASharp.Cli` | console app | the RAHasher-compatible command line (`RASharp.Cli.exe`) |
 | `RASharp.Tests` | xUnit | ported rcheevos vectors + the Tier-2 parity harness |
 
 NuGet dependencies (both MIT):
@@ -55,14 +55,14 @@ for details and how to filter them.
 ## Verify the build
 
 ```bash
-RASharp.Cli/bin/Release/net10.0/RASharp.exe GB <any-file>
+RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe GB <any-file>
 ```
 
 prints the 32-character MD5 of the file (the same hash RAHasher 1.8.3
 prints). No-args prints the console table and usage:
 
 ```bash
-RASharp.Cli/bin/Release/net10.0/RASharp.exe
+RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe
 ```
 
 ## Troubleshooting
@@ -72,4 +72,4 @@ RASharp.Cli/bin/Release/net10.0/RASharp.exe
 | `error NETSDK1005: Assets file ... not found` | run `dotnet restore` once |
 | parity tests report `SKIPPED` | no usable oracle found on a Windows host — build one (see [oracles](../development/oracles.md)) or set `RASHARP_ORACLE` |
 | build fails on a warning | `TreatWarningsAsErrors` is on by design; fix the warning rather than suppressing it |
-| `RASharp.exe` not found under `bin/Release/net10.0-windows` | the projects target portable `net8.0;net9.0;net10.0` — look under `bin/Release/<tfm>/` (any of the three works) |
+| `RASharp.Cli.exe` not found under `bin/Release/net10.0-windows` | the projects target portable `net8.0;net9.0;net10.0` — look under `bin/Release/<tfm>/` (any of the three works) |

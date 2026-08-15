@@ -3,7 +3,7 @@
 // indirectly by the cue/gdi parsing tests but are pure functions with
 // their own edge cases.
 
-using RASharp.Core;
+using RASharp;
 
 namespace RASharp.Tests;
 

@@ -1,7 +1,7 @@
 // Ported from rcheevos (MIT) — include/rc_hash.h
 // struct rc_hash_callbacks_t — the callback bag attached to every iterator.
 
-namespace RASharp.Core.Models;
+namespace RASharp.Models;
 
 /* struct rc_hash_callbacks_t */
 /// <summary>struct rc_hash_callbacks_t</summary>

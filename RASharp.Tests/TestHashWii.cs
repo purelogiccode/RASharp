@@ -14,8 +14,8 @@
 // hashed a second time — exactly what a real disc avoids).
 
 using System.Security.Cryptography;
-using RASharp.Core;
-using RASharp.Core.Models;
+using RASharp;
+using RASharp.Models;
 
 namespace RASharp.Tests;
 

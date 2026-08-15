@@ -32,7 +32,7 @@ graph TD
 
 ## Module map (C# ↔ C)
 
-| C# file (`RASharp.Core/`) | C source (rcheevos) | Role |
+| C# file (`RASharp/`) | C source (rcheevos) | Role |
 |---|---|---|
 | `RcHash.cs` | `include/rc_hash.h` | public facade: `GenerateFromFile` / `GenerateFromBuffer` + init callbacks |
 | `ConsoleIds.cs` | `include/rc_consoles.h` + `rc_hash.h` | `RC_CONSOLE_*` constants, `RC_HASH_CDTRACK_*`, `RC_CONSOLE_MAX` |

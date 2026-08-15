@@ -9,7 +9,7 @@ license and provenance.
 
 | Component | Version/Pin | License | Provenance / Use |
 |---|---|---|---|
-| rcheevos (rc_hash engine) | commit `40d916de00fe757bab40fb4db41a7912193a48e3` | MIT — Copyright (c) 2018 RetroAchievements.org | Ported 1:1 into `RASharp.Core` (see `src/rhash/*.c`); test vectors under `test/rhash/` ported into `RASharp.Tests` |
+| rcheevos (rc_hash engine) | commit `40d916de00fe757bab40fb4db41a7912193a48e3` | MIT — Copyright (c) 2018 RetroAchievements.org | Ported 1:1 into `RASharp` (see `src/rhash/*.c`); test vectors under `test/rhash/` ported into `RASharp.Tests` |
 | CHDSharp | 1.2.0 (NuGet) | MIT — Copyright (c) 2026 Peterson Fernandes | CHD V1–V5 reading in `ChdCdReader` |
 | VideoGameFileSystemParser | 1.2.0 (NuGet) | MIT (per package metadata; see note below) | Optional ISO9660/UDF filesystem backend (`FileSystemResolver`) |
 

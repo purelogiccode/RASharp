@@ -3,9 +3,9 @@
 // handler table. The table entries and their order are copied verbatim;
 // the RcHashIterator / ExtHandlerEntry models live in Models/.
 
-using RASharp.Core.Models;
+using RASharp.Models;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>Ported from rcheevos (MIT) — src/rhash/hash.c The '?' auto-detect iterator API (rc_hash_iterate) and the extension- handler table. The table entries and their o</summary>
 public static class HashIterator

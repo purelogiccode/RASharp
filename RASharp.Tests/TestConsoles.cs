@@ -122,7 +122,7 @@ public class TestConsoles
     {
         if (!OperatingSystem.IsWindows())
         {
-            return; /* the parity harness locates RASharp.exe (Windows apphost) */
+            return; /* the parity harness locates RASharp.Cli.exe (Windows apphost) */
         }
 
         var result = ParityHarness.Run(ParityHarness.CliPath, ["consoles"], Directory.GetCurrentDirectory());

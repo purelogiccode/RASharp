@@ -1,7 +1,7 @@
 // Ported from rcheevos (MIT) — include/rc_consoles.h + include/rc_hash.h
 // Console identifier constants, values copied verbatim.
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>Ported from rcheevos (MIT) — include/rc_consoles.h + include/rc_hash.h Console identifier constants, values copied verbatim.</summary>
 public static class ConsoleIds

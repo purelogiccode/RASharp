@@ -3,7 +3,7 @@
 // real file system (temp directory) — no mock filereader involved.
 
 using System.IO.Compression;
-using RASharp.Core;
+using RASharp;
 
 namespace RASharp.Tests;
 

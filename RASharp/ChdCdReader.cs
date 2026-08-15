@@ -8,9 +8,9 @@
 using System.Text;
 using CHDSharp;
 using CHDSharp.Models;
-using RASharp.Core.Models;
+using RASharp.Models;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>ChdCdReader — CD/GD-ROM reader over CHDSharp. Behavior parity with RALibretro RAHasher's HashCHD.cpp (GPL, used as reference only — this is a new implementation</summary>
 public static class ChdCdReader

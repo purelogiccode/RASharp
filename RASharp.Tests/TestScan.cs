@@ -7,7 +7,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
 using RASharp.Cli;
-using RASharp.Core;
+using RASharp;
 using RASharp.Tests.Parity;
 
 namespace RASharp.Tests;
@@ -287,14 +287,14 @@ public class TestScan : IDisposable
 
     /* end-to-end: the Program.Run dispatch must route "scan" to the
      * subcommand when the real CLI binary is invoked (the parity harness
-     * runs the freshly built RASharp.exe) */
+     * runs the freshly built RASharp.Cli.exe) */
     /// <summary>Tests that the real CLI binary dispatches the scan subcommand.</summary>
     [Fact]
     public void ScanDispatchThroughCliExe()
     {
         if (!OperatingSystem.IsWindows())
         {
-            return; /* the parity harness locates RASharp.exe (Windows apphost) */
+            return; /* the parity harness locates RASharp.Cli.exe (Windows apphost) */
         }
 
         var gb = TestDataGen.GenerateGenericFile(131072);

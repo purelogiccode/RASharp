@@ -1,6 +1,6 @@
 // Real-ROM parity tests: the first 50 files of each local console library
 // (G:\Sega Genesis, G:\Nintendo 64, ...) are hashed by both the reference
-// RAHasher 1.8.3 oracle and the built RASharp.exe with identical
+// RAHasher 1.8.3 oracle and the built RASharp.Cli.exe with identical
 // arguments; stdout, stderr, and exit code must match byte-for-byte.
 //
 // These tests are environment-dependent: they skip (with a note) when the

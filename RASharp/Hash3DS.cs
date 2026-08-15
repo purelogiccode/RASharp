@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using Serilog;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>Hash3DS — 3DS key retrieval for the encryption callbacks. Behavior parity with RALibretro RAHasher's Hash3DS.cpp (GPL, used as reference only — this is a new im</summary>
 public static class Hash3Ds

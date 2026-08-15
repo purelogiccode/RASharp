@@ -5,9 +5,9 @@
 // "improve" behavior — parity is the requirement.
 
 using System.Text;
-using RASharp.Core.Models;
+using RASharp.Models;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>Ported from rcheevos (MIT) — src/rhash/cdreader.c Default CD reader: .cue/.gdi/.bin track opening, sector-size heuristics, and the track -&gt; sector read logic (r</summary>
 public static class CdReader

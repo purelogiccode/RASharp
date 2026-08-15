@@ -6,7 +6,7 @@
 
 using System.Security.Cryptography;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>AesHelper — AES-128 primitives matching the call patterns of rcheevos' aes.c (MIT reference; BCL-backed). The engine uses 128-bit keys only (AES_KEYLEN == 16), </summary>
 public static class AesHelper

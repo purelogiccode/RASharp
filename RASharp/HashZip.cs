@@ -6,9 +6,9 @@
 // rc_hash_ms_dos (DOSZ/DOSC/parent).
 
 using System.Text;
-using RASharp.Core.Models;
+using RASharp.Models;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>HashZip — port of rcheevos hash_zip.c (MIT). Byte-level ZIP parsing (no System.IO.Compression) to reproduce the exact hash semantics: EOCD scan, Zip64 handling,</summary>
 public static class HashZip

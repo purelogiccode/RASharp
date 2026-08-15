@@ -4,8 +4,8 @@
 // embedded in the upstream test file.
 
 using System.Text;
-using RASharp.Core;
-using RASharp.Core.Models;
+using RASharp;
+using RASharp.Models;
 
 namespace RASharp.Tests;
 

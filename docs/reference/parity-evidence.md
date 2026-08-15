@@ -40,7 +40,7 @@ to reproduce it.
 
 The Tier-2 suite is not decorative — it found real port bugs in Part I:
 
-1. **Arg-count guard off-by-one** — `RASharp.exe 4` crashed with an
+1. **Arg-count guard off-by-one** — `RASharp.Cli.exe 4` crashed with an
    unhandled exception instead of printing usage (fixed).
 2. **Wildcard path construction** diverged from `FindFirstFile`/`util::directory`
    semantics (fixed, incl. the `dir/*.bin` quirk reproduction).

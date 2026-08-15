@@ -2,7 +2,7 @@
 // rc_hash_iterator_t — the iterator state carried through hashing
 // (path or buffer, callback bags, and the console list for '?' iterate).
 
-namespace RASharp.Core.Models;
+namespace RASharp.Models;
 
 /* struct rc_hash_iterator_t */
 /// <summary>struct rc_hash_iterator_t</summary>

@@ -4,7 +4,7 @@
 
 using System.Security.Cryptography;
 using System.Text;
-using RASharp.Core;
+using RASharp;
 
 namespace RASharp.Tests;
 

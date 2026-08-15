@@ -1,8 +1,8 @@
 // Ported from rcheevos (MIT) — test/rhash/test_cdreader.c
 // Cue/gdi track-open semantics, sector-size determination, and read_sector.
 
-using RASharp.Core;
-using RASharp.Core.Models;
+using RASharp;
+using RASharp.Models;
 
 namespace RASharp.Tests;
 

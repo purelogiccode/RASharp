@@ -13,7 +13,7 @@
 using VideoGameFileSystemParser.Models;
 using VideoGameFileSystemParser.Parsers;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>Adapter over VideoGameFileSystemParser (NuGet 1.2.0) — the alternative filesystem backend to the engine's ISO9660 mini-parser (HashDisc.CdFindFileSector). Resol</summary>
 public sealed class FileSystemResolver : IDisposable

@@ -3,7 +3,7 @@
 // a null delegate means "handler not registered", exactly like a NULL
 // function pointer in C.
 
-namespace RASharp.Core.Models;
+namespace RASharp.Models;
 
 /* struct rc_hash_cdreader_t */
 /// <summary>struct rc_hash_cdreader_t</summary>

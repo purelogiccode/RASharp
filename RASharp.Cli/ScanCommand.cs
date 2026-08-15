@@ -16,8 +16,8 @@
 
 using System.Globalization;
 using System.Text.Json;
-using RASharp.Core;
-using RASharp.Core.Models;
+using RASharp;
+using RASharp.Models;
 using Serilog;
 
 namespace RASharp.Cli;

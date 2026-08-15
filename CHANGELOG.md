@@ -8,7 +8,7 @@ For the port history and the evolution plan, see `ConversionPlan.md`.
 ## [Unreleased]
 
 ### Added
-- NuGet packaging for `RASharp.Core` (net8.0;net9.0;net10.0, SourceLink, XML
+- NuGet packaging for `RASharp` (net8.0;net9.0;net10.0, SourceLink, XML
   docs, symbols, package validation), package icon, and CHANGELOG.md.
 
 ### Changed

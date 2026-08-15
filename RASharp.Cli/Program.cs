@@ -3,8 +3,8 @@
 // factual data (see Consoles.cs); everything else is written fresh to match
 // the observable CLI behavior.
 
-using RASharp.Core;
-using RASharp.Core.Models;
+using RASharp;
+using RASharp.Models;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;

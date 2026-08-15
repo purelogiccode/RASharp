@@ -5,8 +5,8 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using RASharp.Core;
-using RASharp.Core.Models;
+using RASharp;
+using RASharp.Models;
 
 namespace RASharp.Tests;
 

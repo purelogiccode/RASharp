@@ -4,9 +4,9 @@
 // Hash3DS, mirroring RAHasher's Hash3DS.cpp).
 
 using System.Text;
-using RASharp.Core.Models;
+using RASharp.Models;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>HashEncrypted — port of rcheevos hash_encrypted.c (MIT). rc_hash_nintendo_3ds: NCSD/NCCH/CIA/3DSX/ELF detection + hashing, with the 3DS key material supplied th</summary>
 public static class HashEncrypted

@@ -82,7 +82,7 @@ ad-hoc external corpus — point `RASHARP_ORACLE` at a C-built binary and run
 both CLIs over any file:
 
 ```bash
-RAHasher.exe PS1 game.cue   vs.   RASharp.exe PS1 game.cue
+RAHasher.exe PS1 game.cue   vs.   RASharp.Cli.exe PS1 game.cue
 ```
 
 ## Filters

@@ -5,9 +5,9 @@
 // "improve" behavior — parity is the requirement.
 
 using System.Text;
-using RASharp.Core.Models;
+using RASharp.Models;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>Ported from rcheevos (MIT) — src/rhash/hash.c Engine internals: message callbacks, filereader plumbing, whole-file / buffered-file / playlist hashing, and the c</summary>
 public static class HashEngine

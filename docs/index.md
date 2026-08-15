@@ -13,14 +13,14 @@ rcheevos 12.2.1) and since evolved to rcheevos 12.4.0.
 
 ## Highlights
 
-- **100 % parity, proven** — a Tier-2 harness runs `RASharp.exe` and the
+- **100 % parity, proven** — a Tier-2 harness runs `RASharp.Cli.exe` and the
   original C binaries with identical arguments and requires byte-identical
   stdout/stderr and equal exit codes: **90/90 corpus cases green** against
   the rcheevos 12.4.0-built oracle; **581/581 tests green on each of
   net8.0, net9.0, net10.0** (Debug + Release).
 - **81 consoles** in the CLI table — cartridge, disc, encrypted (3DS), CHD,
   zip-based (Arduboy FX, DOSZ/DOSC) and `.neo` Neo Geo cart formats.
-- **Cross-platform** — `RASharp.Core` is a NuGet library targeting
+- **Cross-platform** — `RASharp` is a NuGet library targeting
   `net8.0;net9.0;net10.0`; the CLI publishes self-contained single-file
   executables for Windows x64/arm64 and Linux x64/arm64.
 - **Honest engineering** — the port reproduces the original's quirks
@@ -37,9 +37,9 @@ rcheevos 12.2.1) and since evolved to rcheevos 12.4.0.
 dotnet build RASharp.sln -c Release
 dotnet test  RASharp.sln -c Release
 
-RASharp.Cli/bin/Release/net10.0/RASharp.exe NES game.nes
-RASharp.Cli/bin/Release/net10.0/RASharp.exe PS1 disc.cue
-RASharp.Cli/bin/Release/net10.0/RASharp.exe '?' unknown.bin
+RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe NES game.nes
+RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe PS1 disc.cue
+RASharp.Cli/bin/Release/net10.0/RASharp.Cli.exe '?' unknown.bin
 ```
 
 ## Project status
@@ -71,7 +71,7 @@ RASharp.sln                 solution (Core + Cli + Tests)
 Directory.Build.props       net8.0/9.0/10.0 multi-targeting, nullable, warnings-as-errors
 mkdocs.yml                  this documentation site
 docs/                       these pages
-RASharp.Core/               the hashing engine (class library)
+RASharp/               the hashing engine (class library)
 RASharp.Cli/                the RAHasher-compatible command line
 RASharp.Tests/              ported rcheevos vectors + the Tier-2 parity harness
 References/                 read-only reference material (never shipped):

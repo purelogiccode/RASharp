@@ -18,7 +18,7 @@
 
 using System.Globalization;
 using System.Text.Json;
-using RASharp.Core;
+using RASharp;
 
 namespace RASharp.Cli;
 

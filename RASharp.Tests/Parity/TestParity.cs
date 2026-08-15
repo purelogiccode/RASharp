@@ -1,6 +1,6 @@
 // Phase 8 — Tier-2 parity tests.
 //
-// For every case in the generated corpus, both executables (RASharp.exe and
+// For every case in the generated corpus, both executables (RASharp.Cli.exe and
 // the reference RAHasher 1.8.3 oracle) run with identical arguments and must
 // produce byte-identical stdout/stderr and the same exit code. Cases that
 // carry an ExpectedHash additionally pin the output to the hash recorded by
@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 
 namespace RASharp.Tests.Parity;
 
-/// <summary>Phase 8 — Tier-2 parity tests. For every case in the generated corpus, both executables (RASharp.exe and the reference RAHasher 1.8.3 oracle) run with identical</summary>
+/// <summary>Phase 8 — Tier-2 parity tests. For every case in the generated corpus, both executables (RASharp.Cli.exe and the reference RAHasher 1.8.3 oracle) run with identical</summary>
 public sealed record ParityCase(
     string Label,
     string[] Flags, // CLI flags before the console token; "{SYSTEM}" is replaced with the 3DS system dir
@@ -26,10 +26,10 @@ public sealed record ParityCase(
     string[] Files, // paths relative to the working dir (wildcards allowed)
     string? ExpectedHash, // expected stdout for a plain single-file success (trimmed)
     bool ExpectSuccess, // require exit code 0
-    bool NormalizeNames = false, // replace "RAHasher" with "RASharp" before comparing (usage output embeds the exe name)
+    bool NormalizeNames = false, // replace "RAHasher"/"RASharp.Cli" with "RASharp" before comparing (usage output embeds the exe name)
     string? WorkingDir = null); // default: corpus root
 
-/// <summary>Phase 8 — Tier-2 parity tests. For every case in the generated corpus, both executables (RASharp.exe and the reference RAHasher 1.8.3 oracle) run with identical</summary>
+/// <summary>Phase 8 — Tier-2 parity tests. For every case in the generated corpus, both executables (RASharp.Cli.exe and the reference RAHasher 1.8.3 oracle) run with identical</summary>
 public class TestParity
 {
     private readonly ITestOutputHelper _output;
@@ -98,6 +98,8 @@ public class TestParity
         {
             oracleOut = oracleOut.Replace("RAHasher", "RASharp");
             oracleErr = oracleErr.Replace("RAHasher", "RASharp");
+            cliOut = cliOut.Replace("RASharp.Cli", "RASharp");
+            cliErr = cliErr.Replace("RASharp.Cli", "RASharp");
         }
 
         Assert.True(oracle.ExitCode == cli.ExitCode,

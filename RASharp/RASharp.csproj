@@ -7,7 +7,7 @@
 
     <!-- NuGet package metadata -->
     <IsPackable>true</IsPackable>
-    <PackageId>RASharp.Core</PackageId>
+    <PackageId>RASharp</PackageId>
     <Version>1.0.0</Version>
     <Authors>Peterson Fernandes</Authors>
     <Description>A native C# port of the RetroAchievements hashing engine (rcheevos/RAHasher, MIT) that produces 100% identical hashes to the original for every supported console. Supports cartridge, disc (.cue/.bin/.iso/.gdi/.chd), zip, m3u, Arcade, DOS and 3DS inputs.</Description>

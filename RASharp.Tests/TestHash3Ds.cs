@@ -10,7 +10,7 @@
 //   unaligned.ncch     3e2d3dfe1808dd0498ecf6c77e36ea46  (padding/partial-block branch)
 //   homebrew.3dsx      ca7161a502db8be8089d16a8b2280970
 
-using RASharp.Core;
+using RASharp;
 
 namespace RASharp.Tests;
 

@@ -3,8 +3,8 @@
 // test resets them in a finally block; the mock filereader keeps the
 // hashing paths hermetic.
 
-using RASharp.Core;
-using RASharp.Core.Models;
+using RASharp;
+using RASharp.Models;
 
 namespace RASharp.Tests;
 

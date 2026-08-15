@@ -31,7 +31,7 @@ upstream rcheevos copyright notice in `THIRD-PARTY-NOTICES.md`.
 
 ## Usage in your own projects
 
-You can link `RASharp.Core` under MIT terms, exactly as you would any other
+You can link `RASharp` under MIT terms, exactly as you would any other
 MIT library. If you ship binaries, keep `THIRD-PARTY-NOTICES.md` alongside
 them.
 

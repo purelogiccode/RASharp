@@ -7,7 +7,7 @@
 using System.IO.Compression;
 using Serilog;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>New implementation, behavior parity with RALibretro RAHasher (GPL-3.0, used as reference only) — the used subset of src/Util.cpp. C# provides unicode-safe file </summary>
 public static class FileUtil

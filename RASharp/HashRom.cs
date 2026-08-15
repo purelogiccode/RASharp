@@ -4,9 +4,9 @@
 // arm7/icon blocks), PCE, SCV, SNES. Translated 1:1.
 
 using System.Text;
-using RASharp.Core.Models;
+using RASharp.Models;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>Ported from rcheevos (MIT) — src/rhash/hash_rom.c Cartridge hash algorithms: 7800, Arcade, Arduboy (Intel HEX text hash), Lynx, NES/FDS, N64 (byteswap variants)</summary>
 public static class HashRom

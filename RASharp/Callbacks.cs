@@ -4,9 +4,9 @@
 // semantics: a null delegate means "handler not registered", exactly like a
 // NULL function pointer in C.
 
-using RASharp.Core.Models;
+using RASharp.Models;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /* new-style message callback: (message, iterator) */
 /// <summary>new-style message callback: (message, iterator)</summary>

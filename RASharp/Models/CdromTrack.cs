@@ -1,7 +1,7 @@
 // Ported from rcheevos (MIT) — src/rhash/cdreader.c
 // struct rc_hash_cdrom_track_t — the track state for the default CD reader.
 
-namespace RASharp.Core.Models;
+namespace RASharp.Models;
 
 /* struct rc_hash_cdrom_track_t */
 /// <summary>struct rc_hash_cdrom_track_t</summary>

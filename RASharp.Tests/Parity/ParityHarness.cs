@@ -186,13 +186,13 @@ public static class ParityHarness
         {
             foreach (var tfm in tfms)
             {
-                var path = Path.Combine(RepoRoot, "RASharp.Cli", "bin", config, tfm, "RASharp.exe");
+                var path = Path.Combine(RepoRoot, "RASharp.Cli", "bin", config, tfm, "RASharp.Cli.exe");
                 if (File.Exists(path))
                     return path;
             }
         }
 
         throw new FileNotFoundException(
-            "RASharp.exe not found — build the solution first (dotnet build RASharp.sln) or set RASHARP_CLI.");
+            "RASharp.Cli.exe not found — build the solution first (dotnet build RASharp.sln) or set RASHARP_CLI.");
     }
 }

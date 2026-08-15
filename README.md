@@ -1,6 +1,6 @@
 # RASharp
 
-[![NuGet](https://img.shields.io/nuget/v/RASharp.Core)](https://www.nuget.org/packages/RASharp.Core)
+[![NuGet](https://img.shields.io/nuget/v/RASharp)](https://www.nuget.org/packages/RASharp)
 [![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%209.0%20%7C%2010.0-512BD4)](https://dotnet.microsoft.com/download)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Repo](https://img.shields.io/badge/github-purelogiccode%2FRASharp-181717?logo=github)](https://github.com/purelogiccode/RASharp)
@@ -11,9 +11,9 @@ for every supported console — the same hashes the
 [RetroAchievements](https://retroachievements.org) website and its clients
 use to identify ROMs and disc images.
 
-- **Library** — `RASharp.Core` ([NuGet](https://www.nuget.org/packages/RASharp.Core)),
+- **Library** — `RASharp` ([NuGet](https://www.nuget.org/packages/RASharp)),
   targets `net8.0`, `net9.0`, and `net10.0`; MIT licensed.
-- **CLI** — `RASharp.exe`, byte-identical in behavior to `RAHasher 1.8.3`,
+- **CLI** — `RASharp.Cli.exe`, byte-identical in behavior to `RAHasher 1.8.3`,
   plus convenience subcommands (`scan`, `identify`, `consoles`, `checkkeys`,
   `fetch-db`).
 - **Verified** — 581/581 tests on **each** supported TFM, including a parity
@@ -23,7 +23,7 @@ use to identify ROMs and disc images.
 ## Installation
 
 ```
-dotnet add package RASharp.Core
+dotnet add package RASharp
 ```
 
 Works with the .NET 8, 9, and 10 SDKs/runtimes on Windows, Linux, macOS,
@@ -32,7 +32,7 @@ x64 and arm64.
 ## Quick start
 
 ```csharp
-using RASharp.Core;
+using RASharp;
 
 // Hash a ROM exactly the way RetroAchievements does (20+ consoles; whole-file,
 // cartridge, disc, zip, and 3DS algorithms are included):
@@ -156,16 +156,16 @@ dotnet publish RASharp.Cli -c Release -r win-x64    --self-contained true -p:Pub
 dotnet publish RASharp.Cli -c Release -r linux-x64  --self-contained true -p:PublishSingleFile=true -o artifacts/linux-x64
 ```
 
-Produces `RASharp.exe` (Windows) / `RASharp` (Linux) in `artifacts\<rid>\`.
+Produces `RASharp.Cli.exe` (Windows) / `RASharp` (Linux) in `artifacts\<rid>\`.
 (The parity suite's oracle is a Windows PE, so Tier-2 parity runs on Windows;
 on Linux the parity cases skip and the ported vectors still run.)
 
 ## Packaging the NuGet library
 
 ```sh
-dotnet pack RASharp.Core -c Release
-# publishes RASharp.Core.1.0.0.nupkg + .snupkg (default: bin/Release); make artifacts/:
-dotnet pack RASharp.Core -c Release -o artifacts
+dotnet pack RASharp -c Release
+# publishes RASharp.1.0.0.nupkg + .snupkg (default: bin/Release); make artifacts/:
+dotnet pack RASharp -c Release -o artifacts
 ```
 
 The package includes the net8/9/10 assemblies, XML docs, the MIT license
@@ -173,7 +173,7 @@ and third-party notices, SourceLink/symbols, and runs NuGet package
 validation on every pack. Publishing to NuGet.org:
 
 ```bash
-dotnet nuget push artifacts/RASharp.Core.1.0.0.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
+dotnet nuget push artifacts/RASharp.1.0.0.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
 ```
 
 See [publishing.md](docs/getting-started/publishing.md) for details.
@@ -207,7 +207,7 @@ unsupported-format behavior (ROM encoding not part of rcheevos).
 ## Parity evidence
 
 Current: **581/581 green on net8.0, net9.0, net10.0** — byte-identical
-CLI output between `RASharp.exe` and the C oracles, including verbose mode,
+CLI output between `RASharp.Cli.exe` and the C oracles, including verbose mode,
 error paths, and exit codes; real-ROM parity 61/61; published-hash
 spot-check 15/15 library/console pairs. The harness has caught and fixed
 real port bugs (arg-count guard crash, wildcard path construction, usage

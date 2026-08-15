@@ -4,7 +4,7 @@
 
 using System.Security.Cryptography;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>Ported from rcheevos (MIT) — src/rhash/md5.c (md5_init/append/final semantics) Implementation uses the BCL MD5 provider; the wrapper exists so the engine can be</summary>
 public sealed class HashMd5

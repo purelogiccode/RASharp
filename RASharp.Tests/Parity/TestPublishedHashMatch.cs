@@ -1,5 +1,5 @@
 // Tier-3 real-world spot check (Phase E5): hash a sample of each local
-// cartridge library with RASharp.exe, look the hashes up in a snapshot of
+// cartridge library with RASharp.Cli.exe, look the hashes up in a snapshot of
 // the official RetroAchievements game database (ID/Title/ConsoleID/Hashes —
 // the schema emitted by the RetroAchievements.DataFetcher tool), and assert
 // that every library produces at least one official-hash match.
@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace RASharp.Tests.Parity;
 
-/// <summary>Tier-3 real-world spot check (Phase E5): hash a real sample of each local cartridge library with RASharp.exe, look the hash up in the official RetroAchievements game database snapshot, and assert official-hash matches per library. Skips when the snapshot or libraries are absent.</summary>
+/// <summary>Tier-3 real-world spot check (Phase E5): hash a real sample of each local cartridge library with RASharp.Cli.exe, look the hash up in the official RetroAchievements game database snapshot, and assert official-hash matches per library. Skips when the snapshot or libraries are absent.</summary>
 public class TestPublishedHashMatch
 {
     private readonly ITestOutputHelper _output;
@@ -57,7 +57,7 @@ public class TestPublishedHashMatch
         yield return [51u, "Atari 7800", @"G:\Atari 7800", 50];
     }
 
-    /// <summary>Hashes a real sample with RASharp.exe and requires at least one hash to match the published RetroAchievements database.</summary>
+    /// <summary>Hashes a real sample with RASharp.Cli.exe and requires at least one hash to match the published RetroAchievements database.</summary>
     /// <param name="consoleId">the console identifier</param>
     /// <param name="consoleName">the console display name</param>
     /// <param name="libraryPath">the library path</param>

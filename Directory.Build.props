@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <!-- Each project declares its own TargetFrameworks: RASharp.Core,
+    <!-- Each project declares its own TargetFrameworks: RASharp,
          RASharp.Cli and RASharp.Tests all multi-target net8.0;net9.0;net10.0.
          CHDSharp and VideoGameFileSystemParser 1.2.0 ship portable libs for
          all three, and Serilog 4.4.0 covers net8.0+, so the same code builds

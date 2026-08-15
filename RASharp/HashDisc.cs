@@ -7,9 +7,9 @@
 // PS2/PSP entry points land in Phase 4.
 
 using System.Text;
-using RASharp.Core.Models;
+using RASharp.Models;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>Ported from rcheevos (MIT) — src/rhash/hash_disc.c Disc-based hashing: PSX, Saturn, Sega CD, PCE-CD, PC-FX, 3DO, Jaguar CD, Neo Geo CD, Dreamcast, GameCube, Wii</summary>
 public static class HashDisc

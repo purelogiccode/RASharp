@@ -3,8 +3,8 @@
 // order test. test_hash_file_without_ext is deferred to Phase 2 (needs NES).
 
 using System.Text;
-using RASharp.Core;
-using RASharp.Core.Models;
+using RASharp;
+using RASharp.Models;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 

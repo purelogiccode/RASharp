@@ -8,7 +8,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.Json;
 using RASharp.Cli;
-using RASharp.Core;
+using RASharp;
 
 namespace RASharp.Tests;
 

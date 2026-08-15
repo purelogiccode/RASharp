@@ -7,7 +7,7 @@ domain dictionary or the member name."""
 import os
 import re
 
-ROOTS = ['RASharp.Core', 'RASharp.Cli', 'RASharp.Tests']
+ROOTS = ['RASharp', 'RASharp.Cli', 'RASharp.Tests']
 
 # files where private methods are part of the documented surface (CLI entry/flow)
 DOC_PRIVATE = {'RASharp.Cli/Program.cs'}

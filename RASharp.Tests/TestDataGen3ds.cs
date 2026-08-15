@@ -6,7 +6,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
-using RASharp.Core;
+using RASharp;
 
 namespace RASharp.Tests;
 

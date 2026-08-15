@@ -7,8 +7,8 @@
 //   multi.chd — 3 tracks (AUDIO 300 + MODE2/2352 271 + AUDIO 200)
 
 using CHDSharp;
-using RASharp.Core;
-using RASharp.Core.Models;
+using RASharp;
+using RASharp.Models;
 using VideoGameFileSystemParser.Models;
 
 namespace RASharp.Tests;

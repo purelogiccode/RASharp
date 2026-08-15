@@ -2,10 +2,10 @@
 // Public API mirror. Deprecated single-shot functions plus the global init
 // functions; the iterator-based API lives on HashIterator.
 
-using RASharp.Core.Models;
+using RASharp.Models;
 using Serilog;
 
-namespace RASharp.Core;
+namespace RASharp;
 
 /// <summary>Ported from rcheevos (MIT) — include/rc_hash.h Public API mirror. Deprecated single-shot functions plus the global init functions; the iterator-based API lives </summary>
 public static class RcHash

@@ -3,7 +3,7 @@
 // and by the N64/Jaguar-CD disc paths, but the pure functions deserve
 // their own vectors.
 
-using RASharp.Core;
+using RASharp;
 
 namespace RASharp.Tests;
 

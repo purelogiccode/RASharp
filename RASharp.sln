@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RASharp.Core", "RASharp.Core\RASharp.Core.csproj", "{529574C6-4129-4AFA-A436-10E4C24801AC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RASharp", "RASharp\RASharp.csproj", "{529574C6-4129-4AFA-A436-10E4C24801AC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RASharp.Cli", "RASharp.Cli\RASharp.Cli.csproj", "{FE6169AC-0352-48A5-ADF6-77FB4283C5C0}"
 EndProject
