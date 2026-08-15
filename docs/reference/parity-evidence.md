@@ -8,13 +8,14 @@ to reproduce it.
 
 | Metric | Value |
 |---|---|
-| Full test suite | **587/587 green** (Debug and Release) |
+| Fast suite (`RASharp.Tests`, in the solution) | **415/415 green** (Debug and Release) |
+| Slow suite (`RASharp.Slow.Tests`, run manually) | **172/172 green** |
 | Tier-2 parity cases | **90/90 byte-identical** vs the rcheevos **12.4.0**-built oracle |
 | RVZ-vs-ISO cases | **6/6** — real GameCube/Wii RVZ images hashed live via RVZSharp equal the DolphinTool-converted ISO hashes |
 | Real-ROM parity cases | **61/61 byte-identical** vs the pinned **1.8.3** binary (user libraries, incl. 3DS with user keys) |
 | Tier-1 ported vectors | all upstream `test/rhash` vectors green |
 | CLI output | byte-identical (stdout + stderr + exit codes), including verbose mode and error paths |
-| Platforms | `net8.0;net9.0;net10.0` (587/587 green on each); CLI publishes win-x64/arm64 + linux-x64/arm64 |
+| Platforms | `net8.0;net9.0;net10.0` (415/415 + 172/172 green on each); CLI publishes win-x64/arm64 + linux-x64/arm64 |
 
 ## The tiers
 
@@ -112,15 +113,18 @@ Notes:
 ## Reproduce
 
 ```bash
-# build + full suite (Debug and Release)
+# fast suite (in the solution; Debug + Release)
 dotnet test RASharp.sln -c Debug
 dotnet test RASharp.sln -c Release
 
-# parity only
-dotnet test --filter FullyQualifiedName~Parity
+# slow suite — parity/real-world, run manually (not in the sln)
+dotnet test RASharp.Slow.Tests -c Release
+
+# parity corpus only (slow suite)
+dotnet test RASharp.Slow.Tests --filter FullyQualifiedName~TestParity
 
 # force a specific oracle
-RASHARP_ORACLE=C:\path\to\RAHasher.exe dotnet test --filter FullyQualifiedName~Parity
+RASHARP_ORACLE=C:\path\to\RAHasher.exe dotnet test RASharp.Slow.Tests --filter FullyQualifiedName~TestParity
 ```
 
 Any mismatch in the parity suite is a **port bug** — the project never

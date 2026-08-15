@@ -16,8 +16,8 @@ rcheevos 12.2.1) and since evolved to rcheevos 12.4.0.
 - **100 % parity, proven** — a Tier-2 harness runs `RASharp.Cli.exe` and the
   original C binaries with identical arguments and requires byte-identical
   stdout/stderr and equal exit codes: **90/90 corpus cases green** against
-  the rcheevos 12.4.0-built oracle; **587/587 tests green on each of
-  net8.0, net9.0, net10.0** (Debug + Release).
+  the rcheevos 12.4.0-built oracle; **415/415 fast tests + 172/172 slow
+  tests green on each of net8.0, net9.0, net10.0** (Debug + Release).
 - **81 consoles** in the CLI table — cartridge, disc, encrypted (3DS), CHD,
   RVZ/WIA (GameCube/Wii, hashed live — no rvz→iso conversion),
   zip-based (Arduboy FX, DOSZ/DOSC) and `.neo` Neo Geo cart formats.

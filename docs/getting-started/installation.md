@@ -27,13 +27,15 @@ cd RASharp
 dotnet build RASharp.sln -c Release
 ```
 
-The solution contains three projects:
+The solution contains three projects (plus a manual-only slow test project
+kept out of the solution):
 
 | Project | Kind | Purpose |
 |---|---|---|
 | `RASharp` | class library | the hashing engine (public API mirror of `include/rc_hash.h`) |
 | `RASharp.Cli` | console app | the RAHasher-compatible command line (`RASharp.Cli.exe`) |
-| `RASharp.Tests` | xUnit | ported rcheevos vectors + the Tier-2 parity harness |
+| `RASharp.Tests` | xUnit (fast) | ported rcheevos vectors + engine/CLI unit tests — in the solution |
+| `RASharp.Slow.Tests` | xUnit (slow) | parity harness vs. C oracles, real-ROM, RVZ, published-DB — run manually, not in the solution |
 
 NuGet dependencies:
 
@@ -47,12 +49,14 @@ NuGet dependencies:
 ## Run the test suite
 
 ```bash
-dotnet test RASharp.sln -c Release
+dotnet test RASharp.sln -c Release            # fast suite
+dotnet test RASharp.Slow.Tests -c Release     # slow suite (parity; manual)
 ```
 
-Expected result: **587 passed, 0 failed per TFM** (net8.0, net9.0,
-net10.0). The suite has multiple tiers — see [Testing](../development/testing.md)
-for details and how to filter them.
+Expected result: **415 passed, 0 failed per TFM on the fast suite**
+(net8.0, net9.0, net10.0), **172 passed on the slow suite**. The suites
+have several tiers — see [Testing](../development/testing.md) for details
+and how to filter them.
 
 ## Verify the build
 

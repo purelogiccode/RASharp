@@ -70,6 +70,6 @@ cdreader depends on:
 1. Write the fixture in `BuildCorpus` (or reuse a generator).
 2. Add a `ParityCase` in `BuildCases` — `Add(...)` for a success with a
    pinned hash, `ExpectSuccess: false` for error parity.
-3. Run `dotnet test --filter FullyQualifiedName~Parity`.
+3. Run the slow suite: `dotnet test RASharp.Slow.Tests --filter FullyQualifiedName~TestParity`.
 4. Any mismatch is a **port bug** — investigate, never "accept" a
    difference.

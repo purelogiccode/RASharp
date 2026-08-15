@@ -16,10 +16,11 @@ use to identify ROMs and disc images.
 - **CLI** — `RASharp.Cli.exe`, byte-identical in behavior to `RAHasher 1.8.3`,
   plus convenience subcommands (`scan`, `identify`, `consoles`, `checkkeys`,
   `fetch-db`).
-- **Verified** — 587/587 tests on **each** supported TFM, including a parity
-  harness against source-built C oracles, RVZ-vs-ISO equality on real
-  GameCube/Wii discs, and spot checks against the published RetroAchievements
-  game database.
+- **Verified** — 415/415 fast tests + 172/172 slow (parity, real-ROM, RVZ,
+  published-DB) green on **each** supported TFM, including a parity harness
+  against source-built C oracles, RVZ-vs-ISO equality on real GameCube/Wii
+  discs, and spot checks against the published RetroAchievements game
+  database.
 
 ## Installation
 
@@ -211,22 +212,26 @@ See [publishing.md](docs/getting-started/publishing.md) for details.
 
 ## Testing
 
+Tests are split into two projects:
+
 ```bash
-dotnet test RASharp.sln -c Release          # all TFMs (net8, net9, net10)
-dotnet test RASharp.sln -f net10.0          # one TFM
-dotnet test RASharp.sln --filter FullyQualifiedName~Parity   # parity only
+dotnet test RASharp.sln -c Release          # fast suite, all TFMs (net8, net9, net10)
+dotnet test RASharp.sln -f net10.0          # fast suite, one TFM
+dotnet test RASharp.Slow.Tests -c Release   # slow suite (manual — not in the sln)
 ```
 
-The suite (587 tests, green on **each** of net8.0/net9.0/net10.0):
+The **fast suite** (`RASharp.Tests`, in the solution — 415 tests, seconds)
+runs every ported rcheevos `test/rhash` vector (cartridge, disc, cdreader,
+zip, m3u, handler order), synthetic 3DS/CHD fixtures, and CLI/engine unit
+tests. The **slow suite** (`RASharp.Slow.Tests`, kept out of the solution —
+172 tests, minutes) is run manually and covers:
 
-- **Tier 1** — every ported rcheevos `test/rhash` vector (cartridge, disc,
-  cdreader, zip, m3u, handler order) plus synthetic 3DS fixtures.
-- **Tier 2** — parity harness vs. a source-built C oracle (rcheevos 12.4.0,
+- **Tier-2 parity harness** vs. a source-built C oracle (rcheevos 12.4.0,
   falling back to the pinned 1.8.3 build): 90 generated cases + all CLI arg
   modes; stdout/stderr + exit codes byte-identical.
 - **RVZ validation** — real GameCube/Wii RVZ images hashed live through
-  RVZSharp must equal the DolphinTool-converted ISO hash (6 files, 3 consoles
-  each; skips when the libraries or DolphinTool are absent).
+  RVZSharp must equal the DolphinTool-converted ISO hash (6 files;
+  skips when the libraries or DolphinTool are absent).
 - **Real-ROM parity** — first files of 60 user library directories vs. the
   pinned 1.8.3 binary (skipped-with-note when the libraries or oracle are
   absent).
@@ -240,13 +245,14 @@ unsupported-format behavior (ROM encoding not part of rcheevos).
 
 ## Parity evidence
 
-Current: **587/587 green on net8.0, net9.0, net10.0** — byte-identical
-CLI output between `RASharp.Cli.exe` and the C oracles, including verbose mode,
-error paths, and exit codes; RVZ-vs-ISO equality 6/6 (GameCube and Wii);
-real-ROM parity 61/61; published-hash spot-check 15/15 library/console pairs.
-The harness has caught and fixed real port bugs (arg-count guard crash,
-wildcard path construction, usage banner blank line, silent `merge_callbacks`
-bug) — parity is never "accepted" as a difference; it's asserted.
+Current: **415/415 fast + 172/172 slow green on net8.0, net9.0, net10.0** —
+byte-identical CLI output between `RASharp.Cli.exe` and the C oracles,
+including verbose mode, error paths, and exit codes; RVZ-vs-ISO equality
+6/6 (GameCube and Wii); real-ROM parity 61/61; published-hash spot-check
+15/15 library/console pairs. The harness has caught and fixed real port bugs
+(arg-count guard crash, wildcard path construction, usage banner blank line,
+silent `merge_callbacks` bug) — parity is never "accepted" as a difference;
+it's asserted.
 
 ## Documentation
 

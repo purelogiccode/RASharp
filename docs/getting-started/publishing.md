@@ -101,14 +101,16 @@ Steps before the first push:
 
 1. Bump `<Version>` in `RASharp/RASharp.csproj` and add a
    `CHANGELOG.md` entry (Keep a Changelog format).
-2. Run the full suite on all three TFMs (`dotnet test RASharp.sln -c Release`).
+2. Run the fast suite on all three TFMs
+   (`dotnet test RASharp.sln -c Release`), then the slow suite
+   (`dotnet test RASharp.Slow.Tests -c Release`).
 3. Push a `v<version>` git tag (the release notes link to it).
 4. Use an API key scoped to `RASharp`; never commit the key.
 
 The first release should be `1.0.0`: the engine behavior is pinned to
-rcheevos 12.4.0 and the verifiable surface (587 tests per TFM, parity
-corpus, RVZ-vs-ISO, real-ROM and published-hash spot checks) is stable.
-After that,
+rcheevos 12.4.0 and the verifiable surface (415 fast + 172 slow tests per
+TFM, parity corpus, RVZ-vs-ISO, real-ROM and published-hash spot checks) is
+stable. After that,
 follow <https://learn.microsoft.com/nuget/guides/api/package-versioning>
 for SemVer-compliant bumps (behavior changes to the *ported* engine are
 backwards-incompatible by design and warrant a major bump).
