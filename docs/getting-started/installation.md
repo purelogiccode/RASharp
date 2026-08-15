@@ -17,7 +17,7 @@
 ## Clone & build
 
 ```bash
-git clone https://github.com/drpetersonfernandes/RASharp.git
+git clone https://github.com/purelogiccode/RASharp.git
 cd RASharp
 dotnet build RASharp.sln -c Release
 ```

@@ -3,8 +3,8 @@ site_description: >-
   A native C# port of the RAHasher 1.8.3 CLI that produces 100% identical
   RetroAchievements hashes, evolved to track rcheevos 12.4.0 as the single
   source of truth.
-site_url: https://drpetersonfernandes.github.io/RASharp/
-repo_url: https://github.com/drpetersonfernandes/RASharp
+site_url: https://purelogiccode.github.io/RASharp/
+repo_url: https://github.com/purelogiccode/RASharp
 edit_uri: blob/master/docs/
 
 theme:
