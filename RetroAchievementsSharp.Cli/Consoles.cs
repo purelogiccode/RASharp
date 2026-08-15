@@ -8,7 +8,7 @@ using RetroAchievementsSharp.Cli.Models;
 namespace RetroAchievementsSharp.Cli;
 
 /// <summary>New implementation, behavior parity with RALibretro RAHasher (GPL-3.0, used as reference only). The console table below is factual console metadata (IDs, keys, </summary>
-public static class Consoles
+internal static class Consoles
 {
     private const string Nintendo = "Nintendo";
     private const string Sony = "Sony";
@@ -18,7 +18,8 @@ public static class Consoles
     private const string Snk = "SNK";
     private const string Others = "Others";
 
-    public static readonly ConsoleInfo[] All =
+    /// <summary>Every console the CLI knows, in the RAHasher table order.</summary>
+    internal static readonly ConsoleInfo[] All =
     [
         new(7, "NES", Nintendo, "NES/Famicom"),
         new(81, "FDS", Nintendo, "Famicom Disk System"),

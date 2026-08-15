@@ -16,6 +16,7 @@
 
 using System.Globalization;
 using System.Text.Json;
+using RetroAchievementsSharp.Cli.Models;
 using RetroAchievementsSharp.Models;
 using Serilog;
 
@@ -24,18 +25,32 @@ namespace RetroAchievementsSharp.Cli;
 /// <summary>New command — `RetroAchievementsSharp scan` (a RetroAchievementsSharp extension; RAHasher 1.8.3 has no subcommands, so the legacy positional interface and its byte-exact parity surface are un</summary>
 internal static class ScanCommand
 {
+    /// <summary>The subcommand name (`scan`), used for CLI dispatch.</summary>
     internal const string Name = "scan";
 
     private const string FailedHash = "????????????????????????????????"; /* legacy '?'-mode failure marker */
 
     /* one manifest row; ConsoleId is 0 and Hash is empty when hashing failed;
      * Matches holds the RA games for the hash (empty when none matched) */
-    private sealed record ScanRow(string File, string FullPath, uint ConsoleId, string Hash, List<RetroAchievementsDatabase.Game> Matches);
+    private sealed record ScanRow(string File, string FullPath, uint ConsoleId, string Hash, List<Game> Matches);
 
     /// <summary>Runs the scan subcommand.</summary>
     /// <param name="args">the arguments after `scan`</param>
     /// <returns>0 when every file hashed; 1 when any failed or usage was wrong</returns>
-    public static int Run(string[] args)
+    internal static int Run(string[] args)
+    {
+        try
+        {
+            return RunCore(args);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "{Command} command failed", Name);
+            return 1;
+        }
+    }
+
+    private static int RunCore(string[] args)
     {
         var format = "text";
         var recursive = true;
@@ -445,6 +460,7 @@ internal static class ScanCommand
             catch (Exception ex)
             {
                 Console.Error.WriteLine("Cannot move \"{0}\" to \"{1}\": {2}", row.FullPath, destination, ex.Message);
+                Log.Error(ex, "scan: cannot move \"{Source}\" to \"{Destination}\"", row.FullPath, destination);
                 ++moveErrors;
             }
         }

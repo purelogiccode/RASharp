@@ -9,12 +9,14 @@
 // clobbers a good snapshot.
 
 using System.Globalization;
+using Serilog;
 
 namespace RetroAchievementsSharp.Cli;
 
 /// <summary>New command — `RetroAchievementsSharp fetch-db` (a RetroAchievementsSharp extension; RAHasher 1.8.3 has no subcommands, so the legacy positional interface and its byte-exact parity surface are u</summary>
 internal static class FetchDbCommand
 {
+    /// <summary>The subcommand name (`fetch-db`), used for CLI dispatch.</summary>
     internal const string Name = "fetch-db";
 
     private const string DefaultOutFile = "RetroAchievements.json";
@@ -22,7 +24,20 @@ internal static class FetchDbCommand
     /// <summary>Runs the fetch-db subcommand.</summary>
     /// <param name="args">the arguments after `fetch-db`</param>
     /// <returns>0 on success; 1 on any failure</returns>
-    public static int Run(string[] args)
+    internal static int Run(string[] args)
+    {
+        try
+        {
+            return RunCore(args);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "{Command} command failed", Name);
+            return 1;
+        }
+    }
+
+    private static int RunCore(string[] args)
     {
         var outFile = DefaultOutFile;
         string? source = null;
@@ -86,6 +101,7 @@ internal static class FetchDbCommand
             catch (Exception ex)
             {
                 Console.Error.WriteLine("Cannot read \"{0}\": {1}", source, ex.Message);
+                Log.Error(ex, "fetch-db: cannot read \"{Source}\"", source);
                 return 1;
             }
 
@@ -98,6 +114,7 @@ internal static class FetchDbCommand
             if (json.Length == 0)
             {
                 Console.Error.WriteLine("Cannot download \"{0}\" — check the URL and your connection", source);
+                Log.Error("fetch-db: cannot download \"{Source}\" — check the URL and your connection", source);
                 return 1;
             }
         }
@@ -119,6 +136,7 @@ internal static class FetchDbCommand
         catch (Exception ex)
         {
             Console.Error.WriteLine("Cannot save \"{0}\": {1}", outFile, ex.Message);
+            Log.Error(ex, "fetch-db: cannot save \"{OutFile}\"", outFile);
             return 1;
         }
 

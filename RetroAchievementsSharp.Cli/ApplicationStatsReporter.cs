@@ -18,6 +18,7 @@
 
 using System.Text;
 using System.Text.Json;
+using Serilog;
 
 namespace RetroAchievementsSharp.Cli;
 
@@ -34,7 +35,7 @@ using LockObject = object;
 /// <summary>Application usage telemetry. Reports a usage hit to the ApplicationStats API at application launch (AspNet_ApplicationStats — see its InstructionsToUseApiEndpoi</summary>
 internal static class ApplicationStatsReporter
 {
-    internal const string DefaultUrl = "https://www.purelogiccode.com/ApplicationStats/stats";
+    private const string DefaultUrl = "https://www.purelogiccode.com/ApplicationStats/stats";
 
     private static readonly HttpClient SHttp = new() { Timeout = TimeSpan.FromSeconds(10) };
     private static readonly LockObject SPendingLock = new();
@@ -43,39 +44,46 @@ internal static class ApplicationStatsReporter
 
     /* called once at application launch; never blocks the main flow */
     /// <summary>called once at application launch; never blocks the main flow</summary>
-    public static void ReportUsage()
+    internal static void ReportUsage()
     {
-        if (!_sEnabled)
-            return;
-
-        if (string.Equals(Environment.GetEnvironmentVariable("RASHARP_STATS_DISABLE"), "1", StringComparison.Ordinal))
+        try
         {
-            _sEnabled = false;
-            return;
+            if (!_sEnabled)
+                return;
+
+            if (string.Equals(Environment.GetEnvironmentVariable("RASHARP_STATS_DISABLE"), "1", StringComparison.Ordinal))
+            {
+                _sEnabled = false;
+                return;
+            }
+
+            var url = Environment.GetEnvironmentVariable("RASHARP_STATS_URL") ?? DefaultUrl;
+            var apiKey = Environment.GetEnvironmentVariable("RASHARP_STATS_API_KEY");
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                apiKey = Constants.BugReportApiKey;
+            }
+
+            var json = JsonSerializer.Serialize(new Dictionary<string, string?>(StringComparer.Ordinal)
+            {
+                ["applicationId"] = "RetroAchievementsSharp",
+                ["version"] = Program.Version
+            });
+
+            lock (SPendingLock)
+            {
+                SPending.Add(Task.Run(() => PostAsync(url, apiKey, json)));
+            }
         }
-
-        var url = Environment.GetEnvironmentVariable("RASHARP_STATS_URL") ?? DefaultUrl;
-        var apiKey = Environment.GetEnvironmentVariable("RASHARP_STATS_API_KEY");
-        if (string.IsNullOrEmpty(apiKey))
+        catch (Exception ex)
         {
-            apiKey = Constants.BugReportApiKey;
-        }
-
-        var json = JsonSerializer.Serialize(new Dictionary<string, string?>(StringComparer.Ordinal)
-        {
-            ["applicationId"] = "RetroAchievementsSharp",
-            ["version"] = Program.Version
-        });
-
-        lock (SPendingLock)
-        {
-            SPending.Add(Task.Run(() => PostAsync(url, apiKey, json)));
+            Log.Warning(ex, "usage telemetry could not be queued");
         }
     }
 
     /* give a pending report up to 2 seconds to finish before process exit */
     /// <summary>give a pending report up to 2 seconds to finish before process exit</summary>
-    public static void Flush()
+    internal static void Flush()
     {
         Task[] pending;
         lock (SPendingLock)
@@ -90,9 +98,9 @@ internal static class ApplicationStatsReporter
         {
             Task.WaitAll(pending, TimeSpan.FromSeconds(2));
         }
-        catch
+        catch (Exception ex)
         {
-            /* telemetry is best-effort */
+            Log.Warning(ex, "usage telemetry flush did not complete in time");
         }
     }
 
@@ -106,9 +114,9 @@ internal static class ApplicationStatsReporter
 
             using var response = await SHttp.SendAsync(request).ConfigureAwait(false);
         }
-        catch
+        catch (Exception ex)
         {
-            /* telemetry is best-effort */
+            Log.Warning(ex, "usage telemetry request to {Url} failed", url);
         }
     }
 }

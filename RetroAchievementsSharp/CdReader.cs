@@ -439,20 +439,20 @@ public static class CdReader
     /* struct track_t in cdreader_open_cue_track */
     private sealed class CueTrack
     {
-        public uint Id;
-        public int SectorSize;
-        public int SectorCount;
-        public int FirstSector;
-        public int PregapSectors;
-        public int IsData;
-        public long FileTrackOffset;
-        public long FileFirstSector;
-        public string Mode = "";
-        public string Filename = "";
+        internal uint Id;
+        internal int SectorSize;
+        internal int SectorCount;
+        internal int FirstSector;
+        internal int PregapSectors;
+        internal int IsData;
+        internal long FileTrackOffset;
+        internal long FileFirstSector;
+        internal string Mode = "";
+        internal string Filename = "";
 
         /// <summary>copy from.</summary>
         /// <param name="other">the other parameter</param>
-        public void CopyFrom(CueTrack other)
+        internal void CopyFrom(CueTrack other)
         {
             Id = other.Id;
             SectorSize = other.SectorSize;
@@ -467,7 +467,7 @@ public static class CdReader
         }
 
         /// <summary>reset.</summary>
-        public void Reset()
+        internal void Reset()
         {
             Id = 0;
             SectorSize = 0;

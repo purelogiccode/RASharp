@@ -19,7 +19,7 @@ public static class HashZip
     /* struct rc_hash_zip_idx — record + length for the sort */
     private sealed class ZipIdx
     {
-        public byte[] Data = Array.Empty<byte>();
+        internal byte[] Data = Array.Empty<byte>();
     }
 
     private static ushort ReadLe16(byte[] p, int o)
@@ -345,12 +345,12 @@ public static class HashZip
     /* struct rc_hash_ms_dos_dosz_state */
     private sealed class MsDosDoszState
     {
-        public string Path = "";
-        public MsDosDoszState? Child;
-        public HashMd5? Md5;
-        public RcHashIterator? Iterator;
-        public object? FileHandle;
-        public uint NParents;
+        internal string Path = "";
+        internal MsDosDoszState? Child;
+        internal HashMd5? Md5;
+        internal RcHashIterator? Iterator;
+        internal object? FileHandle;
+        internal uint NParents;
     }
 
     private static int MsDosParent(MsDosDoszState child, byte[] parentname, int parentnameLen)

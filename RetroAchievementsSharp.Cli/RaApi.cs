@@ -10,11 +10,13 @@ namespace RetroAchievementsSharp.Cli;
 /// <summary>Minimal RetroAchievements API client for the identify and fetch-db subcommands. The public API requires the account's web API key (`y` param) plus username (`u` param</summary>
 internal static class RaApi
 {
+    /// <summary>The base URL of the RetroAchievements web API.</summary>
     internal const string DefaultBaseUrl = "https://retroachievements.org/API";
 
     private static readonly HttpClient SHttp = new() { Timeout = TimeSpan.FromSeconds(30) };
 
     /* test hook: replaces the HTTP GET with a canned response */
+    /// <summary>Test hook: replaces the HTTP GET with a canned response.</summary>
     internal static Func<string, string?>? SendGetOverride;
 
     /// <summary>Performs a GET and returns the response body, or null on failure.</summary>
@@ -33,7 +35,7 @@ internal static class RaApi
         }
         catch (Exception ex)
         {
-            Log.Debug(ex, "RA API request failed: {Url}", url);
+            Log.Warning(ex, "RA API request failed: {Url}", url);
             return null;
         }
     }

@@ -20,9 +20,10 @@ public static class RvzFilereader
      * random-access position kept by the filereader emulation */
     private sealed class RvzFileHandle : IDisposable
     {
-        public RvzReader Reader = null!;
-        public long Position;
+        internal RvzReader Reader = null!;
+        internal long Position;
 
+        /// <summary>Disposes the underlying RVZ reader.</summary>
         public void Dispose()
         {
             Reader.Dispose();

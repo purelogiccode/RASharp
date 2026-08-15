@@ -7,18 +7,33 @@
 // keys <-> numeric ids <-> display names.
 
 using System.Text.Json;
+using Serilog;
 
 namespace RetroAchievementsSharp.Cli;
 
 /// <summary>New command — `RetroAchievementsSharp consoles` (a RetroAchievementsSharp extension; RAHasher 1.8.3 has no subcommands, so the legacy positional interface and its byte-exact parity surface are un</summary>
 internal static class ConsolesCommand
 {
+    /// <summary>The subcommand name (`consoles`), used for CLI dispatch.</summary>
     internal const string Name = "consoles";
 
     /// <summary>Runs the consoles subcommand.</summary>
     /// <param name="args">the arguments after `consoles`</param>
     /// <returns>0 on success; 1 on usage errors</returns>
-    public static int Run(string[] args)
+    internal static int Run(string[] args)
+    {
+        try
+        {
+            return RunCore(args);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "{Command} command failed", Name);
+            return 1;
+        }
+    }
+
+    private static int RunCore(string[] args)
     {
         var format = "text";
 

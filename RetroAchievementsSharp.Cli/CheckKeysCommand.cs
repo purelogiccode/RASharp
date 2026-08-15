@@ -13,18 +13,33 @@
 // the KeyIsPresent() check in the engine.
 
 using System.Globalization;
+using Serilog;
 
 namespace RetroAchievementsSharp.Cli;
 
 /// <summary>New command — `RetroAchievementsSharp checkkeys` (a RetroAchievementsSharp extension; RAHasher 1.8.3 has no subcommands, so the legacy positional interface and its byte-exact parity surface are un</summary>
 internal static class CheckKeysCommand
 {
+    /// <summary>The subcommand name (`checkkeys`), used for CLI dispatch.</summary>
     internal const string Name = "checkkeys";
 
     /// <summary>Runs the checkkeys subcommand.</summary>
     /// <param name="args">the arguments after `checkkeys`</param>
     /// <returns>0 when the 3DS key files are usable; 1 otherwise</returns>
-    public static int Run(string[] args)
+    internal static int Run(string[] args)
+    {
+        try
+        {
+            return RunCore(args);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "{Command} command failed", Name);
+            return 1;
+        }
+    }
+
+    private static int RunCore(string[] args)
     {
         var systemDir = ".";
 
@@ -90,6 +105,7 @@ internal static class CheckKeysCommand
         catch (Exception ex)
         {
             Console.WriteLine("aes_keys.txt   UNREADABLE — {0}", ex.Message);
+            Log.Error(ex, "checkkeys: cannot read {Path}", path);
             return false;
         }
 
@@ -177,6 +193,7 @@ internal static class CheckKeysCommand
         catch (Exception ex)
         {
             Console.WriteLine("seeddb.bin    UNREADABLE — {0}", ex.Message);
+            Log.Error(ex, "checkkeys: cannot read {Path}", path);
             return false;
         }
 

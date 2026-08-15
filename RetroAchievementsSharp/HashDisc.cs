@@ -573,6 +573,7 @@ public static class HashDisc
     }
 
     /* helper variable only used for testing */
+    /// <summary>The last Atari Jaguar CD homebrew hash produced (test hook).</summary>
     internal static string? JaguarCdHomebrewHash = null;
 
     /// <summary>Hashes a Atari Jaguar CD image.</summary>

@@ -13,6 +13,7 @@ namespace RetroAchievementsSharp.Cli;
 /// <summary>New implementation, behavior parity with RALibretro RAHasher (GPL-3.0, used as reference only) — src/RAHasher.cpp. The console metadata table is factual data (s</summary>
 internal static class Program
 {
+    /// <summary>The application version string.</summary>
     internal const string Version = "1.8.3";
 
     /// <summary>main.</summary>

@@ -18,12 +18,15 @@
 
 using System.Globalization;
 using System.Text.Json;
+using RetroAchievementsSharp.Cli.Models;
+using Serilog;
 
 namespace RetroAchievementsSharp.Cli;
 
 /// <summary>New command — `RetroAchievementsSharp identify` (a RetroAchievementsSharp extension; RAHasher 1.8.3 has no subcommands, so the legacy positional interface and its byte-exact parity surface are u</summary>
 internal static class IdentifyCommand
 {
+    /// <summary>The subcommand name (`identify`), used for CLI dispatch.</summary>
     internal const string Name = "identify";
 
     private const string DefaultDbFile = "RetroAchievements.json";
@@ -31,7 +34,20 @@ internal static class IdentifyCommand
     /// <summary>Runs the identify subcommand.</summary>
     /// <param name="args">the arguments after `identify`</param>
     /// <returns>0 when at least one hash resolved to a game; 1 otherwise</returns>
-    public static int Run(string[] args)
+    internal static int Run(string[] args)
+    {
+        try
+        {
+            return RunCore(args);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "{Command} command failed", Name);
+            return 1;
+        }
+    }
+
+    private static int RunCore(string[] args)
     {
         var format = "text";
         var systemDir = ".";
@@ -190,7 +206,7 @@ internal static class IdentifyCommand
 
     /* ========================================================================= */
 
-    private sealed record LookupResult(string Hash, uint ConsoleId, List<RetroAchievementsDatabase.Game> Games);
+    private sealed record LookupResult(string Hash, uint ConsoleId, List<Game> Games);
 
     private static List<LookupResult>? LookupLocal(List<Program.FileHash> hashes, string dbPath)
     {

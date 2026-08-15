@@ -15,11 +15,11 @@ namespace RetroAchievementsSharp.Cli;
 internal static class Constants
 {
     /* double-encoded value of the bug report API key */
-    public const string BugReportApiKeyEncoded =
+    private const string BugReportApiKeyEncoded =
         "YUdwb04zbDFOblExTm5SNWNqVTBNRzg1ZFRnM05qYzJOelp5TlRZM05EVXpORFExTXpJek5USTJOR00zTldJMmREZG5aMmRvWjJjM05uUnlaalUyTkdVPQ==";
 
-    /* decoded at first use (application startup) */
-    public static string BugReportApiKey { get; } = Decode(BugReportApiKeyEncoded);
+    /// <summary>The decoded bug report API key.</summary>
+    internal static string BugReportApiKey { get; } = Decode(BugReportApiKeyEncoded);
 
     private static string Decode(string value)
     {

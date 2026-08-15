@@ -10,15 +10,14 @@
 // games, so each entry points to a list.
 
 using System.Text.Json;
+using RetroAchievementsSharp.Cli.Models;
+using Serilog;
 
 namespace RetroAchievementsSharp.Cli;
 
 /// <summary>Loader for the RetroAchievements game database snapshot used by `RetroAchievementsSharp scan --match` — the JSON file produced by the RetroAchievements.DataFetcher tool (see CSharp_</summary>
 internal sealed class RetroAchievementsDatabase
 {
-    /// <summary>A game entry from the database.</summary>
-    public sealed record Game(int Id, string Title, string ConsoleName, int NumAchievements, int Points);
-
     private readonly Dictionary<string, List<Game>> _gamesByHash;
 
     private RetroAchievementsDatabase(Dictionary<string, List<Game>> gamesByHash, int gameCount, int hashCount)
@@ -29,16 +28,16 @@ internal sealed class RetroAchievementsDatabase
     }
 
     /// <summary>Number of game entries with at least one indexed hash.</summary>
-    public int GameCount { get; }
+    internal int GameCount { get; }
 
     /// <summary>Number of distinct hashes indexed.</summary>
-    public int HashCount { get; }
+    internal int HashCount { get; }
 
     /// <summary>Loads the database file.</summary>
     /// <param name="path">the JSON file path</param>
     /// <param name="error">the error message when loading failed</param>
     /// <returns>the loaded database, or null when the file is missing or malformed</returns>
-    public static RetroAchievementsDatabase? TryLoad(string path, out string? error)
+    internal static RetroAchievementsDatabase? TryLoad(string path, out string? error)
     {
         error = null;
 
@@ -48,6 +47,7 @@ internal sealed class RetroAchievementsDatabase
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Cannot load RetroAchievements database \"{Path}\"", path);
             error = $"Cannot load RetroAchievements database \"{path}\": {ex.Message}";
             return null;
         }
@@ -57,7 +57,7 @@ internal sealed class RetroAchievementsDatabase
     /// <param name="json">the JSON text</param>
     /// <param name="error">the error message when parsing failed</param>
     /// <returns>the parsed database, or null when the text is malformed</returns>
-    public static RetroAchievementsDatabase? Parse(string json, out string? error)
+    internal static RetroAchievementsDatabase? Parse(string json, out string? error)
     {
         error = null;
 
@@ -128,6 +128,7 @@ internal sealed class RetroAchievementsDatabase
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Cannot parse RetroAchievements database");
             error = $"Cannot parse RetroAchievements database: {ex.Message}";
             return null;
         }
@@ -136,7 +137,7 @@ internal sealed class RetroAchievementsDatabase
     /// <summary>Returns the games whose hash list contains the given hash (empty when none).</summary>
     /// <param name="hash">the hash to look up</param>
     /// <returns>the matching games</returns>
-    public List<Game> Lookup(string hash)
+    internal List<Game> Lookup(string hash)
     {
         return _gamesByHash.TryGetValue(hash, out var games) ? games : [];
     }

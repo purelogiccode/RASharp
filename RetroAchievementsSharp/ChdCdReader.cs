@@ -18,31 +18,31 @@ public static class ChdCdReader
     /* struct metadata_t in HashCHD.cpp */
     private sealed class ChdTrackMetadata
     {
-        public uint Frames;
-        public uint Pad;
-        public uint Pregap;
-        public uint Postgap;
-        public uint Track;
-        public uint SectorOffset;
-        public uint FrameOffset;
-        public string Type = "";
-        public string Subtype = "";
-        public string Pgtype = "";
-        public string Pgsub = "";
+        internal uint Frames;
+        internal uint Pad;
+        internal uint Pregap;
+        internal uint Postgap;
+        internal uint Track;
+        internal uint SectorOffset;
+        internal uint FrameOffset;
+        internal string Type = "";
+        internal string Subtype = "";
+        internal string Pgtype = "";
+        internal string Pgsub = "";
     }
 
     /* struct chd_track_handle_t in HashCHD.cpp */
     private sealed class ChdTrackHandle
     {
-        public ChdFile File = null!;
-        public byte[] HunkMem = [];
-        public uint HunkNum = uint.MaxValue;
-        public uint FramesPerHunk;
-        public uint FirstSector;
-        public uint FirstFrame;
-        public uint FramesInTrack;
-        public uint SectorDataSize;
-        public uint SectorHeaderSize;
+        internal ChdFile File = null!;
+        internal byte[] HunkMem = [];
+        internal uint HunkNum = uint.MaxValue;
+        internal uint FramesPerHunk;
+        internal uint FirstSector;
+        internal uint FirstFrame;
+        internal uint FramesInTrack;
+        internal uint SectorDataSize;
+        internal uint SectorHeaderSize;
     }
 
     private static readonly byte[] SyncPattern =
@@ -271,6 +271,9 @@ public static class ChdCdReader
 
     /* raw-metadata track table (the C's iteration in rc_hash_find_chd_track) —
      * exposed for the CHDSharp.Tracks vs. raw-metadata agreement test */
+    /// <summary>Parses the raw-metadata track table of a CHD file.</summary>
+    /// <param name="file">the CHD file</param>
+    /// <returns>one entry per track: number, type, frame counts, offsets</returns>
     internal static List<(uint Track, string Type, uint Frames, uint Pregap, uint Postgap, uint SectorOffset, uint FrameOffset)> ParseTrackTable(ChdFile file)
     {
         var result = new List<(uint, string, uint, uint, uint, uint, uint)>();

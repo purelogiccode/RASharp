@@ -42,7 +42,9 @@ using LockObject = object;
 /// <summary>Bug report forwarding sink. Forwards Warning+ log events to the bug report API (AspNet_BugReportEmailService — see its InstructionsToSendBugs.md): POST {RASHARP</summary>
 internal sealed class BugReportSink : ILogEventSink, IDisposable
 {
+    /// <summary>The default bug report API endpoint.</summary>
     internal const string DefaultUrl = "https://www.purelogiccode.com/bugreport/api/send-bug-report";
+
     private const int MaxMessageLength = 4000;
     private const int MaxStackTraceLength = 8000;
 
@@ -55,7 +57,10 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
     private readonly LockObject _pendingLock = new();
     private readonly List<Task> _pending = new();
 
-    public BugReportSink(string url, string apiKey)
+    /// <summary>Creates a sink that forwards reports to the given endpoint.</summary>
+    /// <param name="url">the bug report API endpoint</param>
+    /// <param name="apiKey">the API key sent in the X-API-KEY header</param>
+    internal BugReportSink(string url, string apiKey)
     {
         _url = url;
         _apiKey = apiKey;
@@ -93,7 +98,10 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
         }
         catch
         {
-            /* never let logging break the application */
+            /* never let logging break the application. Note: this catch is
+             * deliberately not logged via Serilog — Emit runs inside the
+             * logging pipeline, so logging from here would re-enter the
+             * sink. */
         }
     }
 
@@ -110,11 +118,12 @@ internal sealed class BugReportSink : ILogEventSink, IDisposable
         }
         catch
         {
-            /* best-effort reporting — swallow transport/API failures */
+            /* best-effort reporting — swallow transport/API failures. Same
+             * reentrancy note as Emit: never log from within the sink. */
         }
     }
 
-    /// <summary>Releases the mounted filesystem.</summary>
+    /// <summary>Waits up to 2 seconds for pending report deliveries to finish.</summary>
     public void Dispose()
     {
         Task[] pending;

@@ -547,16 +547,16 @@ public static class HashEngine
 
     private sealed class BufferedFileState
     {
-        public byte[]? Data;
-        public int ReadPtr;
-        public long DataSize;
+        internal byte[]? Data;
+        internal int ReadPtr;
+        internal long DataSize;
     }
 
     private sealed class BufferedFileHandle
     {
-        public byte[]? Data;
-        public int ReadPtr;
-        public long DataSize;
+        internal byte[]? Data;
+        internal int ReadPtr;
+        internal long DataSize;
     }
 
     private static readonly BufferedFileState SBufferedFile = new();
@@ -963,10 +963,10 @@ public static class HashEngine
     }
 
     /// <summary>Dispatches a file hash for the console.</summary>
-/// <param name="hash">the generated 32-char hash</param>
-/// <param name="consoleId">the console identifier</param>
-/// <param name="iterator">the hash iterator</param>
-/// <returns>the result</returns>
+    /// <param name="hash">the generated 32-char hash</param>
+    /// <param name="consoleId">the console identifier</param>
+    /// <param name="iterator">the hash iterator</param>
+    /// <returns>the result</returns>
     public static int FromFile(out string hash, uint consoleId, RcHashIterator iterator)
     {
         var path = iterator.Path!;
