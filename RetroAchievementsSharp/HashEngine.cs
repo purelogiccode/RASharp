@@ -879,19 +879,6 @@ public static class HashEngine
     /* ===================================================== */
     /* dispatch tables                                       */
 
-    /* Phase 3/4/5/6/7 targets; replaced as each phase lands */
-    /// <summary>===================================================== dispatch tables Phase 3/4/5/6/7 targets; replaced as each phase lands</summary>
-    /// <param name="hash">the generated 32-char hash</param>
-    /// <param name="iterator">the hash iterator</param>
-    /// <param name="name">the name parameter</param>
-    /// <param name="phase">the phase parameter</param>
-    /// <returns>the result</returns>
-    public static int NotYetImplemented(out string hash, RcHashIterator iterator, string name, string phase)
-    {
-        hash = "";
-        return IteratorErrorFormatted(iterator, "RetroAchievementsSharp: {0} not yet implemented ({1})", name, phase);
-    }
-
     private static int RcHash3Do(out string hash, RcHashIterator iterator)
     {
         return HashDisc.RcHash3Do(out hash, iterator);
@@ -1249,43 +1236,5 @@ public static class HashEngine
 
         ResetIteratorDisc(iterator);
         ResetIteratorEncrypted(iterator);
-    }
-
-    /* ported verbatim, including the upstream quirk: the C code assigns
-     * callbacks->error_message to iterator->callbacks.verbose_message */
-    /// <summary>ported verbatim, including the upstream quirk: the C code assigns callbacks-&gt;error_message to iterator-&gt;callbacks.verbose_message</summary>
-    /// <param name="iterator">the hash iterator</param>
-    /// <param name="callbacks">the callbacks parameter</param>
-    public static void MergeCallbacks(RcHashIterator iterator, RcHashCallbacks callbacks)
-    {
-        if (callbacks.VerboseMessage != null)
-        {
-            iterator.Callbacks.VerboseMessage = callbacks.VerboseMessage;
-        }
-
-        if (callbacks.ErrorMessage != null)
-        {
-            iterator.Callbacks.ErrorMessage = callbacks.ErrorMessage;
-        }
-
-        if (callbacks.Filereader.Open != null)
-        {
-            iterator.Callbacks.Filereader = callbacks.Filereader;
-        }
-
-        if (callbacks.Cdreader.OpenTrack != null)
-        {
-            iterator.Callbacks.Cdreader = callbacks.Cdreader;
-        }
-
-        if (callbacks.Encryption.Get3DsCiaNormalKey != null)
-        {
-            iterator.Callbacks.Encryption.Get3DsCiaNormalKey = callbacks.Encryption.Get3DsCiaNormalKey;
-        }
-
-        if (callbacks.Encryption.Get3DsNcchNormalKeys != null)
-        {
-            iterator.Callbacks.Encryption.Get3DsNcchNormalKeys = callbacks.Encryption.Get3DsNcchNormalKeys;
-        }
     }
 }

@@ -256,9 +256,14 @@ it's asserted.
 
 ## Documentation
 
-Full docs (mkdocs site): [docs](docs/index.md) — architecture, engine
-deep-dives, testing, known quirks, and the release-sync playbook for
-absorbing future rcheevos releases.
+Full docs — architecture, engine deep-dives, testing, known quirks, and the
+release-sync playbook for absorbing future rcheevos releases:
+
+- **Docs site (GitHub Pages)** — <https://purelogiccode.github.io/RetroAchievementsSharp/>,
+  built from [docs](docs/index.md) with MkDocs Material (left-nav sidebar);
+  every push to `docs/` or `mkdocs.yml` redeploys automatically.
+- **Wiki** — [github.com/purelogiccode/RetroAchievementsSharp/wiki](https://github.com/purelogiccode/RetroAchievementsSharp/wiki),
+  hand-maintained quick-reference mirror of the site.
 
 ## License
 

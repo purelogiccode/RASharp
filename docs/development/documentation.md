@@ -1,8 +1,14 @@
 # Build and maintain the docs site
 
 This documentation is built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/).
-The repository intentionally has **no CI** — the site is built and published
-manually.
+The site is hosted on GitHub Pages: every push that touches `docs/`,
+`mkdocs.yml`, or the pages workflow triggers
+[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml), which
+builds the site and deploys it with `actions/deploy-pages`.
+
+The Material theme's **left navigation menu** is driven by the `nav:`
+section of [`mkdocs.yml`](../../mkdocs.yml) — add new pages there so they
+appear in the sidebar.
 
 ## Local preview
 
@@ -17,19 +23,19 @@ mkdocs serve          # http://127.0.0.1:8000
 mkdocs build          # outputs ./site
 ```
 
-## Publishing to GitHub Pages (manual)
+## Publishing to GitHub Pages
 
-If you want the site hosted, the simplest manual routes are:
+Automated — no manual steps:
 
-```bash
-# option 1: push the built site to the gh-pages branch
-mkdocs gh-deploy
+- Push to `master` with changes under `docs/` or to `mkdocs.yml`; the
+  `Deploy docs to GitHub Pages` workflow builds and deploys
+  (`.github/workflows/pages.yml`).
+- Forced rebuild: run the workflow from the Actions tab
+  (`workflow_dispatch`).
+- The site is available at <https://purelogiccode.github.io/RetroAchievementsSharp/>.
 
-# option 2: build locally and publish ./site from any static host
-mkdocs build
-```
-
-(For Pages from a branch: repo Settings → Pages → Source → `gh-pages`.)
+The wiki (same content, hand-maintained) lives at
+<https://github.com/purelogiccode/RetroAchievementsSharp/wiki>.
 
 ## Conventions
 

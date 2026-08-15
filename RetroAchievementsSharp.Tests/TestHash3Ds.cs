@@ -16,11 +16,15 @@ namespace RetroAchievementsSharp.Tests;
 public class TestHash3Ds : IDisposable
 {
     private readonly string _dir;
+    private readonly string _noKeysDir;
 
     public TestHash3Ds()
     {
-        _dir = Path.Combine(Path.GetTempPath(), "rasharp_3ds_test");
+        _dir = Path.Combine(Path.GetTempPath(), "rasharp_3ds_test_" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(_dir);
+
+        _noKeysDir = Path.Combine(Path.GetTempPath(), "rasharp_3ds_nokeys_" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(_noKeysDir);
 
         File.WriteAllText(Path.Combine(_dir, "aes_keys.txt"), TestDataGen3Ds.AesKeysTxt());
 
@@ -63,7 +67,7 @@ public class TestHash3Ds : IDisposable
         try
         {
             Directory.Delete(_dir, true);
-            Directory.Delete(Path.Combine(Path.GetTempPath(), "rasharp_3ds_nokeys"), true);
+            Directory.Delete(_noKeysDir, true);
         }
         catch
         {
@@ -170,11 +174,8 @@ public class TestHash3Ds : IDisposable
     [Fact]
     public void TestHash3DsErrorNoKeys()
     {
-        var emptyDir = Path.Combine(Path.GetTempPath(), "rasharp_3ds_nokeys");
-        Directory.CreateDirectory(emptyDir);
-
         HashEngine.InitCustomFilereader(null);
-        Hash3Ds.InitHash3Ds(emptyDir);
+        Hash3Ds.InitHash3Ds(_noKeysDir);
         Assert.False(RcHash.GenerateFromFile(out var hash, ConsoleIds.RcConsoleNintendo3Ds, Path.Combine(_dir, "encrypted.ncch")));
         Assert.Equal("", hash);
     }
