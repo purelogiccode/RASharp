@@ -2,7 +2,6 @@
 // In-memory filereader for the vector tests (CD reader parts deferred to Phase 3).
 
 using System.Text;
-using RASharp;
 using RASharp.Models;
 
 namespace RASharp.Tests;

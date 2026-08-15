@@ -2,7 +2,6 @@
 // Generic whole-file console vectors (test_hash_full_file entries only;
 // cartridge algorithms land in Phase 2).
 
-using RASharp;
 using RASharp.Models;
 
 namespace RASharp.Tests;

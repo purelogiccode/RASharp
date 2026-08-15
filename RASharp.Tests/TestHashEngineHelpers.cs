@@ -3,8 +3,6 @@
 // and by the N64/Jaguar-CD disc paths, but the pure functions deserve
 // their own vectors.
 
-using RASharp;
-
 namespace RASharp.Tests;
 
 /// <summary>Direct tests for the HashEngine path helpers and byteswap routines. These are exercised indirectly by every full-file hash (via file paths) and by the N64/Jag</summary>

@@ -4,7 +4,6 @@
 // "neo"/"sms" extension-table mapping checks.
 
 using System.Text;
-using RASharp;
 using RASharp.Models;
 
 namespace RASharp.Tests;

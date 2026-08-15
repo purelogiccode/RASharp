@@ -7,7 +7,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
 using RASharp.Cli;
-using RASharp;
 using RASharp.Tests.Parity;
 
 namespace RASharp.Tests;

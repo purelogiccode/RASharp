@@ -3,7 +3,6 @@
 // factual data (see Consoles.cs); everything else is written fresh to match
 // the observable CLI behavior.
 
-using RASharp;
 using RASharp.Models;
 using Serilog;
 using Serilog.Events;
@@ -381,20 +380,20 @@ internal static class Program
             return hashes;
         }
 
-        if (ext.Length == 4 && char.ToLowerInvariant(ext[1]) == 'c' && char.ToLowerInvariant(ext[2]) == 'h' && char.ToLowerInvariant(ext[3]) == 'd')
+        switch (ext.Length)
         {
-            ChdCdReader.InitChdCdreader();
-            HashEngine.ResetFilereader();
-        }
-        else if (ext.Length == 4 && char.ToLowerInvariant(ext[1]) == 'r' && char.ToLowerInvariant(ext[2]) == 'v' && char.ToLowerInvariant(ext[3]) == 'z')
-        {
-            RvzFilereader.InitRvzFilereader();
-            RcHash.InitDefaultCdreader();
-        }
-        else
-        {
-            RcHash.InitDefaultCdreader();
-            HashEngine.ResetFilereader();
+            case 4 when char.ToLowerInvariant(ext[1]) == 'c' && char.ToLowerInvariant(ext[2]) == 'h' && char.ToLowerInvariant(ext[3]) == 'd':
+                ChdCdReader.InitChdCdreader();
+                HashEngine.ResetFilereader();
+                break;
+            case 4 when char.ToLowerInvariant(ext[1]) == 'r' && char.ToLowerInvariant(ext[2]) == 'v' && char.ToLowerInvariant(ext[3]) == 'z':
+                RvzFilereader.InitRvzFilereader();
+                RcHash.InitDefaultCdreader();
+                break;
+            default:
+                RcHash.InitDefaultCdreader();
+                HashEngine.ResetFilereader();
+                break;
         }
 
         if (consoleId > ConsoleIds.RcConsoleMax)

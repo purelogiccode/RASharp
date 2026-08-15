@@ -3,8 +3,6 @@
 // indirectly by the cue/gdi parsing tests but are pure functions with
 // their own edge cases.
 
-using RASharp;
-
 namespace RASharp.Tests;
 
 /// <summary>Direct tests for the small byte-buffer helpers in CdReader (the C strncasecmp/memcmp/atoi-string decode equivalents). They are exercised indirectly by the cue/gd</summary>

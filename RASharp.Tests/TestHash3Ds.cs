@@ -10,8 +10,6 @@
 //   unaligned.ncch     3e2d3dfe1808dd0498ecf6c77e36ea46  (padding/partial-block branch)
 //   homebrew.3dsx      ca7161a502db8be8089d16a8b2280970
 
-using RASharp;
-
 namespace RASharp.Tests;
 
 /// <summary>Phase 6 — 3DS encrypted hashing tests. All fixture files are generated at test time from known key material; the expected hashes are the outputs of RAHasher 1.8</summary>

@@ -2,7 +2,6 @@
 // Cartridge algorithms: Arcade, Atari 7800, NES/FDS, N64, NDS/DSi, SCV,
 // Arduboy (Intel HEX), SNES/PCE header-strip vectors.
 
-using RASharp;
 using RASharp.Models;
 
 namespace RASharp.Tests;

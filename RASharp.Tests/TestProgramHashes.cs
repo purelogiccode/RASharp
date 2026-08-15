@@ -5,7 +5,6 @@
 
 using System.IO.Compression;
 using System.Security.Cryptography;
-using RASharp;
 using RASharp.Cli;
 
 namespace RASharp.Tests;
