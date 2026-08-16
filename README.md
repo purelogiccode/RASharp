@@ -5,7 +5,7 @@
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
 [![Repo](https://img.shields.io/badge/github-purelogiccode%2FRetroAchievementsSharp-181717?logo=github)](https://github.com/purelogiccode/RetroAchievementsSharp)
 
-A native C# port of the **RAHasher 1.8.3** hashing engine (`rcheevos`
+A native C# port of the **RAHasher** hashing engine (`rcheevos`
 `40d916d` → 12.4.0) that produces **100% identical hashes** to the original
 for every supported console — the same hashes the
 [RetroAchievements](https://retroachievements.org) website and its clients
@@ -307,6 +307,16 @@ release-sync playbook for absorbing future rcheevos releases:
 - **Wiki** — [github.com/purelogiccode/RetroAchievementsSharp/wiki](https://github.com/purelogiccode/RetroAchievementsSharp/wiki),
   hand-maintained quick-reference mirror of the site.
 
+## Credits
+
+- **[LeXofLeviafan](https://github.com/LeXofLeviafan/)** — author of the
+  RALibretro RAHasher CLI this project is behaviorally compatible with.
+  We use his RAHasher binaries as the reference oracle in our parity test
+  suite (byte-identical output vs. the C original is asserted on every
+  run). Thank you!
+- **[RetroAchievements](https://retroachievements.org)** / [rcheevos](https://github.com/RetroAchievements/rcheevos)
+  — the hashing engine, ported 1:1 (MIT).
+
 ## License
 
 GPL-2.0-or-later — see `LICENSE` and `THIRD-PARTY-NOTICES.md`. Copyright (c)
@@ -314,8 +324,9 @@ GPL-2.0-or-later — see `LICENSE` and `THIRD-PARTY-NOTICES.md`. Copyright (c)
 1:1 (MIT, credited in the notices); RVZ/WIA hashing links RVZSharp which is
 GPL-2.0-or-later (Dolphin-derived). `Program.cs`, `FileUtil.cs`, `Hash3DS.cs`,
 and `ChdCdReader.cs` are new implementations written for behavior parity with
-the GPL-3.0 RALibretro RAHasher (used as read-only reference, never copied;
-the GPL binary and sources live in `References\` only and are not shipped).
+the GPL-3.0 RALibretro RAHasher by [LeXofLeviafan](https://github.com/LeXofLeviafan/)
+(used as read-only reference, never copied; the GPL binary and sources live
+in `References\` only and are not shipped).
 
 ## Changelog
 

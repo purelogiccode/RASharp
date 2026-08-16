@@ -4,6 +4,12 @@ The parity suite compares against **C-built oracle binaries**. They live in
 `References/` (git-ignored, GPL-3.0 — built from GPL reference material,
 used only as local test oracles, never shipped).
 
+!!! note "Credits"
+    The RAHasher CLI we test against is written by
+    [LeXofLeviafan](https://github.com/LeXofLeviafan/) (RALibretro lineage).
+    His project is the reference oracle for this suite — byte-identical
+    output between our port and his binaries is asserted on every run.
+
 ## Which oracle is used
 
 The harness resolves, in order:

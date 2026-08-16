@@ -71,6 +71,14 @@ if (RcHash.GenerateFromFile(out string hash, ConsoleIds.RcConsoleNintendo, "game
     Console.WriteLine(hash); // 32 hex chars — matches the published RA hash
 ```
 
+## Credits
+
+- **[LeXofLeviafan](https://github.com/LeXofLeviafan/)** — author of the
+  RALibretro RAHasher CLI this project is behaviorally compatible with and
+  that we use as the reference oracle in our parity test suite.
+- **[RetroAchievements](https://retroachievements.org)** / [rcheevos](https://github.com/RetroAchievements/rcheevos)
+  — the hashing engine, ported 1:1 (MIT).
+
 ## Links
 
 - Repository: <https://github.com/purelogiccode/RetroAchievementsSharp>

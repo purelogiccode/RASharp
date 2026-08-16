@@ -73,11 +73,16 @@ sources, binaries, or NuGet package:
 
 - `RAHasher-1.8.3` — RAHasher CLI sources (`RAHasher.cpp`, `Util.cpp`,
   `Hash3DS.cpp`, `HashCHD.cpp`, `Logger.*`), GPL-3.0 (RALibretro lineage,
-  LeXofLeviafan fork). RetroAchievementsSharp's `Program.cs`, `FileUtil.cs`, `Hash3DS.cs`,
+  [LeXofLeviafan](https://github.com/LeXofLeviafan/) fork). RetroAchievementsSharp's `Program.cs`, `FileUtil.cs`, `Hash3DS.cs`,
   and `ChdCdReader.cs` are new implementations written to match observable
-  behavior only; no GPL text is copied.
+  behavior only; no GPL text is copied. **The parity test suite uses
+  LeXofLeviafan's RAHasher binaries as the reference oracle** — his project
+  is what we test our solution against.
 - `RAHasher.exe` (test oracle for the parity harness) — built from the
-  GPL-3.0 sources above; lives in `References\` / `tools\` only, never shipped.
+  GPL-3.0 sources above, authored by
+  [LeXofLeviafan](https://github.com/LeXofLeviafan/) (see
+  [RALibretro](https://github.com/libretro/RAHasher) and his fork); lives in
+  `References\` / `tools\` only, never shipped.
 - `rcheevos-12.4.0` / `rcheevos-40d916d` — rcheevos sources used as the
   reference for the port and the oracle; MIT.
 - `api_probe` / `oracle_probes` — small probing tools and scripts used to

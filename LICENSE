@@ -5,6 +5,12 @@ RetroAchievementsSharp is a native C# port of the hashing engine used by RetroAc
 (RAHasher / rcheevos, MIT license, Copyright (c) 2018 RetroAchievements.org -
 see THIRD-PARTY-NOTICES.md for the MIT notice of the ported code).
 
+The CLI behavior is compatible with the RALibretro RAHasher CLI written by
+LeXofLeviafan (https://github.com/LeXofLeviafan/) (GPL-3.0, see
+THIRD-PARTY-NOTICES.md). His project is used as the reference oracle for
+this project's parity test suite; the GPL sources and binaries live in
+References\ only and are never shipped.
+
 RetroAchievementsSharp links RVZSharp (https://github.com/purelogiccode/RVZSharp) to hash
 GameCube/Wii RVZ and WIA disc images live, without converting them to ISO.
 RVZSharp implements the Dolphin RVZ/WIA disc container

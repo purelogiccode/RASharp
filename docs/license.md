@@ -23,7 +23,7 @@ retains the upstream rcheevos MIT copyright notice, reproduced in
 | RVZSharp 1.0.0 | **GPL-2.0-or-later** (Dolphin-derived) | GameCube/Wii RVZ/WIA live hashing |
 | VideoGameFileSystemParser 1.2.0 | MIT (per package metadata) | alternative ISO9660/UDF backend |
 | Serilog 4.4.0 | Apache-2.0 | logging |
-| RAHasher 1.8.3 (RALibretro lineage, LeXofLeviafan fork) | **GPL-3.0** | **reference only** — CLI behavior (`RAHasher.cpp`, `Util.cpp`, `Hash3DS.cpp`, `HashCHD.cpp`) is re-implemented fresh; the GPL sources and the C oracle binaries live in `References/` and are never part of the shipped sources, binaries, or packages |
+| RAHasher 1.8.3 (RALibretro lineage, [LeXofLeviafan](https://github.com/LeXofLeviafan/) fork) | **GPL-3.0** | **reference only** — CLI behavior (`RAHasher.cpp`, `Util.cpp`, `Hash3DS.cpp`, `HashCHD.cpp`) is re-implemented fresh, and LeXofLeviafan's RAHasher binaries are the **reference oracle for the parity test suite**; the GPL sources and the C oracle binaries live in `References/` and are never part of the shipped sources, binaries, or packages |
 
 ## What "reference only" means in practice
 
