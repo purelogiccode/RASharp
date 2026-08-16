@@ -388,6 +388,7 @@ internal static class Program
                 HashEngine.ResetFilereader();
                 break;
             case 4 when char.ToLowerInvariant(ext[1]) == 'r' && char.ToLowerInvariant(ext[2]) == 'v' && char.ToLowerInvariant(ext[3]) == 'z':
+            case 4 when char.ToLowerInvariant(ext[1]) == 'w' && char.ToLowerInvariant(ext[2]) == 'i' && char.ToLowerInvariant(ext[3]) == 'a':
                 RvzFilereader.InitRvzFilereader();
                 RcHash.InitDefaultCdreader();
                 break;

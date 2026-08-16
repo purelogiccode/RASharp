@@ -15,6 +15,7 @@
 // achievements for end up in a "Compatible Games" folder.
 
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using RetroAchievementsSharp.Cli.Models;
 using RetroAchievementsSharp.Models;
@@ -59,6 +60,8 @@ internal static class ScanCommand
         string? matchPath = null;
         string? moveDir = null;
         var dryRun = false;
+        uint? forcedConsoleId = null;
+        string? outPath = null;
         var paths = new List<string>();
 
         var argi = 0;
@@ -87,6 +90,38 @@ internal static class ScanCommand
                         return 1;
                     }
 
+                    break;
+
+                case "-c":
+                case "--console":
+                    if (argi + 1 >= args.Length)
+                    {
+                        Usage();
+                        return 1;
+                    }
+
+                    var consoleKey = args[++argi];
+                    var consoleId = string.Equals(consoleKey, "?", StringComparison.Ordinal)
+                        ? 1 + ConsoleIds.RcConsoleMax
+                        : Program.FindConsoleId(consoleKey);
+                    if (consoleId == 0)
+                    {
+                        Console.Error.WriteLine("Unknown console \"{0}\"", consoleKey);
+                        return 1;
+                    }
+
+                    forcedConsoleId = (uint)consoleId;
+                    break;
+
+                case "-o":
+                case "--out":
+                    if (argi + 1 >= args.Length)
+                    {
+                        Usage();
+                        return 1;
+                    }
+
+                    outPath = args[++argi];
                     break;
 
                 case "-s":
@@ -188,13 +223,13 @@ internal static class ScanCommand
             var fullRoot = FileUtil.FullPath(root);
             if (Directory.Exists(fullRoot))
             {
-                ScanDirectory(fullRoot, recursive, rows, database);
+                ScanDirectory(fullRoot, recursive, rows, database, forcedConsoleId);
             }
             else if (File.Exists(fullRoot))
             {
                 /* display a single-file argument as given, so
                  * "scan a/x.gb b/x.gb" yields distinct row paths */
-                ScanFile(fullRoot, root, rows, database);
+                ScanFile(fullRoot, root, rows, database, forcedConsoleId);
             }
             else
             {
@@ -204,7 +239,26 @@ internal static class ScanCommand
         }
 
         var failed = rows.Count(row => row.Hash.Length == 0);
-        EmitManifest(format, rows, database != null);
+        var manifest = BuildManifest(format, rows, database != null);
+        if (outPath != null)
+        {
+            /* atomic-ish write: temp file in the same directory, then rename */
+            var outFull = FileUtil.FullPath(outPath);
+            var outDir = Path.GetDirectoryName(outFull);
+            if (!string.IsNullOrEmpty(outDir))
+            {
+                Directory.CreateDirectory(outDir);
+            }
+
+            var tempPath = outFull + ".tmp";
+            File.WriteAllText(tempPath, manifest);
+            File.Move(tempPath, outFull, true);
+        }
+        else
+        {
+            Console.Write(manifest);
+        }
+
         Console.Error.WriteLine(
             "Scanned {0} file(s): {1} hashed, {2} failed",
             rows.Count, rows.Count - failed, failed);
@@ -223,7 +277,7 @@ internal static class ScanCommand
 
     /* ========================================================================= */
 
-    private static void ScanDirectory(string root, bool recursive, List<ScanRow> rows, RetroAchievementsDatabase? database)
+    private static void ScanDirectory(string root, bool recursive, List<ScanRow> rows, RetroAchievementsDatabase? database, uint? forcedConsoleId)
     {
         /* deterministic output: enumerate then sort by relative path.
          * Hidden/system files and reparse points (symlink loops, junctions)
@@ -238,15 +292,52 @@ internal static class ScanCommand
         foreach (var file in Directory.EnumerateFiles(root, "*", options)
                      .OrderBy(path => path, StringComparer.Ordinal))
         {
-            ScanFile(file, Path.GetRelativePath(root, file), rows, database);
+            ScanFile(file, Path.GetRelativePath(root, file), rows, database, forcedConsoleId);
         }
     }
 
-    private static void ScanFile(string path, string displayPath, List<ScanRow> rows, RetroAchievementsDatabase? database)
+    private static void ScanFile(string path, string displayPath, List<ScanRow> rows, RetroAchievementsDatabase? database, uint? forcedConsoleId)
     {
-        var ok = TryHashAutoDetect(path, out var hash, out var consoleId);
-        var matches = ok && database != null ? database.Lookup(hash) : [];
-        rows.Add(new ScanRow(displayPath, path, ok ? consoleId : 0, ok ? hash : "", matches));
+        uint consoleId;
+        string hash;
+        if (forcedConsoleId.HasValue)
+        {
+            var ok = TryHashForcedConsole((int)forcedConsoleId.Value, path, out hash);
+            consoleId = ok ? forcedConsoleId.Value : 0;
+        }
+        else
+        {
+            var ok = TryHashAutoDetect(path, out hash, out var detectedId);
+            consoleId = ok ? detectedId : 0;
+        }
+
+        var matches = consoleId != 0 && database != null ? database.Lookup(hash) : [];
+        rows.Add(new ScanRow(displayPath, path, consoleId, hash, matches));
+    }
+
+    /* mirrors the legacy positional flow (Program.GenerateHashes): hashes every
+     * file as the given console — including the zip pre-load, CHD/RVZ cdreader
+     * selection, and 3DS key use the legacy CLI applies to a single file */
+    private static bool TryHashForcedConsole(int consoleId, string path, out string hash)
+    {
+        hash = "";
+
+        try
+        {
+            var hashes = Program.GenerateHashes(consoleId, path);
+            if (hashes.Count == 0)
+            {
+                return false;
+            }
+
+            hash = hashes[0].Hash;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "scan: forced-console hashing failed for {Path}", path);
+            return false;
+        }
     }
 
     /* mirrors the legacy '?' flow (Program.ProcessFile with consoleId > max):
@@ -298,29 +389,22 @@ internal static class ScanCommand
     /* ========================================================================= */
     /* manifest emitters                                                        */
 
-    private static void EmitManifest(string format, List<ScanRow> rows, bool withMatch)
+    private static string BuildManifest(string format, List<ScanRow> rows, bool withMatch)
     {
-        switch (format)
+        return format switch
         {
-            case "csv":
-                EmitCsv(rows, withMatch);
-                break;
-
-            case "json":
-                EmitJson(rows, withMatch);
-                break;
-
-            default:
-                EmitText(rows, withMatch);
-                break;
-        }
+            "csv" => BuildCsv(rows, withMatch),
+            "json" => BuildJson(rows, withMatch),
+            _ => BuildText(rows, withMatch)
+        };
     }
 
     /* one line per file: <hash> <console-key> <path>; failures use the 32-'?'
      * marker and a '?' console, matching the legacy wildcard output style.
      * With --match, matched rows get "=> <Title> (ID <id>)" appended. */
-    private static void EmitText(List<ScanRow> rows, bool withMatch)
+    private static string BuildText(List<ScanRow> rows, bool withMatch)
     {
+        var sb = new StringBuilder();
         foreach (var row in rows)
         {
             var line = string.Format(CultureInfo.InvariantCulture, "{0} {1} {2}",
@@ -338,24 +422,27 @@ internal static class ScanCommand
                 }
             }
 
-            Console.WriteLine(line);
+            sb.AppendLine(line);
         }
+
+        return sb.ToString();
     }
 
     /* With --match the header gains game_id,game_title and game_matches
      * (first match only for the id/title; the count covers all matches) */
-    private static void EmitCsv(List<ScanRow> rows, bool withMatch)
+    private static string BuildCsv(List<ScanRow> rows, bool withMatch)
     {
-        Console.WriteLine(withMatch ? "file,console,hash,game_id,game_title,game_matches" : "file,console,hash");
+        var sb = new StringBuilder();
+        sb.AppendLine(withMatch ? "file,console,hash,game_id,game_title,game_matches" : "file,console,hash");
         foreach (var row in rows)
         {
             var hash = row.Hash.Length == 32 ? row.Hash : "";
             if (!withMatch)
             {
-                Console.WriteLine("{0},{1},{2}",
+                sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0},{1},{2}",
                     CsvField(row.File),
                     CsvField(ConsoleKey(row.ConsoleId)),
-                    hash);
+                    hash));
                 continue;
             }
 
@@ -369,23 +456,27 @@ internal static class ScanCommand
                 gameMatches = row.Matches.Count.ToString(CultureInfo.InvariantCulture);
             }
 
-            Console.WriteLine("{0},{1},{2},{3},{4},{5}",
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3},{4},{5}",
                 CsvField(row.File),
                 CsvField(ConsoleKey(row.ConsoleId)),
                 hash,
                 CsvField(gameId),
                 CsvField(gameTitle),
-                gameMatches);
+                gameMatches));
         }
+
+        return sb.ToString();
     }
 
     /* With --match each row gains a "games" array (id, title, consoleName,
-     * numAchievements, points) — empty when the hash is not in the database */
-    private static void EmitJson(List<ScanRow> rows, bool withMatch)
+     * numAchievements, points) — empty when the hash is not in the database.
+     * "path" is always the full file path; "file" is the display path. */
+    private static string BuildJson(List<ScanRow> rows, bool withMatch)
     {
         var array = rows.Select(row => new
         {
             file = row.File,
+            path = row.FullPath,
             console = row.ConsoleId == 0 ? null : ConsoleKey(row.ConsoleId),
             consoleId = row.ConsoleId,
             hash = row.Hash.Length == 32 ? row.Hash : null,
@@ -401,7 +492,7 @@ internal static class ScanCommand
                 : null
         });
 
-        Console.WriteLine(JsonSerializer.Serialize(array, new JsonSerializerOptions { WriteIndented = true }));
+        return JsonSerializer.Serialize(array, new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine;
     }
 
     /* RFC 4180-style quoting: quote fields containing comma, quote, or newline */
@@ -482,6 +573,12 @@ internal static class ScanCommand
         Console.WriteLine("file the same way the '?' system key works for a single file.");
         Console.WriteLine();
         Console.WriteLine("  -f, --format <text|csv|json>  output format (default: text)");
+        Console.WriteLine("  -c, --console <key|id>        hash every file as this console");
+        Console.WriteLine("                                instead of auto-detecting; the same");
+        Console.WriteLine("                                flow as the legacy positional CLI");
+        Console.WriteLine("                                (zip pre-load, CHD/RVZ, 3DS keys)");
+        Console.WriteLine("  -o, --out <file>              write the manifest to this file");
+        Console.WriteLine("                                instead of stdout (atomically)");
         Console.WriteLine("  -s <systempath>               supplementary files directory (3DS keys)");
         Console.WriteLine("      --match <db.json>         RetroAchievements database snapshot");
         Console.WriteLine("                                (RetroAchievements.json); rows whose hash");
@@ -495,8 +592,8 @@ internal static class ScanCommand
         Console.WriteLine("  -h, --help                    show this help");
         Console.WriteLine();
         Console.WriteLine("Hidden, system, and reparse-point files are skipped. The manifest is");
-        Console.WriteLine("written to stdout; the summary is written to stderr. Exit code 0 when");
-        Console.WriteLine("every file hashed, 1 when any failed.");
+        Console.WriteLine("written to stdout (or the --out file); the summary is written to");
+        Console.WriteLine("stderr. Exit code 0 when every file hashed, 1 when any failed.");
         Console.WriteLine();
         Console.WriteLine("Note: .zip files hash by filename (Arcade) during auto-detection, so");
         Console.WriteLine("they rarely match the database — extract them first.");

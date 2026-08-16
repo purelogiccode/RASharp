@@ -185,6 +185,10 @@ one manifest row per file:
 ```
 RetroAchievementsSharp scan [options] <path>...
   -f, --format <text|csv|json>  output format (default: text)
+  -c, --console <key|id>        hash every file as this console instead of
+                                auto-detecting (zip pre-load, CHD/RVZ, 3DS keys)
+  -o, --out <file>              write the manifest to this file (atomically)
+                                instead of stdout
   -s <systempath>               supplementary files directory (3DS keys)
       --match <db.json>         RetroAchievements database snapshot
       --move <dir>              move matched files into <dir>/<console-key>/
@@ -193,10 +197,15 @@ RetroAchievementsSharp scan [options] <path>...
   -h, --help                    show help
 ```
 
-Each file is auto-detected the same way the `?` system key works for a
-single file; matched rows append `=> <Title> (ID <id>)`. The manifest goes
-to stdout, the summary (`Scanned N file(s): X hashed, Y failed`) to stderr;
-exit code `0` when every file hashed, `1` when any failed.
+By default each file is auto-detected the same way the `?` system key works
+for a single file; `--console` forces a specific console for every file
+(handy for per-system ROM folders, e.g.
+`RetroAchievementsSharp scan -c PS1 -f json -o hashes.json C:\Roms\PSX`).
+Matched rows append `=> <Title> (ID <id>)`. The manifest goes to stdout (or
+the `--out` file), the summary (`Scanned N file(s): X hashed, Y failed`) to
+stderr; exit code `0` when every file hashed, `1` when any failed. JSON rows
+carry `file` (display path), `path` (full path), `console`, `consoleId`, and
+`hash`.
 
 ### Other subcommands
 

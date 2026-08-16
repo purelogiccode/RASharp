@@ -306,6 +306,114 @@ public class TestScan : IDisposable
     }
 
     /* ========================================================================= */
+    /* --console (forced console) and --out (manifest to a file)                 */
+    /* ========================================================================= */
+
+    /* forcing GB (id 4) on a .nes file must hash its whole content as an MD5 —
+     * the NES header stripping is not applied, so the hash differs from the
+     * auto-detected NES cartridge hash */
+    /// <summary>Tests that --console forces the console for every file.</summary>
+    [Fact]
+    public void ScanForcedConsoleText()
+    {
+        var nes = TestDataGen.GenerateNesFile(32, true, out _);
+        WriteFile("game.nes", nes);
+
+        var (exit, stdout, _) = RunScan("--console", "GB", _root);
+
+        Assert.Equal(0, exit);
+        var expected = new[]
+        {
+            $"{Md5Hex(nes)} GB game.nes"
+        };
+        Assert.Equal(expected, stdout.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries), StringComparer.Ordinal);
+    }
+
+    /// <summary>Tests that forced-console rows carry the forced console in JSON.</summary>
+    [Fact]
+    public void ScanForcedConsoleJson()
+    {
+        var gb = TestDataGen.GenerateGenericFile(131072);
+        WriteFile("game.gb", gb);
+
+        var (exit, stdout, _) = RunScan("-f", "json", "--console", "GBA", _root);
+
+        Assert.Equal(0, exit);
+        using var doc = JsonDocument.Parse(stdout);
+        var row = doc.RootElement.EnumerateArray().Single();
+        Assert.Equal("GBA", row.GetProperty("console").GetString());
+        Assert.Equal(5, row.GetProperty("consoleId").GetInt32());
+        Assert.Equal(Md5Hex(gb), row.GetProperty("hash").GetString());
+        Assert.Equal(Path.GetFullPath(Path.Combine(_root, "game.gb")), row.GetProperty("path").GetString());
+    }
+
+    /// <summary>Tests that unknown --console values fail with an error.</summary>
+    [Fact]
+    public void ScanForcedConsoleUnknownConsole()
+    {
+        WriteFile("game.gb", TestDataGen.GenerateGenericFile(131072));
+
+        var (exit, _, stderr) = RunScan("--console", "not-a-console", _root);
+
+        Assert.Equal(1, exit);
+        Assert.Contains("Unknown console", stderr, StringComparison.Ordinal);
+    }
+
+    /// <summary>Tests that JSON rows always carry the full file path.</summary>
+    [Fact]
+    public void ScanJsonRowsCarryFullPath()
+    {
+        var gb = TestDataGen.GenerateGenericFile(131072);
+        WriteFile(Path.Combine("sub", "deep", "game.gb"), gb);
+
+        var (exit, stdout, _) = RunScan("-f", "json", _root);
+
+        Assert.Equal(0, exit);
+        using var doc = JsonDocument.Parse(stdout);
+        var row = doc.RootElement.EnumerateArray().Single();
+        Assert.Equal(Path.Combine("sub", "deep", "game.gb"), row.GetProperty("file").GetString());
+        Assert.Equal(Path.GetFullPath(Path.Combine(_root, "sub", "deep", "game.gb")), row.GetProperty("path").GetString());
+    }
+
+    /// <summary>Tests that --out writes the manifest to a file instead of stdout.</summary>
+    [Fact]
+    public void ScanOutWritesManifestToFile()
+    {
+        var gb = TestDataGen.GenerateGenericFile(131072);
+        WriteFile("game.gb", gb);
+        var outPath = Path.Combine(_root, "out", "manifest.json");
+
+        var (exit, stdout, stderr) = RunScan("-f", "json", "--out", outPath, _root);
+
+        Assert.Equal(0, exit);
+        Assert.Equal("", stdout);
+        Assert.True(File.Exists(outPath));
+        Assert.Contains("Scanned 1 file(s): 1 hashed, 0 failed", stderr, StringComparison.Ordinal);
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(outPath));
+        var row = doc.RootElement.EnumerateArray().Single();
+        Assert.Equal("game.gb", row.GetProperty("file").GetString());
+        Assert.Equal(Md5Hex(gb), row.GetProperty("hash").GetString());
+    }
+
+    /// <summary>Tests that --out overwrites an existing file.</summary>
+    [Fact]
+    public void ScanOutOverwritesExistingFile()
+    {
+        var gb = TestDataGen.GenerateGenericFile(131072);
+        WriteFile("game.gb", gb);
+        var outPath = Path.Combine(_root, "out", "manifest.json");
+        Directory.CreateDirectory(Path.Combine(_root, "out"));
+        File.WriteAllText(outPath, "stale");
+
+        var (exit, _, _) = RunScan("-f", "json", "--out", outPath, Path.Combine(_root, "game.gb"));
+
+        Assert.Equal(0, exit);
+        using var doc = JsonDocument.Parse(File.ReadAllText(outPath));
+        Assert.Equal(Md5Hex(gb), doc.RootElement.EnumerateArray().Single().GetProperty("hash").GetString());
+    }
+
+    /* ========================================================================= */
     /* --match (RetroAchievements database lookup)                               */
 
     private const string RomsDir = "roms";

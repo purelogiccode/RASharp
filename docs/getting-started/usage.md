@@ -16,6 +16,41 @@ RetroAchievementsSharp [-v] [-s systempath] system filepath...
 | `system` | console **key** (case-insensitive), **numeric id**, or `?` for auto-detection |
 | `filepath` | the game file; wildcards allowed in the filename; multiple files hash each in turn |
 
+## `scan` subcommand
+
+A RetroAchievementsSharp extension (RAHasher 1.8.3 has no subcommands) that
+hashes a whole ROM library in one process and emits one manifest row per file.
+
+```text
+RetroAchievementsSharp scan [options] <path>...
+```
+
+| Option | Meaning |
+|---|---|
+| `-f, --format <text\|csv\|json>` | output format (default: text) |
+| `-c, --console <key\|id>` | hash every file as this console instead of auto-detecting (the same flow as the legacy positional CLI, including zip pre-load, CHD/RVZ, and 3DS keys) |
+| `-o, --out <file>` | write the manifest to this file instead of stdout (atomically) |
+| `-s <systempath>` | supplementary files directory (3DS keys) |
+| `--match <db.json>` | annotate rows whose hash belongs to a game with achievements |
+| `--move <dir>` | move matched files into `<dir>/<console-key>/<filename>` |
+| `--dry-run` | preview `--move` without moving anything |
+| `--no-recursive` | do not descend into subdirectories |
+
+Examples:
+
+```bash
+# auto-detect every file in a library (text manifest on stdout)
+RetroAchievementsSharp scan C:\Roms
+
+# hash a Playstation folder with a forced console and write JSON to a file
+RetroAchievementsSharp scan -c PS1 -f json -o hashes.json C:\Roms\PSX
+```
+
+The manifest goes to stdout (or the `--out` file), the summary
+(`Scanned N file(s): X hashed, Y failed`) to stderr; exit code `0` when every
+file hashed, `1` when any failed. In JSON format every row carries `file`
+(display path), `path` (full path), `console`, `consoleId`, and `hash`.
+
 ## Examples
 
 ```bash
