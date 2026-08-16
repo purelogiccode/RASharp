@@ -54,6 +54,9 @@ including classic microcomputers.
 | `retroachievementssharp_v1.0.0_linux-x64.zip` | Linux x64 (self-contained, single-file) |
 | `retroachievementssharp_v1.0.0_linux-arm64.zip` | Linux arm64 (self-contained, single-file) |
 
+Each CLI archive includes `LICENSE`, `THIRD-PARTY-NOTICES.md`, and
+`README.md` alongside the binary.
+
 ## CLI quick start
 
 ```bash

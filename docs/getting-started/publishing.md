@@ -32,7 +32,10 @@ pack from NuGet, so e.g. Linux-arm64 can be produced on Windows.
 
 ## Release archives
 
-For GitHub releases, zip each publish output with a consistent name:
+For GitHub releases, zip each publish output with a consistent name.
+**GPL compliance: each archive must ship `LICENSE`,
+`THIRD-PARTY-NOTICES.md`, and `README.md` (the source link) alongside the
+binary** — never release a bare executable:
 
 ```text
 retroachievementssharp_v<version>_<rid>.zip
