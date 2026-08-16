@@ -6,6 +6,8 @@
 // Environment-dependent (skips with a note when the libraries, DolphinTool,
 // or the built CLI are absent) — mirrors TestRealRomParity's convention. The
 // portable synthetic suite in TestParity remains the primary parity gate.
+// DolphinTool conversions are serialized with a cross-process named mutex
+// (concurrent instances collide on Dolphin's temporary FST file).
 
 using System.Diagnostics;
 using System.Text;
@@ -73,7 +75,12 @@ public class TestRvzParity
             return;
         }
 
-        var isoPath = Path.Combine(Path.GetTempPath(), Path.GetFileNameWithoutExtension(rvzPath) + ".rvztest.iso");
+        /* unique temp ISO per invocation: the three TFM test hosts run in
+         * parallel processes, and a shared name (game + ".rvztest.iso") lets
+         * one process's conversion overwrite — or its cleanup delete —
+         * another process's ISO mid-hash */
+        var isoPath = Path.Combine(Path.GetTempPath(),
+            $"{Path.GetFileNameWithoutExtension(rvzPath)}_{Guid.NewGuid():N}.rvztest.iso");
         try
         {
             ConvertToIso(rvzPath, isoPath);
@@ -102,37 +109,61 @@ public class TestRvzParity
     }
 
     /* DolphinTool convert -i <rvz> -o <iso> -f iso; give the converter a
-     * generous timeout (full-disc decode of a ~1.4 GiB image) */
+     * generous timeout (full-disc decode of a ~1.4 GiB image).
+     *
+     * DolphinTool must never run twice at once: concurrent instances (e.g.
+     * the net8/net9/net10 slow-suite runs in parallel) collide on Dolphin's
+     * shared temporary FST file and abort with "IOS_FS: Failed to rename
+     * temporary FST file". A cross-process named mutex serializes every
+     * conversion regardless of how the suite is invoked. */
     private static void ConvertToIso(string rvzPath, string isoPath)
     {
-        var psi = new ProcessStartInfo(DolphinTool)
+        using var mutex = new Mutex(false, @"Global\RetroAchievementsSharp_DolphinTool");
+        try
         {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        psi.ArgumentList.Add("convert");
-        psi.ArgumentList.Add("-i");
-        psi.ArgumentList.Add(rvzPath);
-        psi.ArgumentList.Add("-o");
-        psi.ArgumentList.Add(isoPath);
-        psi.ArgumentList.Add("-f");
-        psi.ArgumentList.Add("iso");
-
-        using Process process = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start DolphinTool");
-        string sout = process.StandardOutput.ReadToEnd();
-        string serr = process.StandardError.ReadToEnd();
-        if (!process.WaitForExit(900_000))
+            mutex.WaitOne();
+        }
+        catch (AbandonedMutexException)
         {
-            process.Kill(entireProcessTree: true);
-            throw new TimeoutException($"DolphinTool convert timed out for {rvzPath}");
+            /* a previous conversion process died mid-run — the mutex was
+             * released and we now own it; proceed normally */
         }
 
-        if (process.ExitCode != 0)
+        try
         {
-            throw new InvalidOperationException(
-                $"DolphinTool convert failed for {rvzPath}: {process.ExitCode}\n{sout}\n{serr}");
+            var psi = new ProcessStartInfo(DolphinTool)
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            psi.ArgumentList.Add("convert");
+            psi.ArgumentList.Add("-i");
+            psi.ArgumentList.Add(rvzPath);
+            psi.ArgumentList.Add("-o");
+            psi.ArgumentList.Add(isoPath);
+            psi.ArgumentList.Add("-f");
+            psi.ArgumentList.Add("iso");
+
+            using Process process = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start DolphinTool");
+            string sout = process.StandardOutput.ReadToEnd();
+            string serr = process.StandardError.ReadToEnd();
+            if (!process.WaitForExit(900_000))
+            {
+                process.Kill(entireProcessTree: true);
+                throw new TimeoutException($"DolphinTool convert timed out for {rvzPath}");
+            }
+
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException(
+                    $"DolphinTool convert failed for {rvzPath}: {process.ExitCode}\n{sout}\n{serr}");
+            }
+        }
+        finally
+        {
+            mutex.ReleaseMutex();
         }
     }
 

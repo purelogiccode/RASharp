@@ -57,8 +57,15 @@ the shared `ParityHarness` and generators. Run it explicitly:
 
 ```bash
 dotnet build RetroAchievementsSharp.sln                 # build the fast project first
-dotnet test  RetroAchievementsSharp.Slow.Tests          # parity harness + real-world suites
+dotnet test  RetroAchievementsSharp.Slow.Tests -f net10.0   # one TFM: slow suites re-run the same engine, and DolphinTool conversions are serialized
 ```
+
+!!! note "Run one TFM"
+    The slow suite is environment-dependent and takes minutes — run a single
+    TFM (`-f net10.0`). Running all three TFMs in parallel triples the time
+    with no extra coverage; the RVZ cases serialize their DolphinTool
+    conversions via a cross-process mutex, so concurrent runs no longer
+    collide on Dolphin's temporary FST file.
 
 | File | What it runs |
 |---|---|
